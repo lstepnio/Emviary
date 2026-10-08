@@ -257,8 +257,11 @@ def attach_owner(app, service):
         csrf = auth["csrf"]
         body = (
             '<p class="quiet">Changes apply on the next wake. '
-            + '<a href="http://photoframe.local" target="_blank" rel="noopener noreferrer">'
-            + "Open local frame controls</a> (on the frame’s Wi-Fi, while awake).</p>"
+            + '<a href="http://emviary.local" target="_blank" rel="noopener noreferrer">'
+            + "Open local frame controls</a> · "
+            + '<a href="http://photoframe.local" target="_blank" '
+            + 'rel="noopener noreferrer">Legacy fallback</a>'
+            + " (on the frame’s Wi-Fi, while awake).</p>"
         )
         statuses = {row["id"]: row for row in service.status()}
         for frame in service.store.frames():
@@ -323,6 +326,32 @@ def attach_owner(app, service):
                     for n in ("stucki", "floyd-steinberg", "burkes", "sierra")
                 )
                 + "</select></label></div>"
+            )
+            body += (
+                '<details><summary>Firmware updates</summary><p class="quiet">'
+                "Checked each time the frame wakes online. Automatic accepts newer published "
+                "Emviary firmware, including preview releases. Manual requires a chosen version; "
+                "disabled keeps the installed firmware.</p>"
+                '<p><a href="https://github.com/lstepnio/Emviary-firmware/releases">'
+                "Firmware releases</a></p>"
+                '<label>Update preference<br><select name="firmware_updates">'
+            )
+            for value, label in (
+                ("automatic", "Automatic"),
+                ("manual", "Manual"),
+                ("disabled", "Disabled"),
+            ):
+                selected = "selected" if policy["firmware_updates"] == value else ""
+                body += f'<option value="{value}" {selected}>{label}</option>'
+            body += "</select></label>"
+            body += field(
+                "firmware_pinned_version",
+                "Optional release version (for example v0.4.0)",
+                policy["firmware_pinned_version"] or "",
+            )
+            body += (
+                '<p class="quiet">A chosen version limits updates to that release. '
+                "Older versions are never installed automatically.</p></details>"
             )
             body += checkbox("labels", "Species labels", policy["show_species_name"]) + checkbox(
                 "weather", "Subtle daily weather", policy["weather_cues"]
@@ -611,6 +640,10 @@ def attach_owner(app, service):
                 wake_local_time=data["wake"],
                 firmware_rotate_cron=cron_for(data["wake"]),
                 max_birds=int(data["max_birds"]),
+                firmware_updates=data.get("firmware_updates", policy["firmware_updates"]),
+                firmware_pinned_version=(
+                    data.get("firmware_pinned_version", policy["firmware_pinned_version"]) or None
+                ),
                 processing_preset=data["preset"],
                 dither_algorithm=data["dither"],
                 show_species_name=data.get("labels") == "on",

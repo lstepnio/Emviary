@@ -8,7 +8,7 @@ Emviary is the new name for the former eInkArtifact project.
   branch `emviary-poc`. The tested installed firmware revision remains pinned
   in `firmware.lock.json`; `branding_commit` records the renamed future build.
 - Python package and CLI: `emviary`, version 0.3.0. Configuration variables
-  use `EMVIARY_`. Docker image: `emviary:poc-009`.
+  use `EMVIARY_`. Docker image: `emviary:poc-010`.
 - Compose service and container: `emviary`.
 - Persistent application: `/docker/appdata/emviary`; backups:
   `/docker/backups/emviary`; database: `data/emviary.sqlite3`.
@@ -31,5 +31,7 @@ Rollback requires stopping only `emviary`, restoring the old application and
 backup directory names, restoring the pre-migration database and site config,
 Compose and export script, and starting only `einkartifact`. Preserve current
 state before restoration. Renaming only the image cannot undo the package,
-environment, database-name and canonical-URL migration. No frame reflash or
-forced wake is part of this release.
+environment, database-name and canonical-URL migration. The local-hostname follow-up installs a new firmware image with
+`emviary.local` and a `photoframe.local` mDNS alias. The frame registry ID
+is `emily-e1002`; existing token hashes, delivery state and image history
+remain preserved.

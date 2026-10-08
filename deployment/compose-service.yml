@@ -1,7 +1,7 @@
 # Fragment for /docker/docker-compose.yml under its existing services map.
 # Reuse the existing caddy network definition; it resolves to docker_caddy.
   emviary:
-    image: emviary:poc-009
+    image: emviary:poc-010
     pull_policy: never
     container_name: emviary
     user: "1000:1000"

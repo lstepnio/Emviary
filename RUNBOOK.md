@@ -87,9 +87,9 @@ Each frame has a separate bearer token; the database stores only its hash.
 ## Change wake time or appearance
 
 ```sh
-docker exec emviary emviary set-frame gift-e1002 --wake 03:15
-docker exec emviary emviary set-frame gift-e1002 --labels on --weather-cues on
-docker exec emviary emviary prepare gift-e1002
+docker exec emviary emviary set-frame emily-e1002 --wake 03:15
+docker exec emviary emviary set-frame emily-e1002 --labels on --weather-cues on
+docker exec emviary emviary prepare emily-e1002
 ```
 
 Configuration is delivered on the next request. Changes to the wake schedule
@@ -126,8 +126,8 @@ rotation and reprovisioning.
 ## Token rotation
 
 ```sh
-docker exec emviary emviary rotate-token gift-e1002 \
-  --token-file /data/provisioning/gift-e1002-new.token
+docker exec emviary emviary rotate-token emily-e1002 \
+  --token-file /data/provisioning/emily-e1002-new.token
 ```
 
 Rotation invalidates the old token immediately. Provision the awake device with
@@ -167,3 +167,23 @@ statewide mode. Scope changes invalidate cached bird evidence. Queries remain
 bounded to 100 BirdWeather stations, 32 top species and the configured eBird
 result limit; this is regional evidence, not an exhaustive state inventory.
 Only available approved, seasonally eligible artwork participates in rotation.
+
+## Firmware updates
+
+The default frame policy takes any newer compatible published release, including
+prereleases. In management, expand Firmware updates to pause updates or specify
+a version. A pin permits an upgrade to that exact published version; it does not
+force a downgrade. Automatic without a pin resumes the newest compatible release.
+The frame requests `/v1/firmware` with its existing bearer token every online
+wake. Failed discovery, downloads or digest validation retain its current
+firmware and artwork. A check never counts as picture delivery.
+
+Publish from the Emviary-firmware repository's Emviary E1002 workflow with a
+semantic release tag, or push a `v*` tag. Builds use ESP-IDF v6.0 and publish only
+a successful E1002 binary plus SHA256SUMS and firmware-manifest.json. Releases
+are immutable; use a new version for each change. Branch CI builds alone do not
+publish firmware. The GitHub release API is cached for ten minutes in the
+backend; frames download the binary directly from GitHub.
+
+Local controls: `http://emviary.local`, with `http://photoframe.local` as a fallback
+while the frame is awake on the same Wi-Fi. The primary frame is `emily-e1002`.

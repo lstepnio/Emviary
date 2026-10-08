@@ -45,7 +45,9 @@
     "show_species_name": true,
     "show_dated_weather_text": false,
     "weather_cues": true,
-    "max_birds": 3
+    "max_birds": 3,
+    "firmware_updates": "automatic",
+    "firmware_pinned_version": null
   },
   "render": {
     "concurrency": 1,
@@ -55,5 +57,5 @@
   "online_image_generation": {
     "enabled": false
   },
-  "public_frame_id": "gift-e1002"
+  "public_frame_id": "emily-e1002"
 }

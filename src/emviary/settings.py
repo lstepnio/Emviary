@@ -143,6 +143,12 @@ class FramePolicy(Model):
     show_species_name: bool = True
     show_dated_weather_text: bool = False
     weather_cues: bool = True
+    firmware_updates: Literal["automatic", "manual", "disabled"] = "automatic"
+    firmware_pinned_version: str | None = Field(
+        default=None,
+        max_length=80,
+        pattern=r"^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
+    )
     max_birds: Literal[1, 2, 3] = 3
     special_days: list[SpecialDay] = Field(default_factory=list, max_length=32)
     allowed_species: list[str] = Field(default_factory=list, max_length=64)
@@ -176,7 +182,7 @@ class Config(Model):
     frame_defaults: FramePolicy = Field(default_factory=FramePolicy)
     render: Render = Field(default_factory=Render)
     online_image_generation: Generation = Field(default_factory=Generation)
-    public_frame_id: str | None = Field(default="gift-e1002", pattern=r"^[a-z0-9][a-z0-9-]{0,47}$")
+    public_frame_id: str | None = Field(default="emily-e1002", pattern=r"^[a-z0-9][a-z0-9-]{0,47}$")
 
     @model_validator(mode="after")
     def unique_sites(self):

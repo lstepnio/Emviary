@@ -1,6 +1,6 @@
 # Emviary
 
-A Denver-area bird-art gift built around the reTerminal E1002.
+A Colorado bird-art gift built around the reTerminal E1002.
 
 A sleeping ESP32 PhotoFrame client retrieves one prepared image each night from
 https://emviary.majjix.com. One Python Docker service on `one.majjix.com` combines
@@ -31,11 +31,14 @@ Raspberry Pi or online image generation is required for this POC.
   are linked from management.
 - Health check, restricted container and existing Caddy integration.
 
-The firmware fork is https://github.com/lstepnio/Emviary-firmware, pinned to
-upstream v2.19.0 with a small clear-screen recovery patch. It invalidates the
-image cache marker when the panel is cleared and avoids a duplicate Spectra
-refresh. The firmware lock pins `dev-04c423f`, with the E1002 physical clear button
-disabled. The owner confirmed that pressing that button retains the picture. Battery sleep and endurance need separate validation.
+The public firmware fork is https://github.com/lstepnio/Emviary-firmware, based
+on upstream v2.19.0. It retains the safe panel refresh and disabled clear button,
+advertises `emviary.local` plus `photoframe.local`, and checks the authenticated
+cloud update policy on every online wake. GitHub hosts immutable, board-specific
+releases; complete-image SHA-256 verification precedes the OTA boot switch.
+Automatic updates, including prereleases, are enabled by default; management
+can pause updates or select a pinned version. Battery endurance still needs
+separate validation.
 See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
 
 ## Local development
@@ -95,6 +98,6 @@ not claim to be a complete bird catalogue. See
 [research/RELATED_PROJECTS.md](research/RELATED_PROJECTS.md) for the five-project
 review, incorporated artwork, validation and prioritized feature ideas.
 
-Emviary was previously named eInkArtifact. The installed frame retains its tested
-firmware image; the firmware repository and future build branding use Emviary.
+Emviary was previously named eInkArtifact. Both application and firmware repositories are public; operational secrets and
+device provisioning files stay outside Git.
 See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.

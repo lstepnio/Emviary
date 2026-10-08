@@ -7,10 +7,12 @@ import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from . import __version__
+from .firmware_updates import FirmwareUpdates
 from .service import Service
+from .settings import FramePolicy
 from .store import stable_json
 
 log = logging.getLogger(__name__)
@@ -95,6 +97,7 @@ def create_app(service=None, schedule=True):
         openapi_url=None,
     )
     app.state.service = service
+    app.state.firmware_updates = FirmwareUpdates()
 
     @app.middleware("http")
     async def canonical_host(request, call_next):
@@ -113,6 +116,17 @@ def create_app(service=None, schedule=True):
         with service.store.connect() as db:
             db.execute("SELECT 1").fetchone()
         return {"status": "ok", "version": __version__}
+
+    @app.get("/v1/firmware")
+    def firmware(request: Request, current: str = ""):
+        frame = authenticated(request, service)
+        if len(current) > 80:
+            raise HTTPException(400, "Invalid firmware version")
+        policy = FramePolicy.model_validate_json(frame["policy"])
+        return JSONResponse(
+            app.state.firmware_updates.check(policy, current),
+            headers={"Cache-Control": "private, no-store"},
+        )
 
     @app.get("/v1/image")
     def image(request: Request):

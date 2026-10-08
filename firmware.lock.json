@@ -9,6 +9,6 @@
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
   "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37798849988",
   "application_sha256": "260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475",
-  "branding_commit": "ee6f4dedf6f0244f9e5414c63f09f950d5c8463b",
-  "branding_note": "Repository and build branding updated; commit and application_sha256 continue to identify the physically tested installed firmware."
+  "branding_commit": "141c7668536ea65c8f01af0fb25ea6c623295338",
+  "branding_note": "Emviary cloud-managed OTA and local aliases are at branding_commit; commit and application_sha256 identify the previously tested installed image until bootstrap verification."
 }
