@@ -3,6 +3,7 @@ import json
 import math
 import os
 import re
+from datetime import date
 from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
@@ -103,6 +104,28 @@ class Panel(Model):
     format: Literal["epdgz"] = "epdgz"
 
 
+class SpecialDay(Model):
+    id: str = Field(pattern=r"^[a-z0-9-]{1,48}$")
+    date: str
+    label: str = Field(min_length=1, max_length=40)
+    message: str = Field(default="", max_length=80)
+    annual: bool = True
+    enabled: bool = True
+    theme: Literal["birthday", "anniversary", "celebration", "remembrance"] = "celebration"
+    artwork_id: str | None = Field(default=None, max_length=100)
+
+    @model_validator(mode="after")
+    def validate_day(self):
+        if date.fromisoformat(self.date).isoformat() != self.date:
+            raise ValueError("Special-day date must be YYYY-MM-DD")
+        for text in (self.label, self.message):
+            if any(ord(c) < 32 for c in text):
+                raise ValueError("Greetings must be plain single-line text")
+        if not self.label.strip():
+            raise ValueError("Special day needs a name")
+        return self
+
+
 class FramePolicy(Model):
     site_id: str = "denver-gift"
     wake_local_time: str = "03:15"
@@ -114,7 +137,8 @@ class FramePolicy(Model):
     show_species_name: bool = True
     show_dated_weather_text: bool = False
     weather_cues: bool = True
-    max_birds: Literal[1, 2] = 2
+    max_birds: Literal[1, 2, 3] = 3
+    special_days: list[SpecialDay] = Field(default_factory=list, max_length=32)
     allowed_species: list[str] = Field(default_factory=list, max_length=64)
     seasonal_themes: bool = True
     processing_preset: Literal["balanced", "dynamic", "vivid", "soft"] = "balanced"
@@ -124,6 +148,8 @@ class FramePolicy(Model):
     def schedule_matches(self):
         if self.firmware_rotate_cron != cron_for(self.wake_local_time):
             raise ValueError("Wake time and firmware cron disagree")
+        if len({d.id for d in self.special_days}) != len(self.special_days):
+            raise ValueError("Special-day entries must have unique identifiers")
         return self
 
 
@@ -192,8 +218,8 @@ class Settings:
             if artwork.get("kind") == "field_study" and artwork["approved"]:
                 raise ValueError("Field-study plates are reference only on this panel")
             bird_count = artwork.get("depicted_birds", 1)
-            if type(bird_count) is not int or bird_count not in (1, 2):
-                raise ValueError("Artwork may depict at most two birds")
+            if type(bird_count) is not int or bird_count not in (1, 2, 3):
+                raise ValueError("Artwork may depict at most three birds")
             months = artwork.get("months", [])
             if not months or any(type(m) is not int or not 1 <= m <= 12 for m in months):
                 raise ValueError("Artwork needs valid seasonal eligibility")

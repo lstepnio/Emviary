@@ -44,7 +44,7 @@
     "show_species_name": true,
     "show_dated_weather_text": false,
     "weather_cues": true,
-    "max_birds": 2
+    "max_birds": 3
   },
   "render": {
     "concurrency": 1,

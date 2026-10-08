@@ -15,7 +15,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from .api import config_payload
-from .settings import FramePolicy, cron_for
+from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
 
 COOKIE = "eink_owner"
@@ -255,7 +255,11 @@ def attach_owner(app, service):
         if not auth:
             return RedirectResponse("/manage/login", status_code=303)
         csrf = auth["csrf"]
-        body = '<p class="quiet">Changes apply on the next wake.</p>'
+        body = (
+            '<p class="quiet">Changes apply on the next wake. '
+            + '<a href="http://photoframe.local" target="_blank" rel="noopener noreferrer">'
+            + "Open local frame controls</a> (on the frame’s Wi-Fi, while awake).</p>"
+        )
         statuses = {row["id"]: row for row in service.status()}
         for frame in service.store.frames():
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
@@ -292,7 +296,7 @@ def attach_owner(app, service):
                         f'<option value="{n}" '
                         f"{'selected' if n == policy['max_birds'] else ''}>{n}</option>"
                     )
-                    for n in (1, 2)
+                    for n in (1, 2, 3)
                 )
                 + "</select></label>"
             )
@@ -345,6 +349,110 @@ def attach_owner(app, service):
                 + hidden(csrf)
                 + "<p><button>Prepare a fresh composition</button></p></form>"
             )
+            body += '<details><summary>Special days</summary><p class="quiet">'
+            body += (
+                "A single bird, occasion artwork and your greeting replace the usual layout "
+                "on the matching Denver date. The first matching enabled entry wins. "
+                "Annual February 29 entries appear only in leap years.</p>"
+            )
+            for event in [*policy["special_days"], None]:
+                day = event or {
+                    "id": "",
+                    "date": "",
+                    "label": "",
+                    "message": "",
+                    "annual": True,
+                    "enabled": True,
+                    "theme": "birthday",
+                    "artwork_id": None,
+                }
+                body += (
+                    "<h3>"
+                    + escape(day["label"] if event else "Add a special day")
+                    + '</h3><form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/special-days">'
+                    + hidden(csrf)
+                    + '<input type="hidden" name="id" value="'
+                    + escape(day["id"])
+                    + '">'
+                    + '<div class="grid">'
+                )
+                body += field("date", "Date", day["date"], "date", "required")
+                body += field(
+                    "label", "Occasion / heading", day["label"], extra='maxlength="40" required'
+                )
+                body += field(
+                    "message", "Greeting (optional)", day["message"], extra='maxlength="80"'
+                )
+                body += '<label>Artwork theme<br><select name="theme">'
+                for value, label in (
+                    ("birthday", "Birthday"),
+                    ("anniversary", "Anniversary"),
+                    ("celebration", "Celebration"),
+                    ("remembrance", "Remembrance"),
+                ):
+                    body += (
+                        '<option value="'
+                        + value
+                        + '" '
+                        + ("selected" if day["theme"] == value else "")
+                        + ">"
+                        + label
+                        + "</option>"
+                    )
+                body += '</select></label><label>Featured bird art<br><select name="artwork_id">'
+                body += '<option value="">Choose from the seasonal library</option>'
+                counters = {}
+                for art in sorted(
+                    service.settings.artworks, key=lambda a: (a["common_name"], a["id"])
+                ):
+                    if not art["approved"] or art.get("depicted_birds", 1) != 1:
+                        continue
+                    counters[art["common_name"]] = counters.get(art["common_name"], 0) + 1
+                    label = (
+                        art["common_name"]
+                        + " / "
+                        + art["source"].split(" /")[0]
+                        + " / variant "
+                        + str(counters[art["common_name"]])
+                    )
+                    body += (
+                        '<option value="'
+                        + escape(art["id"])
+                        + '" '
+                        + ("selected" if day["artwork_id"] == art["id"] else "")
+                        + ">"
+                        + escape(label)
+                        + "</option>"
+                    )
+                body += "</select></label></div>"
+                body += checkbox("annual", "Repeat every year", day["annual"])
+                body += checkbox("enabled", "Enabled", day["enabled"])
+                body += (
+                    "<button>"
+                    + ("Save changes" if event else "Add special day")
+                    + "</button></form>"
+                )
+                if event:
+                    body += (
+                        '<p><a href="/manage/frames/'
+                        + identifier
+                        + "/special-days/"
+                        + escape(day["id"])
+                        + '/preview" target="_blank" rel="noopener">'
+                        + "Preview this day</a></p>"
+                    )
+                    body += (
+                        '<form method="post" action="/manage/frames/'
+                        + identifier
+                        + "/special-days/"
+                        + escape(day["id"])
+                        + '/delete">'
+                        + hidden(csrf)
+                        + "<p><button>Remove this day</button></p></form>"
+                    )
+            body += "</details>"
             body += (
                 '<a class="quiet" href="/manage/frames/'
                 + identifier
@@ -519,6 +627,76 @@ def attach_owner(app, service):
             raise HTTPException(400, "Invalid frame settings") from None
         service.store.set_policy(identifier, validated)
         return redirect()
+
+    @app.post("/manage/frames/{identifier}/special-days")
+    async def save_special_day(identifier: str, request: Request):
+        data = await checked_form(request)
+        policy = FramePolicy.model_validate_json(
+            service.store.frame(identifier)["policy"]
+        ).model_dump()
+        try:
+            day_id = data.get("id") or secrets.token_hex(6)
+            if data.get("id") and not any(d["id"] == day_id for d in policy["special_days"]):
+                raise ValueError("Unknown special day")
+            day = SpecialDay.model_validate(
+                {
+                    "id": day_id,
+                    "date": data["date"],
+                    "label": data["label"].strip(),
+                    "message": data.get("message", "").strip(),
+                    "annual": data.get("annual") == "on",
+                    "enabled": data.get("enabled") == "on",
+                    "theme": data["theme"],
+                    "artwork_id": data.get("artwork_id") or None,
+                }
+            )
+            if day.artwork_id:
+                art = next(
+                    (a for a in service.settings.artworks if a["id"] == day.artwork_id), None
+                )
+                if (
+                    not art
+                    or not art["approved"]
+                    or art.get("depicted_birds", 1) != 1
+                    or int(day.date[5:7]) not in art["months"]
+                ):
+                    raise ValueError(
+                        "Choose bird art eligible in that month, or seasonal selection"
+                    )
+            if data.get("id"):
+                policy["special_days"] = [
+                    day.model_dump() if d["id"] == day_id else d for d in policy["special_days"]
+                ]
+            else:
+                policy["special_days"].append(day.model_dump())
+            validated = FramePolicy.model_validate(policy)
+        except (ValueError, KeyError) as error:
+            raise HTTPException(400, "Invalid special day: " + str(error)) from None
+        service.store.set_policy(identifier, validated)
+        return redirect()
+
+    @app.post("/manage/frames/{identifier}/special-days/{day_id}/delete")
+    async def delete_special_day(identifier: str, day_id: str, request: Request):
+        await checked_form(request)
+        policy = FramePolicy.model_validate_json(
+            service.store.frame(identifier)["policy"]
+        ).model_dump()
+        if not any(d["id"] == day_id for d in policy["special_days"]):
+            raise HTTPException(404, "Unknown special day")
+        policy["special_days"] = [d for d in policy["special_days"] if d["id"] != day_id]
+        service.store.set_policy(identifier, FramePolicy.model_validate(policy))
+        return redirect()
+
+    @app.get("/manage/frames/{identifier}/special-days/{day_id}/preview")
+    def special_day_preview(identifier: str, day_id: str, request: Request):
+        require(request)
+        try:
+            image = service.preview_special_day(identifier, day_id)
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from None
+        except RuntimeError:
+            raise HTTPException(409, "Preparation is busy; try the preview again shortly") from None
+        return Response(image, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
 
     @app.post("/manage/sites/{identifier}")
     async def site_settings(identifier: str, request: Request):

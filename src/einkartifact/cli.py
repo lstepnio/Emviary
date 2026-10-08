@@ -36,7 +36,7 @@ def main():
     policy.add_argument("--preset", choices=["balanced", "dynamic", "vivid", "soft"])
     policy.add_argument("--labels", choices=["on", "off"])
     policy.add_argument("--weather-cues", choices=["on", "off"])
-    policy.add_argument("--max-birds", type=int, choices=[1, 2])
+    policy.add_argument("--max-birds", type=int, choices=[1, 2, 3])
     prepare = commands.add_parser("prepare")
     prepare.add_argument("id")
     prepare.add_argument("--date")

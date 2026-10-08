@@ -24,8 +24,11 @@ Raspberry Pi or online image generation is required for this POC.
   refresh schedule, frame provisioning and owner credentials.
 - Public homepage mirrors the last image delivered to the selected frame;
   owner previews show upcoming prepared art separately.
-- One or two distinct birds, sized for the 800×480 panel, with sparse seasonal
+- One to three distinct birds, default maximum three, sized for the 800×480 panel, with sparse seasonal
   edges and forecast cues behind the unchanged curated illustrations.
+- Special dates with annual/one-time recurrence, custom greetings, four drawn
+  occasion themes, chosen bird art and private previews. Local frame controls
+  are linked from management.
 - Health check, restricted container and existing Caddy integration.
 
 The firmware fork is https://github.com/lstepnio/einkartifact-firmware, pinned to

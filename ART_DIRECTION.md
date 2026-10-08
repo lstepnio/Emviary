@@ -27,8 +27,9 @@ observation. Observer locations and checklist identifiers are discarded.
 
 Use the existing curated bird cutouts without regenerating diagnostic plumage.
 Never stretch, recolor, mirror or invent a bird pose. Resize with aspect ratio
-preserved. The 800×480 E1002 supports one or two birds, never three. Two-bird
-layouts use separate cells and readable labels, with no silhouette collisions.
+preserved. The 800×480 E1002 supports one to three birds, default maximum three.
+Multiple birds use separate cells with aspect ratios preserved. Three-bird
+labels can wrap over two lines; scientific names remain in a separate line.
 Selection and layout are saved before conversion, making retries reproducible.
 
 Quiet paper, strong text and restrained edge treatments keep dithering readable.
@@ -83,3 +84,18 @@ not certify ornithological accuracy or physical display quality. Those limits
 are recorded per asset. Bright breeding plumage can have narrower eligibility
 than the species itself. Regional provider weighting never overrides the
 seasonal and owner species filters. See research/RELATED_PROJECTS.md.
+
+## Special dates (renderer version 5)
+
+Configured special dates use a single bird, a drawn birthday/anniversary/
+celebration/remembrance motif, an occasion heading and an optional greeting.
+The bird remains unchanged. The layout reserves separate bands for the artwork,
+species labels and greeting; neutral text is packed as black/white without
+changing bird pixels. Preview uses the actual Spectra6 conversion and does not
+publish an image or change the current frame delivery.
+
+Annual dates use Denver month/day, one-time dates match the full date. The first
+enabled match wins; February 29 is not moved in non-leap years. An explicitly
+chosen approved seasonal artwork takes precedence over the ordinary species
+filter for that occasion. If it later becomes unavailable, seasonal selection
+is the fallback. Normal rotation resumes on the next day.

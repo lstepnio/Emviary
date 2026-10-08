@@ -13,7 +13,7 @@ def test_panel_limits_and_species_rules(service, tmp_path):
             service.settings.artworks, "2026-10-08", {}, [], str(number), policy
         )
         outcomes.add(len(selected))
-        assert len(selected) <= 2
+        assert len(selected) <= 3
         assert len({a["scientific_name"] for a in selected}) == len(selected)
         plan = {
             "local_date": "2026-10-08",
@@ -26,7 +26,7 @@ def test_panel_limits_and_species_rules(service, tmp_path):
         render.compose(service.settings.art_dir, selected[0], plan, path)
         with Image.open(path) as image:
             assert image.size == (800, 480)
-    assert outcomes == {1, 2}
+    assert outcomes == {1, 2, 3}
     policy["max_birds"] = 1
     assert (
         len(render.choose_artworks(service.settings.artworks, "2026-10-08", {}, [], "2", policy))

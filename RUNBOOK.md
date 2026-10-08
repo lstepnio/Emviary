@@ -7,7 +7,7 @@ Compose service: `einkartifact`; container: `einkartifact`
 ## Management
 
 Open https://eink.majjix.com/manage and sign in with the private owner password.
-The dashboard manages frame schedules, one/two-bird layouts, selection constraints,
+The dashboard manages frame schedules, one-to-three-bird layouts, selection constraints,
 labels, season/forecast cues, local coordinates/radius, provider settings, eBird
 credentials, frame provisioning and password changes. Settings are validated and
 persisted in SQLite; no Docker rebuild is needed. An owner preview can differ
@@ -22,6 +22,26 @@ management can replace password hashes and provider credentials.
 The public root mirrors the selected frame's last delivered image. This is based
 on firmware fetch telemetry, not direct panel sensing. Choose the public frame
 in management or hide it. The source-art library is at `/library`.
+
+The local-controls link opens http://photoframe.local. It works on the frame's
+local network while the device is awake; it does not wake the sleeping device.
+
+Expand **Special days** on a frame to add, edit, disable or remove an occasion.
+Set the calendar date, annual recurrence or one-time occurrence, heading,
+optional greeting, artwork theme and optional featured bird illustration.
+Headings allow 40 characters and greetings 80. Selected art must be approved
+and seasonally eligible in that month. The occasion uses one bird for readable
+messaging, regardless of the normal maximum. The first enabled matching entry
+wins; annual February 29 events run only in leap years.
+
+**Preview this day** renders the next annual occurrence, or the exact one-time
+date, without changing the ready image or public mirror. Previews omit a
+forecast because they do not query future weather. If adding an occasion for
+today, use **Prepare a fresh composition** after saving so it is ready for the
+next wake. Otherwise nightly preparation handles it automatically. The next
+day returns to normal bird rotation. No extra wakes or firmware changes are
+needed. Personal occasion settings are available only in authenticated
+management; the greeting is visible on the public mirror once delivered.
 
 The CLI below is retained for recovery and administration.
 

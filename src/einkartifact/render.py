@@ -1,5 +1,6 @@
 import gzip
 import hashlib
+import json
 import math
 import os
 import random
@@ -7,11 +8,11 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 4
+RENDER_VERSION = 5
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -26,6 +27,7 @@ def profile_hash(policy, catalog):
             "processing_preset",
             "dither_algorithm",
             "max_birds",
+            "special_days",
             "allowed_species",
             "seasonal_themes",
         )
@@ -70,30 +72,54 @@ def choose_art(artworks, local_date, inputs, recent_species, seed):
 
 
 def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
-    capacity = min(policy.get("max_birds", 2), max(1, policy["panel"]["width"] // 360))
+    capacity = min(policy.get("max_birds", 3), 3)
     candidates = [a for a in artworks if a.get("depicted_birds", 1) <= capacity]
     first = choose_art(candidates, local_date, inputs, recent_species, seed)
-    alternatives = [
-        a
-        for a in candidates
-        if a["scientific_name"] != first["scientific_name"]
-        and a.get("kind", "cutout") == "cutout"
-        and a.get("depicted_birds", 1) == 1
-        and compatible_licenses([first, a])
-    ]
     if (
         capacity < 2
         or first.get("kind", "cutout") != "cutout"
         or first.get("depicted_birds", 1) > 1
-        or not alternatives
-        or random.Random(seed + ":layout").random() < 0.35
     ):
         return [first]
-    try:
-        second = choose_art(alternatives, local_date, inputs, recent_species, seed + ":second")
-    except ValueError:
-        return [first]
-    return [first, second]
+    selected = [first]
+    target = random.Random(seed + ":layout").choices(
+        range(1, capacity + 1), weights=range(1, capacity + 1), k=1
+    )[0]
+    while len(selected) < target:
+        alternatives = [
+            a
+            for a in candidates
+            if a["scientific_name"] not in {b["scientific_name"] for b in selected}
+            and a.get("kind", "cutout") == "cutout"
+            and a.get("depicted_birds", 1) == 1
+            and compatible_licenses([*selected, a])
+        ]
+        try:
+            selected.append(
+                choose_art(
+                    alternatives,
+                    local_date,
+                    inputs,
+                    recent_species,
+                    seed + f":bird-{len(selected)}",
+                )
+            )
+        except ValueError:
+            break
+    return selected
+
+
+def special_day_for(policy, local_date):
+    # Stable list order resolves overlaps; leap-day events only match February 29.
+    return next(
+        (
+            d
+            for d in policy.get("special_days", [])
+            if d["enabled"]
+            and (d["date"][5:] == local_date[5:] if d["annual"] else d["date"] == local_date)
+        ),
+        None,
+    )
 
 
 def compatible_licenses(artworks):
@@ -173,13 +199,70 @@ def draw_weather_mark(draw, values, x, y):
             draw.line((x - halfwidth, y + offset, x + halfwidth, y + offset), fill=ink, width=2)
 
 
+def wrapped_lines(draw, text, font, width):
+    lines, line = [], ""
+    for word in text.split():
+        trial = (line + " " + word).strip()
+        if draw.textlength(trial, font=font) <= width:
+            line = trial
+            continue
+        if line:
+            lines.append(line)
+        line = ""
+        for char in word:
+            if line and draw.textlength(line + char, font=font) > width:
+                lines.append(line)
+                line = ""
+            line += char
+    if line:
+        lines.append(line)
+    return lines
+
+
+def fitted_lines(art_dir, draw, text, width, size, minimum, max_lines):
+    for current in range(size, minimum - 1, -1):
+        font = _font(art_dir, current)
+        lines = wrapped_lines(draw, text, font, width)
+        if len(lines) <= max_lines:
+            return font, lines
+    raise ValueError("Text is too long for a readable panel greeting or label")
+
+
+def draw_occasion_art(draw, theme):
+    # Hand-composed, bounded line art; no generated backgrounds or changes to the bird.
+    ink = "#000000"
+    for x in (105, 695):
+        if theme == "birthday":
+            draw.rectangle((x - 12, 105, x + 12, 125), outline=ink, width=2)
+            draw.line((x - 14, 105, x + 14, 105), fill=ink, width=2)
+            for dx in (-7, 0, 7):
+                draw.line((x + dx, 95, x + dx, 102), fill=ink, width=2)
+                draw.ellipse((x + dx - 1, 90, x + dx + 1, 93), fill="#92704a")
+        elif theme == "anniversary":
+            draw.ellipse((x - 15, 102, x + 3, 120), outline=ink, width=2)
+            draw.ellipse((x - 3, 102, x + 15, 120), outline=ink, width=2)
+        elif theme == "remembrance":
+            draw.line((x - 7, 128, x + 7, 93), fill=ink, width=2)
+            for dy in (0, 10, 20):
+                draw.line((x - 4, 119 - dy, x - 12, 112 - dy), fill=ink, width=2)
+        else:
+            draw.rectangle((x - 12, 103, x + 12, 125), outline=ink, width=2)
+            draw.line((x, 103, x, 125), fill=ink, width=2)
+            draw.line((x - 12, 110, x + 12, 110), fill=ink, width=2)
+            draw.arc((x - 12, 93, x, 105), 0, 300, fill=ink, width=2)
+            draw.arc((x, 93, x + 12, 105), 240, 540, fill=ink, width=2)
+
+
 def compose(art_dir, artwork, plan, output):
     date = plan["local_date"]
     season = season_for(int(date[5:7]))
     canvas = Image.new("RGBA", (800, 480), "#ffffff")
     draw = ImageDraw.Draw(canvas)
     draw.rectangle((22, 22, 778, 458), outline="#333333", width=1)
-    draw.line((50, 392, 750, 392), fill="#333333", width=1)
+    occasion = plan.get("special_day")
+    draw.line(
+        (50, 363 if occasion else 392, 750, 363 if occasion else 392), fill="#333333", width=1
+    )
     palettes = {
         "winter": ("#829395", "#d1d9d5"),
         "spring": ("#6f805c", "#a9b482"),
@@ -187,12 +270,15 @@ def compose(art_dir, artwork, plan, output):
         "autumn": ("#92704a", "#bbaa71"),
     }
     dark, light = palettes[season]
+    seasonal_offset = -70 if occasion else 0
     # Marginal botanical motifs keep weather and season away from diagnostic plumage.
     for side in (1, -1) if plan["policy"].get("seasonal_themes", True) else ():
         x = 57 if side == 1 else 743
-        draw.line((x, 367, x + side * 9, 288), fill=dark, width=2)
+        draw.line(
+            (x, 367 + seasonal_offset, x + side * 9, 288 + seasonal_offset), fill=dark, width=2
+        )
         for n in range(4):
-            y = 348 - n * 15
+            y = 348 - n * 15 + seasonal_offset
             if season == "winter":
                 draw.line((x + side * 3, y, x + side * 13, y - 7), fill=dark, width=1)
             else:
@@ -210,17 +296,22 @@ def compose(art_dir, artwork, plan, output):
             draw.text((746, 39), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
     birds = plan.get("artworks", [artwork])
     count = sum(a.get("depicted_birds", 1) for a in birds)
-    if not 1 <= count <= min(2, policy.get("max_birds", 2)):
-        raise ValueError("The panel supports at most two birds")
+    if not 1 <= count <= min(3, policy.get("max_birds", 3)):
+        raise ValueError("The panel supports at most three birds")
     if any(a.get("kind", "cutout") != "cutout" for a in birds) and len(birds) != 1:
         raise ValueError("Historical plates require their own composition")
     if any(not a["approved"] or a.get("kind") == "field_study" for a in birds):
         raise ValueError("Reference artwork cannot be sent to the panel")
     composition_license(birds)
-    centers = [400] if len(birds) == 1 else [222, 578]
-    limits = (572, 313) if len(birds) == 1 else (302, 285)
+    if occasion and (len(birds) != 1 or count != 1):
+        raise ValueError("Special-day greetings use one bird")
+    centers = {1: [400], 2: [222, 578], 3: [165, 400, 635]}[len(birds)]
+    limits = {1: (572, 313), 2: (302, 285), 3: (190, 285)}[len(birds)]
     if birds[0].get("kind") == "plate":
         limits = (660, 313)
+    if occasion:
+        limits = (520, 250) if birds[0].get("kind") == "plate" else (480, 250)
+        draw_occasion_art(draw, occasion["theme"])
     for item, center in zip(birds, centers, strict=True):
         with Image.open(art_dir / item["asset"]) as original:
             bird = original.convert("RGBA")
@@ -229,25 +320,62 @@ def compose(art_dir, artwork, plan, output):
                 raise ValueError("Artwork is entirely transparent")
             bird = ImageOps.contain(bird.crop(box), limits, Image.Resampling.LANCZOS)
             x = center - bird.width // 2
-            y = 69 + (285 - bird.height) // 2 if len(birds) == 2 else 55 + (313 - bird.height) // 2
+            y = (
+                55 + (250 - bird.height) // 2
+                if occasion
+                else (
+                    69 + (285 - bird.height) // 2
+                    if len(birds) > 1
+                    else 55 + (313 - bird.height) // 2
+                )
+            )
             canvas.alpha_composite(bird, (x, y))
         draw = ImageDraw.Draw(canvas)
         if policy["show_species_name"]:
-            title = item["common_name"]
-            font = _font(art_dir, 24 if len(birds) == 1 else 19)
-            width = 650 if len(birds) == 1 else 322
-            while draw.textlength(title, font=font) > width and font.size > 17:
-                font = _font(art_dir, font.size - 1)
-            if draw.textlength(title, font=font) > width:
-                raise ValueError("Species title cannot be legible in this layout")
-            draw.text((center, 415), title, fill="#111111", font=font, anchor="mm")
+            width = {1: 650, 2: 322, 3: 226}[len(birds)]
+            font, lines = fitted_lines(
+                art_dir,
+                draw,
+                item["common_name"],
+                width,
+                24 if len(birds) == 1 else 19,
+                17,
+                2 if len(birds) == 3 else 1,
+            )
+            title_y = 327 if occasion else (404 if len(lines) == 2 else 415)
+            for n, line in enumerate(lines):
+                draw.text((center, title_y + n * 21), line, fill="#111111", font=font, anchor="mm")
             draw.text(
-                (center, 442),
+                (center, 350 if occasion else 445 if len(birds) == 3 else 442),
                 item["scientific_name"],
                 fill="#333333",
-                font=_font(art_dir, 17 if len(birds) == 1 else 14, italic=True),
+                font=_font(
+                    art_dir, 17 if len(birds) == 1 else 13 if len(birds) == 3 else 14, italic=True
+                ),
                 anchor="mm",
             )
+    if occasion:
+        font, lines = fitted_lines(art_dir, draw, occasion["label"], 660, 28, 18, 2)
+        if len(lines) == 2:
+            font, lines = fitted_lines(art_dir, draw, occasion["label"], 660, 20, 18, 2)
+        for n, line in enumerate(lines):
+            draw.text(
+                (400, (378 if len(lines) == 2 else 389) + n * 22),
+                line,
+                fill="#111111",
+                font=font,
+                anchor="mm",
+            )
+        if occasion["message"]:
+            font, lines = fitted_lines(art_dir, draw, occasion["message"], 660, 19, 14, 2)
+            for n, line in enumerate(lines):
+                draw.text(
+                    (400, 422 + n * 21),
+                    line,
+                    fill="#333333",
+                    font=font,
+                    anchor="mm",
+                )
     # Dating every composition also makes stale retained weather cues understandable.
     draw.text((53, 39), f"DENVER  /  {date}", font=_font(art_dir, 12), fill="#333333")
     if policy["show_dated_weather_text"] and weather_valid:
@@ -255,7 +383,9 @@ def compose(art_dir, artwork, plan, output):
         condition = weather_label(v) + " / " if policy["weather_cues"] else ""
         text = f"{condition}{v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
         draw.text((746, 39), text, font=_font(art_dir, 11), fill="#7c715d", anchor="ra")
-    canvas.convert("RGB").save(output, format="PNG")
+    metadata = PngImagePlugin.PngInfo()
+    metadata.add_text("eink_neutral_bands", json.dumps([[0, 55], [310 if occasion else 392, 480]]))
+    canvas.convert("RGB").save(output, format="PNG", pnginfo=metadata)
 
 
 def validate_epdgz(path, width=800, height=480):
@@ -340,13 +470,18 @@ def preserve_neutral_graphics(source, target):
         if image.size != (800, 480):
             raise ValueError("Invalid source dimensions")
         pixels = image.convert("RGB").tobytes()
+        bands = json.loads(image.info.get("eink_neutral_bands", "[[0,55],[392,480]]"))
+        if any(
+            not isinstance(b, list) or len(b) != 2 or not 0 <= b[0] < b[1] <= 480 for b in bands
+        ):
+            raise ValueError("Invalid neutral-graphics bands")
     with gzip.open(target, "rb") as handle:
         packed = bytearray(handle.read(192001))
     if len(packed) != 192000:
         raise ValueError("Invalid packed dimensions")
     for index in range(384000):
         x, y = index % 800, index // 800
-        if not (y < 55 or y >= 392 or x <= 25 or x >= 775):
+        if not (any(start <= y < end for start, end in bands) or x <= 25 or x >= 775):
             continue
         offset = index * 3
         r, g, b = pixels[offset : offset + 3]

@@ -98,7 +98,31 @@ class Service:
             candidates = [
                 a for a in candidates if a["scientific_name"] in policy["allowed_species"]
             ]
-        artworks = render.choose_artworks(candidates, local_date, inputs, recent, seed, policy)
+        occasion = render.special_day_for(policy, local_date)
+        if occasion:
+            requested = next(
+                (
+                    a
+                    for a in self.settings.artworks
+                    if a["id"] == occasion["artwork_id"]
+                    and a["approved"]
+                    and int(local_date[5:7]) in a["months"]
+                    and a.get("depicted_birds", 1) == 1
+                ),
+                None,
+            )
+            artworks = [
+                requested
+                or render.choose_art(
+                    [a for a in candidates if a.get("depicted_birds", 1) == 1],
+                    local_date,
+                    inputs,
+                    recent,
+                    seed + ":occasion",
+                )
+            ]
+        else:
+            artworks = render.choose_artworks(candidates, local_date, inputs, recent, seed, policy)
         return {
             "frame_id": frame["id"],
             "local_date": local_date,
@@ -109,15 +133,71 @@ class Service:
             "seed": seed,
             "artwork": artworks[0],
             "artworks": artworks,
+            "special_day": occasion,
             "layout": {
                 "bird_count": sum(a.get("depicted_birds", 1) for a in artworks),
-                "panel_capacity": 2,
+                "panel_capacity": 3,
             },
             "license": render.composition_license(artworks),
             "artwork_licenses": sorted({a["license"] for a in artworks}),
             "renderer_version": render.RENDER_VERSION,
             "converter_version": self.settings.config.render.initial_converter_version,
         }
+
+    def preview_special_day(self, frame_id, day_id):
+        frame = self.store.frame(frame_id)
+        policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
+        occasion = next((d for d in policy["special_days"] if d["id"] == day_id), None)
+        if not occasion:
+            raise ValueError("Unknown special day")
+        site = self.settings.config.site(frame["site_id"])
+        today = datetime.now(ZoneInfo(site.timezone)).date()
+        preview_date = date.fromisoformat(occasion["date"])
+        if occasion["annual"]:
+            month, day = preview_date.month, preview_date.day
+            for year in range(today.year, today.year + 9):
+                try:
+                    candidate = date(year, month, day)
+                except ValueError:
+                    continue
+                if candidate >= today:
+                    preview_date = candidate
+                    break
+        candidates = [
+            a
+            for a in self.settings.artworks
+            if a["approved"]
+            and preview_date.month in a["months"]
+            and a.get("depicted_birds", 1) == 1
+        ]
+        requested = next((a for a in candidates if a["id"] == occasion["artwork_id"]), None)
+        if not requested and policy["allowed_species"]:
+            candidates = [
+                a for a in candidates if a["scientific_name"] in policy["allowed_species"]
+            ]
+        artwork = requested or render.choose_art(
+            candidates, preview_date.isoformat(), {}, [], day_id
+        )
+        plan = {
+            "local_date": preview_date.isoformat(),
+            "inputs": {},
+            "policy": policy,
+            "artworks": [artwork],
+            "special_day": occasion,
+        }
+        with preparation_lock(self.settings.data_dir), tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            master, packed, preview = (
+                root / "master.png",
+                root / "panel.epdgz",
+                root / "preview.jpg",
+            )
+            render.compose(self.settings.art_dir, artwork, plan, master)
+            self.converter(
+                master, packed, preview, policy, self.settings.config.render.timeout_seconds
+            )
+            render.validate_epdgz(packed)
+            return preview.read_bytes()
 
     def prepare(self, frame_id, local_date=None, force=False, offline=False):
         with preparation_lock(self.settings.data_dir):
