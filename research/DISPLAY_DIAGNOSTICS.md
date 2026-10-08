@@ -110,3 +110,9 @@ intentional clear action a plausible explanation for this captured event, withou
 establishing the cause of every historical white-screen report. The firmware
 currently accepts a short clear-button press. Green wake does not restore art;
 rotation is required after a clear. The raw diagnostic log remains private.
+
+After the owner pressed green wake, an explicit API rotation succeeded. The server
+recorded delivery of revision 6 at 14:18:20 UTC with an empty client ETag, as
+expected after a clear. Firmware logged `Display update complete` and `Image
+displayed successfully`, with one 192000-byte panel transfer. Physical confirmation
+was requested separately; these logs alone do not prove visible panel retention.
