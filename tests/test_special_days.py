@@ -70,7 +70,7 @@ def test_owner_special_day_create_edit_delete_and_validation(service, frame, tmp
     client, csrf = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage").text
     assert 'href="http://photoframe.local"' in page
-    assert '<option value="3" selected>3</option>' in page
+    assert '<option value="3" selected>3</option>' in client.get("/manage/appearance").text
     url = "/manage/frames/test-frame/special-days"
     data = {
         "csrf": csrf,

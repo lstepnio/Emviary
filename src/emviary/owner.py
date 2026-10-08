@@ -11,15 +11,15 @@ from datetime import UTC, datetime, timedelta
 from email import policy as email_policy
 from email.parser import BytesParser
 from pathlib import Path
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlencode, urlsplit
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from starlette.background import BackgroundTask
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
-from .branding import BRAND_MARK, ICON_LINK
 from .event_art import MAX_UPLOAD, import_presets
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
@@ -71,38 +71,20 @@ def escape(value):
     return html.escape(str(value), quote=True)
 
 
-def page(title, body):
-    return HTMLResponse(
-        """<!doctype html><html lang="en"><meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><title>"""
-        + escape(title + " · Emviary" if title != "Emviary" else title)
-        + "</title>"
-        + ICON_LINK
-        + """
-    <style>body{margin:0;background:#f4f0e6;color:#343c32;font:16px/1.6 Georgia,serif}
-    main{max-width:920px;margin:auto;padding:35px 22px}h1,h2{font-weight:400}
-    a{color:#536750}section{border-top:1px solid #d1cbb9;padding:20px 0;margin-top:20px}
-    label{display:block;margin:10px 0}input,select,button{font:15px system-ui;padding:8px;
-    border:1px solid #c7c5b8;border-radius:3px;background:#fffdf7}button{cursor:pointer}
-    input[type=checkbox]{margin-right:10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,
-    minmax(210px,1fr));gap:10px 25px}.preview{width:100%;max-width:800px;border:1px solid #d1cbb9}
-    .quiet{font:13px/1.5 system-ui;color:#6a6d5d}.error{color:#8c2d23}</style>
-    <main><a class="quiet" href="/">"""
-        + BRAND_MARK
-        + """Emviary · Display</a><h1>"""
-        + escape(title)
-        + "</h1>"
-        + body
-        + "</main></html>",
-        headers={
-            "Cache-Control": "no-store",
-            "X-Frame-Options": "DENY",
-            "X-Content-Type-Options": "nosniff",
-            "Content-Security-Policy": "default-src 'self'; img-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; script-src 'none'; base-uri 'self'; "
-            "form-action 'self'; frame-ancestors 'none'",
-        },
-    )
+def page(title, body, **kwargs):
+    from .ui import page as render_page
+
+    keys = {
+        "Manage your frame": "login",
+        "Image history": "images",
+        "Artwork rotation": "artwork",
+        "Occasion artwork": "event-art",
+        "Special-day artwork": "event-art",
+        "Battery history": "battery",
+        "Battery and charging": "battery",
+    }
+    kwargs.setdefault("active", keys.get(title, "settings"))
+    return render_page(title, body, **kwargs)
 
 
 def hidden(csrf):
@@ -178,8 +160,32 @@ def attach_owner(app, service):
             raise HTTPException(403, "Invalid form token")
         return data
 
-    def redirect():
-        return RedirectResponse("/manage", status_code=303)
+    def redirect(request=None):
+        target = "/manage"
+        if request:
+            ref = urlsplit(request.headers.get("referer", ""))
+            allowed = {
+                "/manage",
+                "/manage/appearance",
+                "/manage/events",
+                "/manage/settings",
+                "/manage/recovery",
+            }
+            if ref.path in allowed and (ref.scheme + "://" + ref.netloc) == str(
+                service.settings.config.public_base_url
+            ).rstrip("/"):
+                query = parse_qs(ref.query)
+                target = (
+                    ref.path
+                    + "?"
+                    + urlencode(
+                        {
+                            "saved": "1",
+                            **({"frame": query["frame"][0]} if query.get("frame") else {}),
+                        }
+                    )
+                )
+        return RedirectResponse(target, status_code=303)
 
     @app.get("/manage/login")
     def login_form():
@@ -262,592 +268,802 @@ def attach_owner(app, service):
         response.delete_cookie(COOKIE, path="/manage")
         return response
 
+    @app.get("/manage/appearance")
+    @app.get("/manage/events")
+    @app.get("/manage/settings")
+    @app.get("/manage/recovery")
     @app.get("/manage")
     def management(request: Request):
         auth = session(request)
         if not auth:
             return RedirectResponse("/manage/login", status_code=303)
         csrf = auth["csrf"]
-        body = (
-            '<p class="quiet">Changes apply on the next wake. '
-            + '<a href="http://emviary.local" target="_blank" rel="noopener noreferrer">'
-            + "Open local frame controls</a> · "
-            + '<a href="http://photoframe.local" target="_blank" '
-            + 'rel="noopener noreferrer">Legacy fallback</a>'
-            + " (on the frame’s Wi-Fi, while awake).</p>"
-            + '<p><a href="/manage/images">Review image history</a> · '
-            + '<a href="/manage/artwork">Manage artwork rotation</a> · '
-            + '<a href="/manage/battery">Battery history and charging</a></p>'
+        view = request.url.path.rsplit("/", 1)[-1]
+        titles = {
+            "manage": "Your frames",
+            "appearance": "Display settings",
+            "events": "Special days",
+            "settings": "Connections & account",
+            "recovery": "Frame recovery",
+        }
+        body = '<p class="quiet">Changes reach the frame on its next online wake.</p>'
+        if view in ("manage", "settings"):
+            body += (
+                '<p class="quiet"><a href="http://emviary.local" target="_blank" '
+                'rel="noopener">Open local frame controls</a> · <a '
+                'href="http://photoframe.local" target="_blank" '
+                'rel="noopener">Fallback address</a> · Available on its Wi-Fi '
+                "while awake.</p>"
+            )
+        if request.query_params.get("saved"):
+            body += '<p class="notice success" role="status">Changes saved.</p>'
+        frames = service.store.frames()
+        chosen = request.query_params.get("frame")
+        if chosen and not any(f["id"] == chosen for f in frames):
+            raise HTTPException(404, "Unknown frame")
+        if view in ("appearance", "events", "settings") and len(frames) > 1:
+            body += (
+                '<form class="toolbar" method="get"><label>Frame<select name="frame">'
+                + "".join(
+                    "<option "
+                    + ("selected " if f["id"] == chosen else "")
+                    + 'value="'
+                    + escape(f["id"])
+                    + '">'
+                    + escape(f["id"])
+                    + "</option>"
+                    for f in frames
+                )
+                + "</select></label><button>Switch frame</button></form>"
+            )
+        selected_frames = (
+            frames
+            if view in ("manage", "recovery")
+            else [f for f in frames if f["id"] == (chosen or frames[0]["id"])]
+            if frames
+            else []
         )
         statuses = {row["id"]: row for row in service.status()}
-        for frame in service.store.frames():
+        for frame in selected_frames:
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
             status = statuses[frame["id"]]
             identifier = escape(frame["id"])
-            body += (
-                "<section><h2>"
-                + identifier
-                + '</h2><img class="preview" src="/manage/frames/'
-                + identifier
-                + '/preview">'
-            )
-            body += (
-                '<p class="quiet">Prepared preview. Last contact: '
-                + escape(status["last_contact"] or "Not yet")
-                + ". Battery: "
-                + escape(status["battery"] if status["battery"] is not None else "Unknown")
-                + "%.</p>"
-            )
-            battery = battery_summary(service, frame["id"])
-            if battery["alert"]:
-                body += '<p role="alert"><strong>' + escape(battery["alert"]) + "</strong></p>"
-            body += (
-                '<p><a href="/manage/battery">Battery history and charging estimate</a> · '
-                + escape(battery["status"])
-                + "</p>"
-            )
-            body += (
-                '<form method="post" action="/manage/frames/'
-                + identifier
-                + '/settings">'
-                + hidden(csrf)
-                + '<div class="grid">'
-            )
-            body += field(
-                "wake", "Daily wake (Denver time)", policy["wake_local_time"], "time", "required"
-            )
-            body += (
-                '<label>Maximum birds<br><select name="max_birds">'
-                + "".join(
+            if view == "manage":
+                delivered = service.delivered_image(frame)
+                ready = service.store.active_image(frame)
+                battery = battery_summary(service, frame["id"])
+                body += '<section class="card"><h2>' + identifier + '</h2><div class="metric-grid">'
+                for label, value in (
+                    ("Daily wake", policy["wake_local_time"] + " · Denver"),
                     (
-                        f'<option value="{n}" '
-                        f"{'selected' if n == policy['max_birds'] else ''}>{n}</option>"
+                        "Battery",
+                        str(status["battery"]) + "%"
+                        if status["battery"] is not None
+                        else "Not reported",
+                    ),
+                    (
+                        "Last contact",
+                        datetime.fromisoformat(status["last_contact"])
+                        .astimezone(ZoneInfo("America/Denver"))
+                        .strftime("%b %d, %I:%M %p")
+                        if status["last_contact"]
+                        else "Waiting for first wake",
+                    ),
+                ):
+                    body += (
+                        '<div class="metric"><span class="quiet">'
+                        + escape(label)
+                        + "</span><strong>"
+                        + escape(value)
+                        + "</strong></div>"
                     )
-                    for n in (1, 2, 3)
-                )
-                + "</select></label>"
-            )
-            body += (
-                '<label>Panel color treatment<br><select name="preset">'
-                + "".join(
-                    "<option "
-                    + ("selected " if n == policy["processing_preset"] else "")
-                    + ">"
-                    + n
-                    + "</option>"
-                    for n in ("balanced", "dynamic", "vivid", "soft")
-                )
-                + "</select></label>"
-            )
-            body += (
-                '<label>Dithering<br><select name="dither">'
-                + "".join(
-                    "<option "
-                    + ("selected " if n == policy["dither_algorithm"] else "")
-                    + ">"
-                    + n
-                    + "</option>"
-                    for n in ("stucki", "floyd-steinberg", "burkes", "sierra")
-                )
-                + "</select></label></div>"
-            )
-            body += (
-                '<details><summary>Firmware updates</summary><p class="quiet">'
-                "Checked each time the frame wakes online. Automatic accepts newer published "
-                "Emviary firmware, including preview releases. Manual requires a chosen version; "
-                "disabled keeps the installed firmware.</p>"
-                '<p><a href="https://github.com/lstepnio/Emviary-firmware/releases">'
-                "Firmware releases</a></p>"
-                '<label>Update preference<br><select name="firmware_updates">'
-            )
-            for value, label in (
-                ("automatic", "Automatic"),
-                ("manual", "Manual"),
-                ("disabled", "Disabled"),
-            ):
-                selected = "selected" if policy["firmware_updates"] == value else ""
-                body += f'<option value="{value}" {selected}>{label}</option>'
-            body += "</select></label>"
-            body += field(
-                "firmware_pinned_version",
-                "Optional release version (for example v0.4.0)",
-                policy["firmware_pinned_version"] or "",
-            )
-            body += (
-                '<p class="quiet">A chosen version limits updates to that release. '
-                "Older versions are never installed automatically.</p></details>"
-            )
-            body += checkbox("location_name", "Show location name", policy["show_location_name"])
-            body += checkbox("labels", "Common bird names", policy["show_species_name"]) + checkbox(
-                "weather", "Weather enabled", policy["weather_cues"]
-            )
-            body += checkbox(
-                "forecast_temperatures",
-                "High / low temperatures (°F)",
-                policy.get("show_forecast_temperatures", True),
-            )
-            body += checkbox("weather_icon", "Weather icon", policy["show_weather_icon"])
-            body += checkbox(
-                "weather_condition",
-                "Condition text (sunny, etc.)",
-                policy["show_weather_condition"],
-            )
-            body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
-            body += (
-                "<details><summary>Birds to include</summary>"
-                '<input type="hidden" name="species_controls" value="1">'
-            )
-            species = sorted(
-                {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
-            )
-            for index, name in enumerate(species):
-                artwork = next(a for a in service.settings.artworks if a["scientific_name"] == name)
-                selected = not policy["allowed_species"] or name in policy["allowed_species"]
-                body += checkbox("species_" + str(index), artwork["common_name"], selected)
-            body += "</details><p><button>Save frame settings</button></p></form>"
-            body += (
-                '<details><summary>Saved Wi-Fi networks</summary><p class="quiet">'
-                "Stage up to five 2.4 GHz networks before gifting. Changes reach the frame "
-                "on its next online artwork fetch. These networks take priority and are added "
-                "to existing device networks, preserving its staging connection. The frame "
-                "holds five networks in total. Removal applies only to networks saved here. "
-                "Passwords are stored privately and never shown.</p>"
-            )
-            if policy["wifi_networks"] is None:
+                body += '</div><div class="current-next"><div><h3>On the frame</h3>'
                 body += (
-                    '<p class="quiet">The frame currently manages its own Wi-Fi. Its existing '
-                    "networks are kept when adding a gift-location network here.</p>"
+                    (
+                        '<img class="preview" alt="Last artwork delivered to this frame" '
+                        'src="/manage/frames/'
+                    )
+                    + identifier
+                    + '/display">'
+                    if delivered
+                    else (
+                        '<p class="empty-state">Waiting for the frame to fetch its first '
+                        "picture.</p>"
+                    )
                 )
-            for network in policy["wifi_networks"] or []:
+                body += "</div><div><h3>Ready for next refresh</h3>"
+                body += (
+                    '<img class="preview" alt="Prepared next artwork" src="/manage/frames/'
+                    + identifier
+                    + '/preview">'
+                    if ready
+                    else '<p class="empty-state">No picture prepared yet.</p>'
+                )
+                body += (
+                    '</div></div><p class="quiet">The public display follows the '
+                    "delivered picture. Preparing artwork does not change the "
+                    "frame.</p>"
+                )
+                if battery["alert"]:
+                    body += '<p class="notice" role="alert">' + escape(battery["alert"]) + "</p>"
+                body += (
+                    '<div class="toolbar">'
+                    + "".join(
+                        '<a class="button secondary" href="/manage/'
+                        + path
+                        + "?frame="
+                        + identifier
+                        + '">'
+                        + label
+                        + "</a>"
+                        for path, label in (
+                            ("appearance", "Display settings"),
+                            ("events", "Special days"),
+                            ("images", "Image history"),
+                            ("battery", "Battery health"),
+                        )
+                    )
+                    + "</div>"
+                )
+            if view == "appearance":
+                body += '<section class="card"><h2>Composition & display</h2>'
+                body += (
+                    '<form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/settings">'
+                    + hidden(csrf)
+                    + '<div class="grid">'
+                )
+                body += field(
+                    "wake",
+                    "Daily wake (Denver time)",
+                    policy["wake_local_time"],
+                    "time",
+                    "required",
+                )
+                body += (
+                    '<label>Maximum birds<br><select name="max_birds">'
+                    + "".join(
+                        (
+                            f'<option value="{n}" '
+                            f"{'selected' if n == policy['max_birds'] else ''}>{n}</option>"
+                        )
+                        for n in (1, 2, 3)
+                    )
+                    + "</select></label>"
+                )
+                body += (
+                    '<label>Panel color treatment<br><select name="preset">'
+                    + "".join(
+                        "<option "
+                        + ("selected " if n == policy["processing_preset"] else "")
+                        + ">"
+                        + n
+                        + "</option>"
+                        for n in ("balanced", "dynamic", "vivid", "soft")
+                    )
+                    + "</select></label>"
+                )
+                body += (
+                    '<label>Dithering<br><select name="dither">'
+                    + "".join(
+                        "<option "
+                        + ("selected " if n == policy["dither_algorithm"] else "")
+                        + ">"
+                        + n
+                        + "</option>"
+                        for n in ("stucki", "floyd-steinberg", "burkes", "sierra")
+                    )
+                    + "</select></label></div>"
+                )
+                body += (
+                    '<details><summary>Firmware updates</summary><p class="quiet">'
+                    "Checked each time the frame wakes online. Automatic accepts newer published "
+                    "Emviary firmware, including preview releases. Manual requires a "
+                    "chosen version; "
+                    "disabled keeps the installed firmware.</p>"
+                    '<p><a href="https://github.com/lstepnio/Emviary-firmware/releases">'
+                    "Firmware releases</a></p>"
+                    '<label>Update preference<br><select name="firmware_updates">'
+                )
+                for value, label in (
+                    ("automatic", "Automatic"),
+                    ("manual", "Manual"),
+                    ("disabled", "Disabled"),
+                ):
+                    selected = "selected" if policy["firmware_updates"] == value else ""
+                    body += f'<option value="{value}" {selected}>{label}</option>'
+                body += "</select></label>"
+                body += field(
+                    "firmware_pinned_version",
+                    "Optional release version (for example v0.4.0)",
+                    policy["firmware_pinned_version"] or "",
+                )
+                body += (
+                    '<p class="quiet">A chosen version limits updates to that release. '
+                    "Older versions are never installed automatically.</p></details>"
+                )
+                body += "<fieldset><legend>Artwork details</legend>"
+                body += checkbox(
+                    "location_name", "Show location name", policy["show_location_name"]
+                )
+                body += checkbox(
+                    "labels", "Common bird names", policy["show_species_name"]
+                ) + checkbox("weather", "Weather enabled", policy["weather_cues"])
+                body += checkbox(
+                    "forecast_temperatures",
+                    "High / low temperatures (°F)",
+                    policy.get("show_forecast_temperatures", True),
+                )
+                body += checkbox("weather_icon", "Weather icon", policy["show_weather_icon"])
+                body += checkbox(
+                    "weather_condition",
+                    "Condition text (sunny, etc.)",
+                    policy["show_weather_condition"],
+                )
+                body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
+                body += "</fieldset>"
+                body += (
+                    "<details><summary>Birds to include</summary>"
+                    '<input type="hidden" name="species_controls" value="1">'
+                )
+                species = sorted(
+                    {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
+                )
+                for index, name in enumerate(species):
+                    artwork = next(
+                        a for a in service.settings.artworks if a["scientific_name"] == name
+                    )
+                    selected = not policy["allowed_species"] or name in policy["allowed_species"]
+                    body += checkbox("species_" + str(index), artwork["common_name"], selected)
+                body += (
+                    '</details><div class="sticky-actions"><button>Save display '
+                    'settings</button><span class="quiet">Applies on the next online '
+                    "wake.</span></div></form>"
+                )
+                body += "</section>"
+            if view == "settings":
+                body += (
+                    '<details><summary>Saved Wi-Fi networks</summary><p class="quiet">'
+                    "Stage up to five 2.4 GHz networks before gifting. Changes reach the frame "
+                    "on its next online artwork fetch. These networks take priority and are added "
+                    "to existing device networks, preserving its staging connection. The frame "
+                    "holds five networks in total. Removal applies only to networks saved here. "
+                    "Passwords are stored privately and never shown.</p>"
+                )
+                if policy["wifi_networks"] is None:
+                    body += (
+                        '<p class="quiet">The frame currently manages its own Wi-Fi. Its existing '
+                        "networks are kept when adding a gift-location network here.</p>"
+                    )
+                for network in policy["wifi_networks"] or []:
+                    body += (
+                        '<form method="post" action="/manage/frames/'
+                        + identifier
+                        + '/wifi">'
+                        + hidden(csrf)
+                        + '<input type="hidden" name="ssid" value="'
+                        + escape(network["ssid"])
+                        + '"><strong>'
+                        + escape(network["ssid"])
+                        + "</strong>"
+                        + field(
+                            "password", "New password (blank keeps saved password)", "", "password"
+                        )
+                        + checkbox("open", "Open network, no password", not network["password"])
+                        + '<p><button name="action" value="save">Update network</button> '
+                        + '<button name="action" value="remove">Remove network</button></p></form>'
+                    )
                 body += (
                     '<form method="post" action="/manage/frames/'
                     + identifier
                     + '/wifi">'
                     + hidden(csrf)
-                    + '<input type="hidden" name="ssid" value="'
-                    + escape(network["ssid"])
-                    + '"><strong>'
-                    + escape(network["ssid"])
-                    + "</strong>"
-                    + field("password", "New password (blank keeps saved password)", "", "password")
-                    + checkbox("open", "Open network, no password", not network["password"])
-                    + '<p><button name="action" value="save">Update network</button> '
-                    + '<button name="action" value="remove">Remove network</button></p></form>'
+                    + field("ssid", "Network name (SSID)", "", "text", "required")
+                    + field("password", "Network password", "", "password")
+                    + checkbox("open", "Open network, no password", False)
+                    + '<p><button name="action" value="save">Add network</button></p></form>'
+                    + "</details>"
                 )
-            body += (
-                '<form method="post" action="/manage/frames/'
-                + identifier
-                + '/wifi">'
-                + hidden(csrf)
-                + field("ssid", "Network name (SSID)", "", "text", "required")
-                + field("password", "Network password", "", "password")
-                + checkbox("open", "Open network, no password", False)
-                + '<p><button name="action" value="save">Add network</button></p></form>'
-                + "</details>"
-            )
-            body += (
-                '<form method="post" action="/manage/frames/'
-                + identifier
-                + '/prepare">'
-                + hidden(csrf)
-                + "<p><button>Prepare a fresh composition</button></p></form>"
-            )
-            body += '<details><summary>Special days</summary><p class="quiet">'
-            body += (
-                "Your chosen occasion art and greeting replace the usual layout "
-                "on the matching Denver date. The first matching enabled entry wins. "
-                "Annual February 29 entries appear only in leap years.</p>"
-            )
-            body += (
-                '<p><a href="/manage/event-art">Manage occasion art</a></p>'
-                '<form method="post" action="/manage/frames/'
-                + identifier
-                + '/special-days/import">'
-                + hidden(csrf)
-                + '<label>Add a collection<br><select name="group">'
-                '<option value="holidays">US holidays and celebrations</option>'
-                '<option value="seasons">Meteorological seasons</option></select></label>'
-                + field(
-                    "year",
-                    "Calendar year",
-                    datetime.now().year,
-                    "number",
-                    'min="2020" max="2100" required',
-                )
-                + '<p class="quiet">Existing entries are kept. '
-                "Fixed holidays and seasons repeat yearly. "
-                "Movable holidays apply to the chosen year. Seasons start March 1, June 1, "
-                "September 1 and December 1 (meteorological seasons). Edit dates and turn "
-                "yearly repeat off for a chosen year's local equinox or solstice. "
-                "New entries start disabled. Review dates and choose artwork, then enable "
-                "the events you want below.</p>"
-                "<button>Add collection</button></form>"
-            )
-            for event in [*policy["special_days"], None]:
-                day = event or {
-                    "id": "",
-                    "date": "",
-                    "label": "",
-                    "message": "",
-                    "annual": True,
-                    "enabled": True,
-                    "theme": "celebration",
-                    "artwork_id": None,
-                }
+            if view == "manage":
                 body += (
-                    "<h3>"
-                    + escape(day["label"] if event else "Add a special day")
-                    + '</h3><form method="post" action="/manage/frames/'
+                    '<form method="post" action="/manage/frames/'
                     + identifier
-                    + '/special-days">'
+                    + '/prepare">'
                     + hidden(csrf)
-                    + '<input type="hidden" name="id" value="'
-                    + escape(day["id"])
-                    + '">'
-                    + '<div class="grid">'
+                    + "<p><button>Prepare a fresh composition</button></p></form>"
                 )
-                body += field("date", "Date", day["date"], "date", "required")
-                body += field(
-                    "label", "Occasion / heading", day["label"], extra='maxlength="40" required'
+                body += "</section>"
+            if view == "events":
+                body += '<section class="card"><h2>Occasions & seasons</h2><p class="quiet">'
+                body += (
+                    "Your chosen occasion art and greeting replace the usual layout "
+                    "on the matching Denver date. The first matching enabled entry wins. "
+                    "Annual February 29 entries appear only in leap years.</p>"
                 )
-                body += field(
-                    "message", "Greeting (optional)", day["message"], extra='maxlength="80"'
+                body += (
+                    '<p class="notice">1. Add special-day art. 2. Review and approve '
+                    "it. 3. Choose it below and enable the event.</p><p><a "
+                    'class="button secondary" href="/manage/event-art">Manage '
+                    "special-day art</a></p><details><summary>Add holiday or season "
+                    "collections</summary>"
+                    '<form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/special-days/import">'
+                    + hidden(csrf)
+                    + '<label>Add a collection<br><select name="group">'
+                    '<option value="holidays">US holidays and celebrations</option>'
+                    '<option value="seasons">Meteorological seasons</option></select></label>'
+                    + field(
+                        "year",
+                        "Calendar year",
+                        datetime.now().year,
+                        "number",
+                        'min="2020" max="2100" required',
+                    )
+                    + '<p class="quiet">Existing entries are kept. '
+                    "Fixed holidays and seasons repeat yearly. "
+                    "Movable holidays apply to the chosen year. Seasons start March 1, June 1, "
+                    "September 1 and December 1 (meteorological seasons). Edit dates and turn "
+                    "yearly repeat off for a chosen year's local equinox or solstice. "
+                    "New entries start disabled. Review dates and choose artwork, then enable "
+                    "the events you want below.</p>"
+                    "<button>Add collection</button></form></details>"
                 )
-                body += '<label>Artwork theme<br><select name="theme">'
-                for value, label in (
-                    ("birthday", "Birthday"),
-                    ("anniversary", "Anniversary"),
-                    ("celebration", "Celebration"),
-                    ("remembrance", "Remembrance"),
-                ):
+                for event in [*policy["special_days"], None]:
+                    day = event or {
+                        "id": "",
+                        "date": "",
+                        "label": "",
+                        "message": "",
+                        "annual": True,
+                        "enabled": True,
+                        "theme": "celebration",
+                        "artwork_id": None,
+                    }
                     body += (
-                        '<option value="'
-                        + value
-                        + '" '
-                        + ("selected" if day["theme"] == value else "")
-                        + ">"
-                        + label
-                        + "</option>"
-                    )
-                body += '</select></label><label>Featured artwork<br><select name="artwork_id">'
-                body += '<option value="">Choose from the seasonal library</option>'
-                counters = {}
-                for art in sorted(
-                    service.settings.artworks, key=lambda a: (a["common_name"], a["id"])
-                ):
-                    if not art["approved"] or art.get("depicted_birds", 1) != 1:
-                        continue
-                    counters[art["common_name"]] = counters.get(art["common_name"], 0) + 1
-                    label = (
-                        art["common_name"]
-                        + " / "
-                        + art["source"].split(" /")[0]
-                        + " / variant "
-                        + str(counters[art["common_name"]])
+                        '<details class="card"><summary>'
+                        + escape(day["label"] if event else "Add a special day")
+                        + ' <span class="quiet">'
+                        + escape(day["date"])
+                        + (" · Enabled" if day["enabled"] else " · Disabled")
+                        + "</span></summary>"
                     )
                     body += (
-                        '<option value="'
-                        + escape(art["id"])
-                        + '" '
-                        + ("selected" if day["artwork_id"] == art["id"] else "")
-                        + ">"
-                        + escape(label)
-                        + "</option>"
+                        "<h3>"
+                        + escape(day["label"] if event else "Add a special day")
+                        + '</h3><form method="post" action="/manage/frames/'
+                        + identifier
+                        + '/special-days">'
+                        + hidden(csrf)
+                        + '<input type="hidden" name="id" value="'
+                        + escape(day["id"])
+                        + '">'
+                        + '<div class="grid">'
                     )
-                for art in service.event_art.entries():
-                    if art["approved"]:
+                    body += field("date", "Date", day["date"], "date", "required")
+                    body += field(
+                        "label", "Occasion / heading", day["label"], extra='maxlength="40" required'
+                    )
+                    body += field(
+                        "message", "Greeting (optional)", day["message"], extra='maxlength="80"'
+                    )
+                    body += '<label>Artwork theme<br><select name="theme">'
+                    for value, label in (
+                        ("birthday", "Birthday"),
+                        ("anniversary", "Anniversary"),
+                        ("celebration", "Celebration"),
+                        ("remembrance", "Remembrance"),
+                    ):
+                        body += (
+                            '<option value="'
+                            + value
+                            + '" '
+                            + ("selected" if day["theme"] == value else "")
+                            + ">"
+                            + label
+                            + "</option>"
+                        )
+                    body += '</select></label><label>Featured artwork<br><select name="artwork_id">'
+                    body += '<option value="">Choose from the seasonal library</option>'
+                    counters = {}
+                    for art in sorted(
+                        service.settings.artworks, key=lambda a: (a["common_name"], a["id"])
+                    ):
+                        if not art["approved"] or art.get("depicted_birds", 1) != 1:
+                            continue
+                        counters[art["common_name"]] = counters.get(art["common_name"], 0) + 1
+                        label = (
+                            art["common_name"]
+                            + " / "
+                            + art["source"].split(" /")[0]
+                            + " / variant "
+                            + str(counters[art["common_name"]])
+                        )
                         body += (
                             '<option value="'
                             + escape(art["id"])
                             + '" '
                             + ("selected" if day["artwork_id"] == art["id"] else "")
                             + ">"
-                            + escape("Occasion art / " + art["common_name"])
+                            + escape(label)
                             + "</option>"
                         )
-                body += "</select></label></div>"
-                body += checkbox("annual", "Repeat every year", day["annual"])
-                body += checkbox("enabled", "Enabled", day["enabled"])
+                    for art in service.event_art.entries():
+                        if art["approved"]:
+                            body += (
+                                '<option value="'
+                                + escape(art["id"])
+                                + '" '
+                                + ("selected" if day["artwork_id"] == art["id"] else "")
+                                + ">"
+                                + escape("Occasion art / " + art["common_name"])
+                                + "</option>"
+                            )
+                    body += "</select></label></div>"
+                    body += checkbox("annual", "Repeat every year", day["annual"])
+                    body += checkbox("enabled", "Enabled", day["enabled"])
+                    body += (
+                        "<button>"
+                        + ("Save changes" if event else "Add special day")
+                        + "</button></form>"
+                    )
+                    if event:
+                        body += (
+                            '<p><a href="/manage/frames/'
+                            + identifier
+                            + "/special-days/"
+                            + escape(day["id"])
+                            + '/preview" target="_blank" rel="noopener">'
+                            + "Preview this day</a></p>"
+                        )
+                        body += (
+                            '<form method="post" action="/manage/frames/'
+                            + identifier
+                            + "/special-days/"
+                            + escape(day["id"])
+                            + '/delete">'
+                            + hidden(csrf)
+                            + '<p><button class="danger">Remove this day</button></p></form>'
+                        )
+                    body += "</details>"
+                body += "</section>"
+            if view == "recovery":
                 body += (
-                    "<button>"
-                    + ("Save changes" if event else "Add special day")
-                    + "</button></form>"
+                    '<a class="quiet" href="/manage/frames/'
+                    + identifier
+                    + '/provision">Download private device configuration</a> · '
+                    + '<a href="/manage/frames/'
+                    + identifier
+                    + '/provision?import_file=true">Download recovery import file</a> · '
+                    + '<a href="#recovery">Recovery instructions</a>'
                 )
-                if event:
-                    body += (
-                        '<p><a href="/manage/frames/'
-                        + identifier
-                        + "/special-days/"
-                        + escape(day["id"])
-                        + '/preview" target="_blank" rel="noopener">'
-                        + "Preview this day</a></p>"
-                    )
-                    body += (
-                        '<form method="post" action="/manage/frames/'
-                        + identifier
-                        + "/special-days/"
-                        + escape(day["id"])
-                        + '/delete">'
-                        + hidden(csrf)
-                        + "<p><button>Remove this day</button></p></form>"
-                    )
-            body += "</details>"
+        if view == "recovery":
             body += (
-                '<a class="quiet" href="/manage/frames/'
-                + identifier
-                + '/provision">Download private device configuration</a> · '
-                + '<a href="/manage/frames/'
-                + identifier
-                + '/provision?import_file=true">Download recovery import file</a> · '
-                + '<a href="#recovery">Recovery instructions</a>'
+                '<section id="recovery"><h2>Frame recovery and Wi-Fi setup</h2>'
+                "<details><summary>Wake or restart an unresponsive frame</summary>"
+                "<p>Connect USB power and briefly press the green wake button. "
+                "Sleeping is normal: the picture should remain visible, while local controls "
+                "are unavailable until the frame wakes. On its Wi-Fi, open "
+                '<a href="http://emviary.local">emviary.local</a>, or '
+                '<a href="http://photoframe.local">photoframe.local</a>. '
+                "If neither resolves, use the frame’s IP address from your router. "
+                "Avoid guest-network isolation when using local controls.</p>"
+                "<p>An ordinary reboot keeps saved settings. On firmware v0.5.0 or later, "
+                "the left white button requests the previous image and the right white "
+                "button requests the next image. Neither clears the panel. "
+                "These buttons do not factory-reset "
+                "Emviary firmware.</p></details>"
+                "<details><summary>Reconnect after a factory reset</summary>"
+                "<p>A factory reset from local Settings erases saved Wi-Fi, the cloud token, "
+                "and device settings, but leaves the installed firmware. Cloud artwork and "
+                "management settings remain on the server. Keep USB connected during recovery.</p>"
+                "<ol><li>While signed in here, download the <strong>recovery import file</strong> "
+                "for the existing frame below. Save it before switching Wi-Fi.</li>"
+                "<li>After reset, join the frame’s temporary open hotspot "
+                "<strong>PhotoFrame - XXXXX</strong> (five device-specific characters, "
+                "also shown on the setup screen). It has no Wi-Fi password. Choose "
+                "“stay connected” if your phone reports no internet. The current firmware "
+                "still uses this hotspot name even if a dialog says Emviary.</li>"
+                '<li>Open <a href="http://192.168.4.1/provision">http://192.168.4.1/provision</a> '
+                "if setup does not appear automatically. Choose your home’s 2.4 GHz Wi-Fi "
+                "and enter its password. Use automatic IP / DHCP for a new location. "
+                "The frame tests the connection and restarts after a successful setup.</li>"
+                "<li>Reconnect your phone or computer to the home Wi-Fi. Wake the frame "
+                "if needed, open emviary.local (or its router IP), and open "
+                "<strong>Settings → Maintenance → Config Backup → Import Config</strong>. "
+                "Select the recovery import file and confirm Import. This restores the "
+                "cloud connection and wake schedule without replacing the Wi-Fi "
+                "you just set up.</li>"
+                "<li>Request a refresh with the right white button or local image controls. "
+                "Confirm the picture returns and “Last contact” above advances. "
+                "Cloud-managed Wi-Fi and display preferences arrive on the next online fetch. "
+                "The factory reset also removes any local device password; set it again "
+                "in local advanced network settings if you previously used one.</li></ol>"
+                "<p>The recovery file contains the frame’s private access token and grants "
+                "access to its image service. Keep it private. Use the existing frame’s "
+                "file, rather than adding a new frame entry.</p></details>"
+                "<details><summary>No setup hotspot, or no saved network is available</summary>"
+                "<p>A frame with saved credentials keeps trying those networks; a normal "
+                "reboot does not turn it into a setup hotspot. Restore a saved network, "
+                "or temporarily create a 2.4 GHz phone/router hotspot with that saved "
+                "SSID and password. Then wake it, open local Settings, and add the new "
+                "network or deliberately factory-reset it using the procedure above.</p>"
+                "<p>If you cannot recreate any saved network or reach local controls, "
+                "contact the maintainer for USB recovery. Replacing firmware with stock "
+                "firmware requires reinstalling Emviary first; a configuration import "
+                "alone does not restore our firmware features.</p></details></section>"
             )
-        body += (
-            '<section id="recovery"><h2>Frame recovery and Wi-Fi setup</h2>'
-            "<details><summary>Wake or restart an unresponsive frame</summary>"
-            "<p>Connect USB power and briefly press the green wake button. "
-            "Sleeping is normal: the picture should remain visible, while local controls "
-            "are unavailable until the frame wakes. On its Wi-Fi, open "
-            '<a href="http://emviary.local">emviary.local</a>, or '
-            '<a href="http://photoframe.local">photoframe.local</a>. '
-            "If neither resolves, use the frame’s IP address from your router. "
-            "Avoid guest-network isolation when using local controls.</p>"
-            "<p>An ordinary reboot keeps saved settings. On firmware v0.5.0 or later, "
-            "the left white button requests the previous image and the right white "
-            "button requests the next image. Neither clears the panel. "
-            "These buttons do not factory-reset "
-            "Emviary firmware.</p></details>"
-            "<details><summary>Reconnect after a factory reset</summary>"
-            "<p>A factory reset from local Settings erases saved Wi-Fi, the cloud token, "
-            "and device settings, but leaves the installed firmware. Cloud artwork and "
-            "management settings remain on the server. Keep USB connected during recovery.</p>"
-            "<ol><li>While signed in here, download the <strong>recovery import file</strong> "
-            "for the existing frame below. Save it before switching Wi-Fi.</li>"
-            "<li>After reset, join the frame’s temporary open hotspot "
-            "<strong>PhotoFrame - XXXXX</strong> (five device-specific characters, "
-            "also shown on the setup screen). It has no Wi-Fi password. Choose "
-            "“stay connected” if your phone reports no internet. The current firmware "
-            "still uses this hotspot name even if a dialog says Emviary.</li>"
-            '<li>Open <a href="http://192.168.4.1/provision">http://192.168.4.1/provision</a> '
-            "if setup does not appear automatically. Choose your home’s 2.4 GHz Wi-Fi "
-            "and enter its password. Use automatic IP / DHCP for a new location. "
-            "The frame tests the connection and restarts after a successful setup.</li>"
-            "<li>Reconnect your phone or computer to the home Wi-Fi. Wake the frame "
-            "if needed, open emviary.local (or its router IP), and open "
-            "<strong>Settings → Maintenance → Config Backup → Import Config</strong>. "
-            "Select the recovery import file and confirm Import. This restores the "
-            "cloud connection and wake schedule without replacing the Wi-Fi you just set up.</li>"
-            "<li>Request a refresh with the right white button or local image controls. "
-            "Confirm the picture returns and “Last contact” above advances. "
-            "Cloud-managed Wi-Fi and display preferences arrive on the next online fetch. "
-            "The factory reset also removes any local device password; set it again "
-            "in local advanced network settings if you previously used one.</li></ol>"
-            "<p>The recovery file contains the frame’s private access token and grants "
-            "access to its image service. Keep it private. Use the existing frame’s "
-            "file, rather than adding a new frame entry.</p></details>"
-            "<details><summary>No setup hotspot, or no saved network is available</summary>"
-            "<p>A frame with saved credentials keeps trying those networks; a normal "
-            "reboot does not turn it into a setup hotspot. Restore a saved network, "
-            "or temporarily create a 2.4 GHz phone/router hotspot with that saved "
-            "SSID and password. Then wake it, open local Settings, and add the new "
-            "network or deliberately factory-reset it using the procedure above.</p>"
-            "<p>If you cannot recreate any saved network or reach local controls, "
-            "contact the maintainer for USB recovery. Replacing firmware with stock "
-            "firmware requires reinstalling Emviary first; a configuration import "
-            "alone does not restore our firmware features.</p></details></section>"
-        )
         config = service.settings.config
-        for site in config.sites:
-            body += (
-                "<section><h2>Locality: "
-                + escape(site.id)
-                + '</h2><form method="post" action="/manage/sites/'
-                + escape(site.id)
-                + '">'
-                + hidden(csrf)
-                + '<div class="grid">'
-            )
-            body += field(
-                "latitude",
-                "Latitude",
-                site.weather_location.latitude,
-                "number",
-                'step="any" min="-85" max="85" required',
-            )
-            body += field(
-                "longitude",
-                "Longitude",
-                site.weather_location.longitude,
-                "number",
-                'step="any" min="-180" max="180" required',
-            )
-            body += '<label>Bird-selection area<select name="bird_area">'
-            for value, label in (
-                ("local", "Near the weather location"),
-                ("colorado", "All Colorado"),
-            ):
-                selected = " selected" if site.bird_area == value else ""
-                body += f'<option value="{value}"{selected}>{label}</option>'
-            body += "</select></label>"
-            body += field(
-                "radius",
-                "Local bird radius (km; ignored for All Colorado)",
-                site.locality_radius_km,
-                "number",
-                'min="1" max="50" required',
-            )
-            body += field(
-                "prepare",
-                "Nightly preparation (Denver time)",
-                site.prepare_local_time,
-                "time",
-                "required",
-            )
-            body += field(
-                "hours",
-                "BirdWeather lookback (hours)",
-                site.bird_lookback_hours,
-                "number",
-                'min="1" max="168" required',
-            )
-            body += field(
-                "days",
-                "eBird lookback (days)",
-                site.providers.ebird.lookback_days,
-                "number",
-                'min="1" max="30" required',
-            )
-            body += (
-                "</div>"
-                + checkbox(
-                    "birdweather",
-                    "BirdWeather station detections",
-                    site.providers.birdweather.enabled,
+        if view == "settings":
+            for site in config.sites:
+                body += (
+                    "<section><h2>Locality: "
+                    + escape(site.id)
+                    + '</h2><form method="post" action="/manage/sites/'
+                    + escape(site.id)
+                    + '">'
+                    + hidden(csrf)
+                    + '<div class="grid">'
                 )
-                + checkbox("ebird", "eBird regional reports", site.providers.ebird.enabled)
-                + checkbox("weather", "Open-Meteo forecast", site.providers.open_meteo.enabled)
-                + "<button>Save locality and sources</button></form></section>"
-            )
-        body += (
-            '<section><h2>Public display</h2><form method="post" action="/manage/public">'
-            + hidden(csrf)
-            + '<select name="frame"><option value="">Hide the public image</option>'
-        )
-        for frame in service.store.frames():
+                body += field(
+                    "latitude",
+                    "Latitude",
+                    site.weather_location.latitude,
+                    "number",
+                    'step="any" min="-85" max="85" required',
+                )
+                body += field(
+                    "longitude",
+                    "Longitude",
+                    site.weather_location.longitude,
+                    "number",
+                    'step="any" min="-180" max="180" required',
+                )
+                body += '<label>Bird-selection area<select name="bird_area">'
+                for value, label in (
+                    ("local", "Near the weather location"),
+                    ("colorado", "All Colorado"),
+                ):
+                    selected = " selected" if site.bird_area == value else ""
+                    body += f'<option value="{value}"{selected}>{label}</option>'
+                body += "</select></label>"
+                body += field(
+                    "radius",
+                    "Local bird radius (km; ignored for All Colorado)",
+                    site.locality_radius_km,
+                    "number",
+                    'min="1" max="50" required',
+                )
+                body += field(
+                    "prepare",
+                    "Nightly preparation (Denver time)",
+                    site.prepare_local_time,
+                    "time",
+                    "required",
+                )
+                body += field(
+                    "hours",
+                    "BirdWeather lookback (hours)",
+                    site.bird_lookback_hours,
+                    "number",
+                    'min="1" max="168" required',
+                )
+                body += field(
+                    "days",
+                    "eBird lookback (days)",
+                    site.providers.ebird.lookback_days,
+                    "number",
+                    'min="1" max="30" required',
+                )
+                body += (
+                    "</div>"
+                    + checkbox(
+                        "birdweather",
+                        "BirdWeather station detections",
+                        site.providers.birdweather.enabled,
+                    )
+                    + checkbox("ebird", "eBird regional reports", site.providers.ebird.enabled)
+                    + checkbox("weather", "Open-Meteo forecast", site.providers.open_meteo.enabled)
+                    + "<button>Save locality and sources</button></form></section>"
+                )
             body += (
-                '<option value="'
-                + escape(frame["id"])
-                + '" '
-                + ("selected" if frame["id"] == config.public_frame_id else "")
-                + ">"
-                + escape(frame["id"])
-                + "</option>"
+                '<section><h2>Public display</h2><form method="post" action="/manage/public">'
+                + hidden(csrf)
+                + (
+                    '<label>Frame to share<select name="frame"><option value="">Hide '
+                    "the public image</option>"
+                )
             )
-        body += "</select> <button>Save public display</button></form></section>"
-        configured = (secret_directory() / "ebird-api-key").is_file()
-        body += (
-            '<section><h2>eBird access</h2><p class="quiet">Key '
-            + ("configured" if configured else "missing")
-            + '. Existing keys are never shown.</p><form method="post" action="/manage/ebird-key">'
-            + hidden(csrf)
-            + field(
-                "key",
-                "Replace API key",
-                "",
-                "password",
-                'required maxlength="256" autocomplete="off"',
+            for frame in service.store.frames():
+                body += (
+                    '<option value="'
+                    + escape(frame["id"])
+                    + '" '
+                    + ("selected" if frame["id"] == config.public_frame_id else "")
+                    + ">"
+                    + escape(frame["id"])
+                    + "</option>"
+                )
+            body += "</select></label><button>Save public display</button></form></section>"
+            configured = (secret_directory() / "ebird-api-key").is_file()
+            body += (
+                '<section><h2>eBird access</h2><p class="quiet">Key '
+                + ("configured" if configured else "missing")
+                + (
+                    '. Existing keys are never shown.</p><form method="post" '
+                    'action="/manage/ebird-key">'
+                )
+                + hidden(csrf)
+                + field(
+                    "key",
+                    "Replace API key",
+                    "",
+                    "password",
+                    'required maxlength="256" autocomplete="off"',
+                )
+                + "<button>Save key</button></form></section>"
             )
-            + "<button>Save key</button></form></section>"
-        )
-        body += (
-            '<section><h2>Add a frame</h2><form method="post" action="/manage/add-frame">'
-            + hidden(csrf)
-            + field("id", "Frame name", "", "text", 'required pattern="[a-z0-9][a-z0-9-]{0,47}"')
-            + '<label>Locality <select name="site">'
-            + "".join("<option>" + escape(s.id) + "</option>" for s in config.sites)
-            + "</select></label><button>Add frame</button></form></section>"
-        )
-        body += (
-            '<section><h2>Owner password</h2><form method="post" action="/manage/password">'
-            + hidden(csrf)
-            + field(
-                "password",
-                "New password (at least 16 characters)",
-                "",
-                "password",
-                'required minlength="16" maxlength="256" autocomplete="new-password"',
+        if view == "manage":
+            body += (
+                (
+                    '<details class="card"><summary>Add another frame</summary><form '
+                    'method="post" action="/manage/add-frame">'
+                )
+                + hidden(csrf)
+                + field(
+                    "id", "Frame name", "", "text", 'required pattern="[a-z0-9][a-z0-9-]{0,47}"'
+                )
+                + '<label>Locality <select name="site">'
+                + "".join("<option>" + escape(s.id) + "</option>" for s in config.sites)
+                + "</select></label><button>Add frame</button></form></details>"
             )
-            + "<button>Change password and sign out</button></form></section>"
-        )
-        body += (
-            '<form method="post" action="/manage/logout">'
-            + hidden(csrf)
-            + "<button>Sign out</button></form>"
-        )
-        return page("Frame management", body)
+        if view == "settings":
+            body += (
+                '<section><h2>Owner password</h2><form method="post" action="/manage/password">'
+                + hidden(csrf)
+                + field(
+                    "password",
+                    "New password (at least 16 characters)",
+                    "",
+                    "password",
+                    'required minlength="16" maxlength="256" autocomplete="new-password"',
+                )
+                + "<button>Change password and sign out</button></form></section>"
+            )
+            body += (
+                '<form method="post" action="/manage/logout">'
+                + hidden(csrf)
+                + "<button>Sign out</button></form>"
+            )
+        if not frames and view != "settings":
+            body += (
+                '<p class="empty-state">Add your first frame from the overview to '
+                "start curating its display.</p>"
+            )
+        return page(titles[view], body, active="overview" if view == "manage" else view)
 
     @app.get("/manage/images")
-    def image_gallery(request: Request, frame: str | None = None, offset: int = 0):
+    def image_gallery(
+        request: Request, frame: str | None = None, offset: int = 0, removed: bool = False
+    ):
+        from urllib.parse import urlencode
+
         auth = require(request)
         offset = max(0, offset)
         with service.store.connect() as db:
             records = db.execute(
-                "SELECT * FROM images WHERE hidden=0"
+                "SELECT * FROM images WHERE hidden=?"
                 + (" AND frame_id=?" if frame else "")
                 + " ORDER BY id DESC LIMIT 25 OFFSET ?",
-                (frame, offset) if frame else (offset,),
+                (int(removed), frame, offset) if frame else (int(removed), offset),
             ).fetchall()
         body = (
-            '<p><a href="/manage">Management</a></p><p>Saved compositions for previous '
-            "and next navigation. The currently displayed image stays protected. Removed "
-            "images leave navigation immediately; stored files expire with normal "
-            "history cleanup.</p>"
+            '<header class="page-header"><h1>Your images</h1><p class="page-description">'
+            "Revisit saved compositions. Removing an image takes it out of navigation; "
+            "you can restore it until normal history cleanup expires its files.</p></header>"
+            '<form class="toolbar" method="get" action="/manage/images">'
+            '<label>Frame<select name="frame"><option value="">All frames</option>'
         )
-        for record in records:
-            displayed = service.delivered_image(service.store.frame(record["frame_id"]))
-            current = displayed and displayed["id"] == record["id"]
+        frames = service.store.frames()
+        delivered = {f["id"]: service.delivered_image(f) for f in frames}
+        for item in frames:
+            body += (
+                '<option value="'
+                + escape(item["id"])
+                + '"'
+                + (" selected" if frame == item["id"] else "")
+                + ">"
+                + escape(item["id"])
+                + "</option>"
+            )
+        body += (
+            '</select></label><label>Collection<select name="removed">'
+            '<option value="false"'
+            + (" selected" if not removed else "")
+            + ">Saved images</option>"
+            '<option value="true"' + (" selected" if removed else "") + ">Removed images</option>"
+            '</select></label><button>Apply filters</button></form><div class="card-grid">'
+        )
+        for record in records[:24]:
+            current = delivered.get(record["frame_id"])
+            current = current and current["id"] == record["id"]
             plan = json.loads(record["manifest"])
             birds = ", ".join(a["common_name"] for a in plan.get("artworks", [plan["artwork"]]))
             body += (
-                "<section><h2>"
+                '<article class="card library-card"><img class="preview" loading="lazy" '
+                'src="/manage/images/'
+                + str(record["id"])
+                + "/preview"
+                + ("?removed=true" if removed else "")
+                + '" alt="'
+                + escape(birds)
+                + '">'
+                "<h2>"
+                + escape(birds)
+                + '</h2><p class="quiet">'
                 + escape(record["frame_id"])
                 + " · "
                 + escape(record["local_date"])
-                + " · "
+                + " · Version "
                 + str(record["revision"])
-                + '</h2><img class="preview" loading="lazy" src="/manage/images/'
-                + str(record["id"])
-                + '/preview"><p>'
-                + escape(birds)
                 + "</p>"
             )
             if current:
-                body += "<p>Currently displayed</p>"
+                body += (
+                    '<p class="pill">Last delivered to the frame</p><p class="quiet">'
+                    "Advance the frame before removing this image.</p>"
+                )
             else:
                 body += (
                     '<form method="post" action="/manage/images/'
                     + str(record["id"])
-                    + '/remove">'
+                    + ("/restore" if removed else "/remove")
+                    + '">'
                     + hidden(auth["csrf"])
-                    + "<button>Remove from history</button></form>"
+                    + '<button class="secondary">'
+                    + ("Restore to history" if removed else "Remove from history")
+                    + "</button></form>"
                 )
-            body += "</section>"
-        from urllib.parse import urlencode
-
-        body += (
-            '<a href="/manage/images?'
-            + urlencode({"offset": offset + 25, **({"frame": frame} if frame else {})})
-            + '">Older images</a>'
-        )
-        return page("Image history", body)
+            body += "</article>"
+        body += "</div>"
+        if not records:
+            body += (
+                '<section class="empty-state"><h2>'
+                + ("No removed images" if removed else "No saved images yet")
+                + "</h2><p>"
+                + (
+                    "Removed images appear here while their files are retained."
+                    if removed
+                    else "Prepared artwork will appear here, ready to revisit on the frame."
+                )
+                + "</p></section>"
+            )
+        parameters = {"removed": str(removed).lower(), **({"frame": frame} if frame else {})}
+        body += '<nav class="toolbar" aria-label="Image history pages">'
+        if offset:
+            body += (
+                '<a class="button secondary" href="/manage/images?'
+                + escape(urlencode({**parameters, "offset": max(0, offset - 24)}))
+                + '">Newer images</a>'
+            )
+        if len(records) > 24:
+            body += (
+                '<a class="button secondary" href="/manage/images?'
+                + escape(urlencode({**parameters, "offset": offset + 24}))
+                + '">Older images</a>'
+            )
+        body += "</nav>"
+        return page("Your images", body, active="images")
 
     @app.get("/manage/images/{image_id}/preview")
-    def history_preview(image_id: int, request: Request):
+    def history_preview(image_id: int, request: Request, removed: bool = False):
         require(request)
         with service.store.connect() as db:
             record = db.execute(
-                "SELECT * FROM images WHERE id=? AND hidden=0", (image_id,)
+                "SELECT * FROM images WHERE id=? AND hidden=?", (image_id, int(removed))
             ).fetchone()
-        if not record:
+        if not record or not service.cache_path(record["preview_path"]).is_file():
             raise HTTPException(404, "Image unavailable")
         return FileResponse(
             service.cache_path(record["preview_path"]),
@@ -876,39 +1092,172 @@ def attach_owner(app, service):
             "/manage/images", status_code=303, background=BackgroundTask(service.refill_pending)
         )
 
+    @app.post("/manage/images/{image_id}/restore")
+    async def restore_image(image_id: int, request: Request):
+        await checked_form(request)
+        with preparation_lock(service.settings.data_dir):
+            with service.store.connect() as db:
+                record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
+                if not record:
+                    raise HTTPException(404, "Unknown image")
+                if not all(
+                    service.cache_path(record[key]).is_file() for key in ("path", "preview_path")
+                ):
+                    raise HTTPException(409, "This image has expired from storage")
+                db.execute("UPDATE images SET hidden=0 WHERE id=?", (image_id,))
+        return RedirectResponse("/manage/images", status_code=303)
+
     @app.get("/manage/artwork")
-    def artwork_management(request: Request):
+    def artwork_management(
+        request: Request, q: str = "", status: str = "", sort: str = "name", p: int = 1
+    ):
+        from urllib.parse import urlencode
+
         auth = require(request)
         excluded = service.store.excluded_artworks()
         counts = service.store.bird_counts()
-        body = (
-            '<p><a href="/manage">Management</a></p><p>Exclude artwork from future compositions '
-            "without removing its source credits or changing the picture on the frame. Render "
-            "counts include successful compositions, including images later removed "
-            "from history.</p>"
-        )
-        for art in sorted(service.settings.artworks, key=lambda a: (a["common_name"], a["id"])):
-            body += (
-                "<section><h2>"
-                + escape(art["common_name"])
-                + '</h2><img class="preview" loading="lazy" src="/art/'
-                + escape(art["id"])
-                + '"><p>'
-                + escape(art["id"])
-                + " · "
-                + str(counts.get(art["scientific_name"], 0))
-                + " species renders</p>"
-                + '<form method="post" action="/manage/artwork/'
-                + escape(art["id"])
-                + '">'
-                + hidden(auth["csrf"])
-                + '<input type="hidden" name="exclude" value="'
-                + ("0" if art["id"] in excluded else "1")
-                + '"><button>'
-                + ("Restore to rotation" if art["id"] in excluded else "Exclude from rotation")
-                + "</button></form></section>"
+        q = q.strip()[:200]
+        status = status if status in {"rotation", "excluded", "reference"} else ""
+        sort = sort if sort in {"name", "most", "least"} else "name"
+        works = [
+            a
+            for a in service.settings.artworks
+            if q.casefold()
+            in " ".join(
+                str(a.get(k, "")) for k in ("common_name", "scientific_name", "credit", "id")
+            ).casefold()
+            and (
+                not status
+                or (status == "excluded" and a["id"] in excluded)
+                or (status == "rotation" and a["approved"] and a["id"] not in excluded)
+                or (status == "reference" and not a["approved"])
             )
-        return page("Artwork rotation", body)
+        ]
+        works.sort(
+            key=lambda a: (
+                -counts.get(a["scientific_name"], 0)
+                if sort == "most"
+                else counts.get(a["scientific_name"], 0)
+                if sort == "least"
+                else 0,
+                a["common_name"],
+                a["id"],
+            )
+        )
+        pages = max(1, (len(works) + 23) // 24)
+        p = min(max(p, 1), pages)
+        body = (
+            '<header class="page-header"><h1>Artwork library</h1>'
+            '<p class="page-description">Choose which illustrations can appear in future '
+            "compositions. Exclusions leave the artwork already on the frame "
+            "unchanged.</p></header>"
+            '<form class="toolbar" method="get" action="/manage/artwork"><label>Search'
+            '<input type="search" name="q" value="'
+            + escape(q)
+            + '" placeholder="Bird, scientific name or artist"></label>'
+        )
+        for name, label, options, selected in (
+            (
+                "status",
+                "Availability",
+                [
+                    ("", "All artwork"),
+                    ("rotation", "In rotation"),
+                    ("excluded", "Excluded"),
+                    ("reference", "References and review"),
+                ],
+                status,
+            ),
+            (
+                "sort",
+                "Sort",
+                [("name", "Name A to Z"), ("most", "Most rendered"), ("least", "Least rendered")],
+                sort,
+            ),
+        ):
+            body += "<label>" + label + '<select name="' + name + '">'
+            for value, text in options:
+                body += (
+                    '<option value="'
+                    + value
+                    + '"'
+                    + (" selected" if selected == value else "")
+                    + ">"
+                    + text
+                    + "</option>"
+                )
+            body += "</select></label>"
+        body += (
+            '<button>Apply filters</button><a class="button secondary" '
+            'href="/manage/artwork">Reset</a></form>'
+            '<p class="quiet">' + str(len(works)) + " artworks match. Species render counts "
+            "include successful compositions, including images later removed from history.</p>"
+            '<div class="card-grid">'
+        )
+        for art in works[(p - 1) * 24 : p * 24]:
+            excluded_art = art["id"] in excluded
+            label = (
+                "Excluded"
+                if excluded_art
+                else "In rotation"
+                if art["approved"]
+                else "Reference or review pending"
+            )
+            body += (
+                '<article class="card library-card"><img class="artwork-thumb" '
+                'loading="lazy" src="/art/'
+                + escape(art["id"])
+                + '" alt="'
+                + escape(art["common_name"])
+                + '"><h2>'
+                + escape(art["common_name"])
+                + '</h2><p class="quiet"><i>'
+                + escape(art["scientific_name"])
+                + '</i></p><p class="pill">'
+                + label
+                + "</p><p>"
+                + str(counts.get(art["scientific_name"], 0))
+                + " species renders</p><details><summary>Artwork details and credit</summary><p>"
+                + escape(art.get("credit", ""))
+                + '</p><p class="quiet">'
+                + escape(art["id"])
+                + '</p><a href="'
+                + escape(art["source_url"])
+                + '">Source artwork</a></details>'
+            )
+            if art["approved"]:
+                body += (
+                    '<form method="post" action="/manage/artwork/'
+                    + escape(art["id"])
+                    + '">'
+                    + hidden(auth["csrf"])
+                    + '<input type="hidden" name="exclude" value="'
+                    + ("0" if excluded_art else "1")
+                    + '"><button class="secondary">'
+                    + ("Restore to rotation" if excluded_art else "Exclude from rotation")
+                    + "</button></form>"
+                )
+            body += "</article>"
+        body += "</div>"
+        if not works:
+            body += (
+                '<section class="empty-state"><h2>No artwork matches</h2>'
+                "<p>Try another search or reset your filters.</p></section>"
+            )
+        if pages > 1:
+            body += '<nav class="toolbar" aria-label="Artwork pages">'
+            for number, label in ((p - 1, "Previous"), (p + 1, "Next")):
+                if 1 <= number <= pages:
+                    body += (
+                        '<a class="button secondary" href="/manage/artwork?'
+                        + escape(urlencode({"q": q, "status": status, "sort": sort, "p": number}))
+                        + '">'
+                        + label
+                        + "</a>"
+                    )
+            body += '<span class="quiet">Page ' + str(p) + " of " + str(pages) + "</span></nav>"
+        body += '<p><a href="/library">Browse full artwork provenance and licenses</a></p>'
+        return page("Artwork library", body, active="artwork")
 
     @app.post("/manage/artwork/{artwork_id}")
     async def artwork_rotation(artwork_id: str, request: Request):
@@ -932,6 +1281,18 @@ def attach_owner(app, service):
                             service.store.request_refill(frame["id"], image["id"])
         return RedirectResponse(
             "/manage/artwork", status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
+    @app.get("/manage/frames/{identifier}/display")
+    def delivered_preview(identifier: str, request: Request):
+        require(request)
+        record = service.delivered_image(service.store.frame(identifier))
+        if not record:
+            raise HTTPException(404, "No image delivered yet")
+        return FileResponse(
+            service.cache_path(record["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store"},
         )
 
     @app.get("/manage/frames/{identifier}/preview")
@@ -988,7 +1349,7 @@ def attach_owner(app, service):
         except (ValueError, KeyError):
             raise HTTPException(400, "Invalid frame settings") from None
         service.store.set_policy(identifier, validated)
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/frames/{identifier}/wifi")
     async def save_wifi(identifier: str, request: Request):
@@ -1037,46 +1398,67 @@ def attach_owner(app, service):
                 "Choose open explicitly for a network without a password.",
             ) from None
         service.store.set_policy(identifier, validated)
-        return redirect()
+        return redirect(request)
 
     @app.get("/manage/event-art")
     def event_art_collection(request: Request):
         csrf = require(request)["csrf"]
         body = (
-            "<p>Upload art for holidays, seasons and other special days. "
-            "These images stay out of the everyday bird rotation. Review each image "
-            "before choosing it on a special day.</p>"
-            '<form method="post" action="/manage/event-art/upload" '
+            '<header class="page-header"><h1>Special-day art</h1><p class="page-description">'
+            "Make holidays, seasons and personal occasions your own. These images stay "
+            "out of everyday bird rotation.</p></header>"
+            '<section><h2>Add an illustration</h2><form method="post" '
+            'action="/manage/event-art/upload" '
             'enctype="multipart/form-data">'
             + hidden(csrf)
+            + '<div class="fields">'
             + field("title", "Artwork title", "", extra='maxlength="80" required')
             + field("attribution", "Creator or source", "", extra='maxlength="300" required')
-            + "<label>Image (PNG, JPEG or WebP, up to 10 MB)<br>"
-            '<input type="file" name="image" accept="image/png,image/jpeg,image/webp" '
-            'required></label><p class="quiet">Images are saved as still PNG files '
-            "and reviewed before use.</p><button>Upload for review</button>"
-            "</form>"
+            + '</div><label>Image<input type="file" name="image" '
+            'accept="image/png,image/jpeg,image/webp" required></label><p class="quiet">'
+            "PNG, JPEG or WebP, up to 10 MB. Images are saved as still PNG files. "
+            "Review the illustration before approving it for a special day.</p>"
+            "<button>Upload for review</button></form></section>"
         )
-        for art in service.event_art.entries():
+        entries = service.event_art.entries()
+        if not entries:
             body += (
-                "<section><h2>" + escape(art["common_name"]) + "</h2>"
-                '<img class="preview" src="/manage/event-art/'
-                + escape(art["id"])
-                + '/image" alt="'
-                + escape(art["common_name"])
-                + '"><p>'
-                + escape(art["source"])
-                + "</p><p>"
-                + ("Approved for special days" if art["approved"] else "Awaiting review")
-                + '</p><form method="post" action="/manage/event-art/'
-                + escape(art["id"])
-                + '">'
-                + hidden(csrf)
-                + '<button name="action" value="approve">Approve</button> '
-                '<button name="action" value="unapprove">Return to review</button> '
-                '<button name="action" value="remove">Remove</button></form></section>'
+                '<section class="empty-state"><h2>Your special-day collection starts here.</h2>'
+                "<p>Upload an illustration, approve it, then choose it on a special day.</p>"
+                '<a class="button secondary" href="/manage/events">Plan a special day</a></section>'
             )
-        return page("Occasion art", body + '<p><a href="/manage">Return to frame settings</a></p>')
+        else:
+            body += '<div class="card-grid">'
+            for art in entries:
+                body += (
+                    '<article class="card library-card"><img class="artwork-thumb" loading="lazy" '
+                    'src="/manage/event-art/'
+                    + escape(art["id"])
+                    + '/image" alt="'
+                    + escape(art["common_name"])
+                    + '"><h2>'
+                    + escape(art["common_name"])
+                    + "</h2><p>"
+                    + escape(art["source"])
+                    + '</p><p class="pill">'
+                    + ("Approved for special days" if art["approved"] else "Awaiting review")
+                    + '</p><form method="post" action="/manage/event-art/'
+                    + escape(art["id"])
+                    + '">'
+                    + hidden(csrf)
+                    + '<div class="actions"><button class="secondary" name="action" value="'
+                    + ("unapprove" if art["approved"] else "approve")
+                    + '">'
+                    + ("Return to review" if art["approved"] else "Approve for special days")
+                    + "</button>"
+                    "</div><details><summary>Remove artwork</summary>"
+                    "<p>Removal deletes the uploaded artwork. Choose another image on any "
+                    'special days using it first.</p><button class="danger" '
+                    'name="action" value="remove">'
+                    "Permanently remove artwork</button></details></form></article>"
+                )
+            body += "</div>"
+        return page("Special-day art", body, active="event-art")
 
     @app.get("/manage/event-art/{artwork_id}/image")
     def event_art_image(artwork_id: str, request: Request):
@@ -1177,7 +1559,7 @@ def attach_owner(app, service):
             service.store.set_policy(identifier, FramePolicy.model_validate(policy))
         except ValueError as error:
             raise HTTPException(400, "Invalid collection: " + str(error)) from None
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/frames/{identifier}/special-days")
     async def save_special_day(identifier: str, request: Request):
@@ -1232,7 +1614,7 @@ def attach_owner(app, service):
         except (ValueError, KeyError) as error:
             raise HTTPException(400, "Invalid special day: " + str(error)) from None
         service.store.set_policy(identifier, validated)
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/frames/{identifier}/special-days/{day_id}/delete")
     async def delete_special_day(identifier: str, day_id: str, request: Request):
@@ -1244,7 +1626,7 @@ def attach_owner(app, service):
             raise HTTPException(404, "Unknown special day")
         policy["special_days"] = [d for d in policy["special_days"] if d["id"] != day_id]
         service.store.set_policy(identifier, FramePolicy.model_validate(policy))
-        return redirect()
+        return redirect(request)
 
     @app.get("/manage/frames/{identifier}/special-days/{day_id}/preview")
     def special_day_preview(identifier: str, day_id: str, request: Request):
@@ -1287,7 +1669,7 @@ def attach_owner(app, service):
             raise HTTPException(
                 400, "Invalid locality settings or preparation in progress"
             ) from None
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/public")
     async def public_settings(request: Request):
@@ -1298,7 +1680,7 @@ def attach_owner(app, service):
         config = service.settings.config.model_dump()
         config["public_frame_id"] = identifier
         service.save_configuration(config)
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/ebird-key")
     async def ebird_key(request: Request):
@@ -1307,7 +1689,7 @@ def attach_owner(app, service):
         if not 16 <= len(key) <= 256 or not all(32 < ord(c) < 127 for c in key):
             raise HTTPException(400, "Invalid key format")
         write_private(secret_directory() / "ebird-api-key", key + "\n")
-        return redirect()
+        return redirect(request)
 
     @app.post("/manage/password")
     async def password(request: Request):
@@ -1340,7 +1722,7 @@ def attach_owner(app, service):
         write_private(
             service.settings.data_dir / "provisioning" / (identifier + ".token"), token + "\n"
         )
-        return redirect()
+        return redirect(request)
 
     @app.get("/manage/frames/{identifier}/provision")
     def provision(identifier: str, request: Request, import_file: bool = False):
@@ -1385,4 +1767,4 @@ def attach_owner(app, service):
                 "Preparation unavailable",
                 "<p>The last good image is retained.</p><a href='/manage'>Return</a>",
             )
-        return redirect()
+        return redirect(request)

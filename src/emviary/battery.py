@@ -140,20 +140,28 @@ def install_battery_routes(app, service, require, escape, page):
     @app.get("/manage/battery")
     def battery_history(request: Request):
         require(request)
-        body = '<p><a href="/manage">Back to management</a></p>'
+        body = '<p class="quiet">Charging reminders appear here and on your overview.</p>'
         body += (
-            "<p>Charge alerts appear here and in web management. Estimates use observed "
+            "<details><summary>How charging estimates work</summary><p>Estimates use observed "
             "discharge history and may change with use, temperature, or battery condition. "
             "Percentage is derived from voltage. Reported USB and charging status can "
             "vary with hardware; some older boards may miss a data-less USB charger. "
-            "No email or external notifications are sent.</p>"
+            "No email or external notifications are sent.</p></details>"
         )
         for frame in service.store.frames():
             samples = service.store.battery_samples(frame["id"])
             summary = summarize(samples)
             body += f"<section><h2>{escape(frame['id'])}</h2>"
             percent = "Unknown" if summary["percent"] is None else f"{summary['percent']}%"
-            body += f"<p>Battery: {percent}. {escape(summary['status'])}.</p>"
+            body += (
+                '<div class="metric-grid"><div class="metric"><span '
+                'class="metric-label">Battery level</span><strong>'
+                + percent
+                + '</strong></div><div class="metric"><span '
+                'class="metric-label">Status</span><strong class="battery-status">'
+                + escape(summary["status"])
+                + "</strong></div></div>"
+            )
             if summary["recorded_at"]:
                 body += f"<p>Last reported: {escape(summary['recorded_at'])}.</p>"
             if summary["alert"]:
@@ -174,7 +182,8 @@ def install_battery_routes(app, service, require, escape, page):
             body += chart(samples)
             body += (
                 "<details><summary>Recent battery readings (up to 60)</summary>"
-                "<table><caption>Battery history, newest first; timestamps in UTC</caption>"
+                '<div class="table-wrap"><table><caption>Battery history, newest '
+                "first; timestamps in UTC</caption>"
                 "<tr><th>Recorded</th><th>Battery</th><th>Voltage</th>"
                 "<th>Charging</th><th>USB</th></tr>"
             )
@@ -189,5 +198,5 @@ def install_battery_routes(app, service, require, escape, page):
                     f"<td>{sample['percent']}%</td><td>{voltage}</td>"
                     f"<td>{state('charging')}</td><td>{state('usb_connected')}</td></tr>"
                 )
-            body += "</table></details></section>"
+            body += "</table></div></details></section>"
         return page("Battery and charging", body)

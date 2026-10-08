@@ -96,7 +96,7 @@ def test_admin_policy_auth_csrf_and_validation(service, frame, tmp_path, monkeyp
     from test_owner import sign_in
 
     client, csrf = sign_in(service, tmp_path, monkeypatch)
-    page = client.get("/manage").text
+    page = client.get("/manage/appearance").text
     assert "https://github.com/lstepnio/Emviary-firmware/releases" in page
     assert '<option value="automatic" selected>Automatic</option>' in page
     url = "/manage/frames/test-frame/settings"

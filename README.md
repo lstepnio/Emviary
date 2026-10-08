@@ -127,3 +127,19 @@ Weather appears on one header line. Icon, condition words and high/low temperatu
 Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate owner-uploaded occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is reviewed before assignment. Birthday setup was cleared for the new collection workflow.
 
 Owner-only battery history shows voltage, USB/charging state, low-battery alerts and a cautious time-to-charge estimate after enough discharge readings. Notifications currently appear only in web management. Firmware v0.6.0 removes SD startup, Home Assistant work and duplicate update checks from the E1002 cloud profile while preserving recovery, image handling and OTA. These changes have not established a battery endurance figure.
+
+### Web management
+
+The public home mirrors the last delivered image. Owner management uses focused pages:
+
+- **Overview:** delivered and prepared images, daily wake, battery, last contact and local controls.
+- **Appearance:** composition, bird selection, weather details, panel treatment and firmware preferences.
+- **Special days:** expandable event editors and disabled-by-default holiday/season imports.
+- **Your images:** saved/removed filters, per-frame history and restore until files expire. The delivered image stays protected.
+- **Artwork library:** search, status filters, sorting and pagination for rotation controls.
+- **Special-day art:** upload, source credit, review and approval before event assignment.
+- **Battery:** observed readings, alerts and cautious charging estimates.
+- **Settings:** locality, data sources, staged Wi-Fi, public sharing and account controls.
+- **Recovery:** local addresses, setup hotspot and private configuration downloads.
+
+Desktop navigation becomes a collapsible menu on mobile. Forms use visible labels, keyboard focus and save feedback; saving retains the current section. No JavaScript framework or external asset dependency is required.

@@ -121,9 +121,9 @@ def test_owner_add_and_provision_keep_tokens_private(service, tmp_path, monkeypa
     assert recovery.json()["config"]["access_token"] == config["access_token"]
     assert recovery.json()["config"]["image_url"] == config["image_url"]
     assert not any(k.startswith("wifi_") for k in recovery.json()["config"])
-    assert "Frame recovery and Wi-Fi setup" in client.get("/manage").text
-    assert "PhotoFrame - XXXXX" in client.get("/manage").text
-    assert "Settings → Maintenance → Config Backup" in client.get("/manage").text
+    assert "Frame recovery and Wi-Fi setup" in client.get("/manage/recovery").text
+    assert "PhotoFrame - XXXXX" in client.get("/manage/recovery").text
+    assert "Settings → Maintenance → Config Backup" in client.get("/manage/recovery").text
     response = client.post(
         "/manage/ebird-key",
         data={"csrf": csrf, "key": "a-new-test-ebird-key"},
