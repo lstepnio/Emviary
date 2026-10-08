@@ -1,12 +1,24 @@
 import json
 import logging
 import math
+import os
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import httpx
 
 log = logging.getLogger(__name__)
 MAX_RESPONSE_BYTES = 1_000_000
+
+
+def distance_km(center, latitude, longitude):
+    first, second = math.radians(center.latitude), math.radians(latitude)
+    delta = math.radians(longitude - center.longitude)
+    chord = (
+        math.sin((second - first) / 2) ** 2
+        + math.cos(first) * math.cos(second) * math.sin(delta / 2) ** 2
+    )
+    return 6371.0088 * 2 * math.atan2(math.sqrt(chord), math.sqrt(max(0, 1 - chord)))
 
 
 class Providers:
@@ -32,33 +44,55 @@ class Providers:
                 client.close()
 
     def birds(self, site):
+        bounds = site.locality_bounds
+        period = {"count": site.bird_lookback_hours, "unit": "hours", "timezone": site.timezone}
+        variables = {
+            "period": period,
+            "ne": {"lat": bounds.northeast.latitude, "lon": bounds.northeast.longitude},
+            "sw": {"lat": bounds.southwest.latitude, "lon": bounds.southwest.longitude},
+        }
+        stations = self._json(
+            "POST",
+            "https://app.birdweather.com/graphql",
+            json={
+                "query": """query($period:InputDuration,$ne:InputLocation,$sw:InputLocation) {
+                stations(first:100,period:$period,ne:$ne,sw:$sw) {
+                    nodes { id coords { lat lon } }
+                }
+            }""",
+                "variables": variables,
+            },
+        )
+        if stations.get("errors"):
+            raise ValueError("BirdWeather station lookup failed")
+        station_ids = []
+        for station in stations["data"]["stations"]["nodes"][:100]:
+            coords = station["coords"]
+            if (
+                distance_km(site.weather_location, coords["lat"], coords["lon"])
+                <= site.locality_radius_km
+            ):
+                station_ids.append(str(station["id"]))
         payload = {
-            "query": """query($period:InputDuration,$ne:InputLocation,$sw:InputLocation) {
-                topBirdnetSpecies(limit:32,period:$period,ne:$ne,sw:$sw) {
+            "query": """query($period:InputDuration,$stationIds:[ID!]!) {
+                topSpecies(limit:32,period:$period,stationIds:$stationIds) {
                     count species { id commonName scientificName }
                 }
             }""",
             "variables": {
-                "period": {
-                    "count": site.bird_lookback_hours,
-                    "unit": "hours",
-                    "timezone": site.timezone,
-                },
-                "ne": {
-                    "lat": site.birdweather_bounds.northeast.latitude,
-                    "lon": site.birdweather_bounds.northeast.longitude,
-                },
-                "sw": {
-                    "lat": site.birdweather_bounds.southwest.latitude,
-                    "lon": site.birdweather_bounds.southwest.longitude,
-                },
+                "period": period,
+                "stationIds": station_ids,
             },
         }
-        result = self._json("POST", "https://app.birdweather.com/graphql", json=payload)
+        result = (
+            self._json("POST", "https://app.birdweather.com/graphql", json=payload)
+            if station_ids
+            else {"data": {"topSpecies": []}}
+        )
         if result.get("errors"):
             raise ValueError("BirdWeather returned GraphQL errors")
         birds = []
-        for entry in result["data"]["topBirdnetSpecies"]:
+        for entry in result["data"]["topSpecies"]:
             species = entry["species"]
             count = int(entry["count"])
             if 0 <= count <= 1_000_000_000 and species.get("scientificName"):
@@ -73,7 +107,9 @@ class Providers:
         return {
             "provider": "birdweather",
             "birds": birds,
-            "query": payload["variables"],
+            "query": variables,
+            "station_count": len(station_ids),
+            "radius_km": site.locality_radius_km,
             "window_end": datetime.now(UTC).isoformat(),
             "window_hours": site.bird_lookback_hours,
             "regional": True,
@@ -118,38 +154,109 @@ class Providers:
             "values": values,
         }
 
+    def ebird(self, site):
+        key_path = Path(os.getenv("EINK_EBIRD_API_KEY_FILE", "/run/secrets/ebird-api-key"))
+        key = key_path.read_text().strip()
+        if not key or len(key) > 256:
+            raise ValueError("eBird key file is empty or invalid")
+        options = site.providers.ebird
+        query = {
+            "lat": site.weather_location.latitude,
+            "lng": site.weather_location.longitude,
+            "dist": site.locality_radius_km,
+            "back": options.lookback_days,
+            "maxResults": options.max_results,
+            "includeProvisional": "false",
+        }
+        result = self._json(
+            "GET",
+            "https://api.ebird.org/v2/data/obs/geo/recent",
+            headers={"X-eBirdApiToken": key},
+            params=query,
+        )
+        if not isinstance(result, list):
+            raise ValueError("Unexpected eBird response")
+        species = {}
+        for entry in result[: options.max_results]:
+            if not isinstance(entry, dict):
+                raise ValueError("Unexpected eBird observation")
+            name = entry.get("sciName")
+            latitude, longitude = entry.get("lat"), entry.get("lng")
+            if not isinstance(latitude, (int, float)) or not isinstance(longitude, (int, float)):
+                continue
+            if not math.isfinite(latitude) or not math.isfinite(longitude):
+                continue
+            if distance_km(site.weather_location, latitude, longitude) > site.locality_radius_km:
+                continue
+            if isinstance(name, str) and 0 < len(name) <= 100:
+                species.setdefault(
+                    name.casefold(),
+                    {
+                        "scientific_name": name,
+                        "common_name": str(entry.get("comName", ""))[:100],
+                        "provider_id": str(entry.get("speciesCode", ""))[:32],
+                        "last_observed": str(entry.get("obsDt", ""))[:32],
+                    },
+                )
+        return {
+            "provider": "ebird",
+            "birds": list(species.values()),
+            "query": query,
+            "window_end": datetime.now(UTC).isoformat(),
+            "regional": True,
+            "evidence_type": "reported_presence",
+        }
+
+    def scope(self, site, provider):
+        return {
+            "version": 2,
+            "center": site.weather_location.model_dump(),
+            "radius_km": site.locality_radius_km,
+            "timezone": site.timezone,
+            "lookback": site.bird_lookback_hours
+            if provider == "birdweather"
+            else site.providers.ebird.lookback_days,
+            "max_results": site.providers.ebird.max_results if provider == "ebird" else 32,
+        }
+
     def inputs(self, site, local_date, offline=False):
         results = {}
         flags = {
             "birdweather": site.providers.birdweather.enabled,
             "open_meteo": site.providers.open_meteo.enabled,
+            "ebird": site.providers.ebird.enabled,
         }
         for provider, enabled in flags.items():
             if not enabled:
                 continue
             cached = self.store.snapshot(site.id, provider, local_date)
             if cached:
-                results[provider] = json.loads(cached["payload"])
-                continue
+                value = json.loads(cached["payload"])
+                if value.get("scope") == self.scope(site, provider):
+                    results[provider] = value
+                    continue
             if not offline:
                 try:
-                    value = (
-                        self.birds(site)
-                        if provider == "birdweather"
-                        else self.forecast(site, local_date)
-                    )
+                    if provider == "birdweather":
+                        value = self.birds(site)
+                    elif provider == "ebird":
+                        value = self.ebird(site)
+                    else:
+                        value = self.forecast(site, local_date)
+                    value["scope"] = self.scope(site, provider)
                     self.store.save_snapshot(site.id, provider, local_date, value)
                     results[provider] = value
                     continue
-                except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+                except (httpx.HTTPError, ValueError, KeyError, TypeError, OSError) as exc:
                     log.warning("Provider %s unavailable: %s", provider, type(exc).__name__)
             # An old forecast never supplies weather for a different day.
-            if provider == "birdweather":
+            if provider in ("birdweather", "ebird"):
                 previous = self.store.snapshot(site.id, provider)
                 if previous and datetime.fromisoformat(previous["received_at"]) > (
                     datetime.now(UTC) - timedelta(hours=48)
                 ):
                     value = json.loads(previous["payload"])
-                    value["cached_fallback"] = True
-                    results[provider] = value
+                    if value.get("scope") == self.scope(site, provider):
+                        value["cached_fallback"] = True
+                        results[provider] = value
         return results

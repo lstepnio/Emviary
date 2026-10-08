@@ -4,7 +4,7 @@ A Denver-area bird-art gift built around the reTerminal E1002.
 
 A sleeping ESP32 PhotoFrame client retrieves one prepared image each night from
 https://eink.majjix.com. One Python Docker service on `one.majjix.com` combines
-curated Fugleramme bird illustrations, regional BirdWeather detections, seasonal
+curated Fugleramme bird illustrations, regional BirdWeather detections and optional eBird observations, seasonal
 motifs and understated Open-Meteo forecast cues. No paid subscription, microphone,
 Raspberry Pi or online image generation is required for this POC.
 
@@ -19,12 +19,20 @@ Raspberry Pi or online image generation is required for this POC.
 - Provider outages retain the last good image; stale forecasts are omitted.
 - Thirty-day image history, fourteen-day provider snapshots, seven daily
   consistent database/art/config backups; active images survive retention.
-- Owner CLI, health check, restricted container and existing Caddy integration.
+- Authenticated management for location, sources, bird selection, appearance,
+  refresh schedule, frame provisioning and owner credentials.
+- Public homepage mirrors the last image delivered to the selected frame;
+  owner previews show upcoming prepared art separately.
+- One or two distinct birds, sized for the 800×480 panel, with sparse seasonal
+  edges and forecast cues behind the unchanged curated illustrations.
+- Health check, restricted container and existing Caddy integration.
 
 The firmware fork is https://github.com/lstepnio/einkartifact-firmware, pinned to
-upstream v2.19.0. No custom firmware code is needed for the initial protocol.
-The attached E1002 already runs that version. Physical display, unplugged wake
-and battery endurance must be assessed separately from service tests.
+upstream v2.19.0 with a small clear-screen recovery patch. It invalidates the
+image cache marker when the panel is cleared and avoids a duplicate Spectra
+refresh. The attached E1002 runs `dev-a514a2c`; its restored bird picture was
+physically confirmed. Battery sleep and endurance need separate validation.
+See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
 
 ## Local development
 
@@ -42,8 +50,15 @@ uv run einkartifact serve
 The default configuration is `deployment/site.example.json`. Set `EINK_CONFIG`,
 `EINK_DATA_DIR`, `EINK_ART_DIR`, and `EINK_BACKUP_DIR` to override paths. All owner
 provisioning files are secrets and excluded from Git. The public homepage shows
-curated source art and attribution; `/v1/image` and `/v1/preview` require the
-frame's bearer token. There is no public owner dashboard.
+the selected frame's latest delivered art with a subtle management link.
+`/manage` requires the owner password; `/library` shows source artwork and credits.
+`/v1/image` and `/v1/preview` require the frame's bearer token. The panel preview
+is decoded from the exact packed pixels; perceived physical colors vary with
+lighting. Delivery telemetry is not a physical panel acknowledgement.
+
+For local management, set `EINK_SECRET_DIR` to a private writable directory and
+run `einkartifact init-owner --password-file .state/provisioning/owner-login.txt`.
+Production bootstrap credentials are delivered privately, never committed.
 
 ```sh
 uv run ruff check src tests tools
@@ -61,3 +76,15 @@ CC BY-SA 4.0; fonts are OFL licensed. Artwork provenance is in
 [art/FUGLERAMME-ATTRIBUTION.md](art/FUGLERAMME-ATTRIBUTION.md) and
 [art/catalog.json](art/catalog.json). Unreviewed generated experiments are kept
 separately and excluded from runtime and deployment.
+
+The deployed eBird adapter uses a secret file mounted at `/run/secrets/ebird-api-key`.
+It queries recent reports within 25 km, limits responses to 100 species, and uses
+reported presence as a selection bonus rather than mixing observation counts
+with acoustic detections. The key and observer/checklist details are not stored
+in snapshots, artwork manifests, Git or application backups. Enable it per site
+in management; the example keeps it disabled for local setup. BirdWeather and
+eBird share the configured center and locality radius, defaulting to 25 km.
+Observations outside that circle are filtered before selection. The eight
+curated species are Denver residents; this POC varies seasonal surroundings
+rather than claiming a complete migratory bird catalogue. Additional species
+require reviewed, licensed art and locality/season metadata.

@@ -62,8 +62,8 @@ def test_tokens_geometry_and_preview_are_isolated(service, frame):
         assert service.store.authenticate(token) is None
         assert service.store.authenticate(new_token)["id"] == frame_id
         assert client.get("/healthz").status_code == 200
-        assert "CC BY-SA 4.0" in client.get("/").text
-        assert "Fugleramme" in client.get("/").text
+        assert "CC BY-SA 4.0" in client.get("/library").text
+        assert "Fugleramme" in client.get("/library").text
         assert token not in client.get("/credits.json").text
 
 

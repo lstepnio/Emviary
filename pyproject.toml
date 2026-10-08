@@ -1,6 +1,6 @@
 [project]
 name = "einkartifact"
-version = "0.1.0"
+version = "0.2.0"
 description = "A sleeping bird-art frame with curated art and prepared nightly images"
 requires-python = ">=3.13"
 dependencies = [

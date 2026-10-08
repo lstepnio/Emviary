@@ -36,12 +36,15 @@ def main():
     policy.add_argument("--preset", choices=["balanced", "dynamic", "vivid", "soft"])
     policy.add_argument("--labels", choices=["on", "off"])
     policy.add_argument("--weather-cues", choices=["on", "off"])
+    policy.add_argument("--max-birds", type=int, choices=[1, 2])
     prepare = commands.add_parser("prepare")
     prepare.add_argument("id")
     prepare.add_argument("--date")
     prepare.add_argument("--force", action="store_true")
     prepare.add_argument("--offline", action="store_true")
     commands.add_parser("status")
+    owner = commands.add_parser("init-owner")
+    owner.add_argument("--password-file", required=True)
     backup = commands.add_parser("backup")
     backup.add_argument("--output")
     provision = commands.add_parser("provision")
@@ -94,6 +97,8 @@ def main():
                 data["show_species_name"] = args.labels == "on"
             if args.weather_cues:
                 data["weather_cues"] = args.weather_cues == "on"
+            if args.max_birds:
+                data["max_birds"] = args.max_birds
             service.store.set_policy(args.id, FramePolicy.model_validate(data))
             result = {"frame": args.id, "configuration": "updated"}
         elif args.command == "prepare":
@@ -106,6 +111,17 @@ def main():
                 "path": image["path"],
                 "sha256": image["body_hash"],
             }
+        elif args.command == "init-owner":
+            import secrets
+
+            from .owner import secret_directory, set_password
+
+            if (secret_directory() / "owner-auth.json").exists():
+                raise ValueError("Owner password already initialized")
+            password = secrets.token_urlsafe(24)
+            private_file(args.password_file, password + "\n")
+            set_password(password)
+            result = {"owner_password_file": args.password_file, "password_printed": False}
         elif args.command == "status":
             result = service.status()
         elif args.command == "backup":

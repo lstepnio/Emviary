@@ -25,6 +25,9 @@ def profile_hash(policy, catalog):
             "weather_cues",
             "processing_preset",
             "dither_algorithm",
+            "max_birds",
+            "allowed_species",
+            "seasonal_themes",
         )
     }
     fields.update(renderer=RENDER_VERSION, catalog=catalog)
@@ -51,9 +54,12 @@ def choose_art(artworks, local_date, inputs, recent_species, seed):
         for b in inputs.get("birdweather", {}).get("birds", [])
     }
     species = sorted({a["scientific_name"] for a in eligible})
+    reported = {b["scientific_name"].casefold() for b in inputs.get("ebird", {}).get("birds", [])}
     weights = []
     for name in species:
         weight = 1 + 2 * math.log1p(min(counts.get(name.casefold(), 0), 100))
+        if name.casefold() in reported:
+            weight += 2  # Presence bonus, independent of individual or acoustic counts.
         if name in recent_species and len(species) > 1:
             weight *= 0.05
         weights.append(weight)
@@ -61,6 +67,19 @@ def choose_art(artworks, local_date, inputs, recent_species, seed):
     name = rng.choices(species, weights=weights, k=1)[0]
     variants = sorted((a for a in eligible if a["scientific_name"] == name), key=lambda a: a["id"])
     return rng.choice(variants)
+
+
+def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
+    first = choose_art(artworks, local_date, inputs, recent_species, seed)
+    capacity = min(policy.get("max_birds", 2), max(1, policy["panel"]["width"] // 360))
+    alternatives = [a for a in artworks if a["scientific_name"] != first["scientific_name"]]
+    if capacity < 2 or not alternatives or random.Random(seed + ":layout").random() < 0.35:
+        return [first]
+    try:
+        second = choose_art(alternatives, local_date, inputs, recent_species, seed + ":second")
+    except ValueError:
+        return [first]
+    return [first, second]
 
 
 def _font(art_dir, size, italic=False):
@@ -76,13 +95,8 @@ def _font(art_dir, size, italic=False):
 def compose(art_dir, artwork, plan, output):
     date = plan["local_date"]
     season = season_for(int(date[5:7]))
-    rng = random.Random(plan["seed"])
-    canvas = Image.new("RGBA", (800, 480), "#f3eddd")
+    canvas = Image.new("RGBA", (800, 480), "#ffffff")
     draw = ImageDraw.Draw(canvas)
-    # Sparse paper texture avoids a flat digital background without busy dithering.
-    for _ in range(3000):
-        x, y = rng.randrange(800), rng.randrange(480)
-        draw.point((x, y), fill=rng.choice(["#ebe4d2", "#f0e9d8", "#f7f1e3"]))
     draw.rectangle((22, 22, 778, 458), outline="#c2b59a", width=1)
     draw.line((50, 392, 750, 392), fill="#cbbd9e", width=1)
     palettes = {
@@ -93,7 +107,7 @@ def compose(art_dir, artwork, plan, output):
     }
     dark, light = palettes[season]
     # Marginal botanical motifs keep weather and season away from diagnostic plumage.
-    for side in (1, -1):
+    for side in (1, -1) if plan["policy"].get("seasonal_themes", True) else ():
         x = 57 if side == 1 else 743
         draw.line((x, 367, x + side * 9, 288), fill=dark, width=2)
         for n in range(4):
@@ -124,32 +138,40 @@ def compose(art_dir, artwork, plan, output):
         if values["wind_speed_10m_max"] >= 30:
             draw.arc((584, 135, 689, 153), 180, 335, fill="#929b89", width=1)
             draw.arc((610, 151, 707, 166), 190, 340, fill="#929b89", width=1)
-    with Image.open(art_dir / artwork["asset"]) as original:
-        bird = original.convert("RGBA")
-        box = bird.getchannel("A").getbbox()
-        if not box:
-            raise ValueError("Artwork is entirely transparent")
-        bird = ImageOps.contain(bird.crop(box), (572, 313), Image.Resampling.LANCZOS)
-        x = (800 - bird.width) // 2 + rng.choice([-12, 0, 12])
-        y = 55 + (313 - bird.height) // 2
-        canvas.alpha_composite(bird, (x, y))
-    draw = ImageDraw.Draw(canvas)
-    ink = "#413e35"
-    if policy["show_species_name"]:
-        title = artwork["common_name"]
-        font = _font(art_dir, 24)
-        while draw.textlength(title, font=font) > 650:
-            font = _font(art_dir, font.size - 1)
-        draw.text((400, 415), title, fill=ink, font=font, anchor="mm")
-        draw.text(
-            (400, 442),
-            artwork["scientific_name"],
-            fill="#70664f",
-            font=_font(art_dir, 17, italic=True),
-            anchor="mm",
-        )
+    birds = plan.get("artworks", [artwork])
+    if not 1 <= len(birds) <= min(2, policy.get("max_birds", 2)):
+        raise ValueError("The panel supports at most two birds")
+    centers = [400] if len(birds) == 1 else [222, 578]
+    limits = (572, 313) if len(birds) == 1 else (302, 285)
+    for item, center in zip(birds, centers, strict=True):
+        with Image.open(art_dir / item["asset"]) as original:
+            bird = original.convert("RGBA")
+            box = bird.getchannel("A").getbbox()
+            if not box:
+                raise ValueError("Artwork is entirely transparent")
+            bird = ImageOps.contain(bird.crop(box), limits, Image.Resampling.LANCZOS)
+            x = center - bird.width // 2
+            y = 69 + (285 - bird.height) // 2 if len(birds) == 2 else 55 + (313 - bird.height) // 2
+            canvas.alpha_composite(bird, (x, y))
+        draw = ImageDraw.Draw(canvas)
+        if policy["show_species_name"]:
+            title = item["common_name"]
+            font = _font(art_dir, 24 if len(birds) == 1 else 19)
+            width = 650 if len(birds) == 1 else 322
+            while draw.textlength(title, font=font) > width and font.size > 17:
+                font = _font(art_dir, font.size - 1)
+            if draw.textlength(title, font=font) > width:
+                raise ValueError("Species title cannot be legible in this layout")
+            draw.text((center, 415), title, fill="#111111", font=font, anchor="mm")
+            draw.text(
+                (center, 442),
+                item["scientific_name"],
+                fill="#333333",
+                font=_font(art_dir, 17 if len(birds) == 1 else 14, italic=True),
+                anchor="mm",
+            )
     # Dating every composition also makes stale retained weather cues understandable.
-    draw.text((53, 39), f"DENVER  /  {date}", font=_font(art_dir, 12), fill="#7c715d")
+    draw.text((53, 39), f"DENVER  /  {date}", font=_font(art_dir, 12), fill="#333333")
     if policy["show_dated_weather_text"] and weather_valid:
         v = forecast["values"]
         text = f"OUTLOOK {date}: {v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
@@ -202,4 +224,52 @@ def convert(source, target, preview, policy, timeout):
     if result.returncode:
         # Do not echo arbitrary external process output into public responses or secrets.
         raise RuntimeError(f"Image converter exited with status {result.returncode}")
-    return validate_epdgz(target)
+    validate_epdgz(target)
+    preserve_paper_white(source, target)
+    digest = validate_epdgz(target)
+    panel_preview(target, preview)
+    return digest
+
+
+def preserve_paper_white(source, target):
+    # Palette tone adjustment can dither even untouched white paper into
+    # colored speckles. Keep exactly white source pixels as the panel's white
+    # ink. Colored art, antialiasing and decorative marks retain conversion.
+    with Image.open(source) as image:
+        if image.size != (800, 480):
+            raise ValueError("Invalid source dimensions")
+        pixels = image.convert("RGB").tobytes()
+    with gzip.open(target, "rb") as handle:
+        packed = bytearray(handle.read(192001))
+    if len(packed) != 192000:
+        raise ValueError("Invalid packed dimensions")
+    for index in range(384000):
+        offset = index * 3
+        if pixels[offset : offset + 3] == b"\xff\xff\xff":
+            byte = index // 2
+            packed[byte] = (packed[byte] & 0xF0) | 1 if index % 2 else (packed[byte] & 15) | 16
+    Path(target).write_bytes(gzip.compress(bytes(packed), mtime=0))
+
+
+def panel_preview(target, preview):
+    # Spectra6 perceived values from the pinned converter palette. This shows
+    # the actual packed pixel choices; ambient lighting still affects the panel.
+    colors = {
+        0: (2, 2, 2),
+        1: (190, 200, 200),
+        2: (205, 202, 0),
+        3: (135, 19, 0),
+        5: (5, 64, 158),
+        6: (39, 102, 60),
+    }
+    with gzip.open(target, "rb") as handle:
+        packed = handle.read(192001)
+    if len(packed) != 192000:
+        raise ValueError("Invalid packed preview dimensions")
+    indices = bytes(n for byte in packed for n in (byte >> 4, byte & 15))
+    if set(indices) - INK_CODES:
+        raise ValueError("Invalid packed preview colors")
+    image = Image.frombytes("P", (800, 480), indices)
+    palette = [channel for n in range(256) for channel in colors.get(n, (0, 0, 0))]
+    image.putpalette(palette)
+    image.convert("RGB").save(preview, "JPEG", quality=95, subsampling=0)

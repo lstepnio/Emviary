@@ -3,7 +3,10 @@
   "fork": "https://github.com/lstepnio/einkartifact-firmware",
   "branch": "einkartifact-poc",
   "release": "v2.19.0",
-  "commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
+  "commit": "a514a2c83b0766e71cc0c5556f5eb9af3e79abed",
   "board": "seeedstudio_reterminal_e1002",
-  "behavior": "Unmodified pinned upstream with per-frame service configuration"
+  "behavior": "Pinned upstream protocol with cleared-panel ETag invalidation and one Spectra clear refresh",
+  "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
+  "build_run": "https://github.com/lstepnio/einkartifact-firmware/actions/runs/37744229866",
+  "application_sha256": "cf106428a894132efe97b053fe9db21412296abe253fd23a844ad409a173efaf"
 }

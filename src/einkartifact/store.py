@@ -73,6 +73,15 @@ class Store:
                     received_at TEXT NOT NULL,
                     PRIMARY KEY(site_id, provider, local_date)
                 );
+                CREATE TABLE IF NOT EXISTS config_overrides (
+                    id INTEGER PRIMARY KEY CHECK(id=1),
+                    value TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS owner_sessions (
+                    token_hash TEXT PRIMARY KEY,
+                    csrf TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                );
                 PRAGMA user_version=1;
             """)
 

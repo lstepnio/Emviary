@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 from . import render
 from .providers import Providers
-from .settings import FramePolicy, Settings
+from .settings import Config, FramePolicy, Settings
 from .store import Store, stable_json, utcnow
 
 log = logging.getLogger(__name__)
@@ -35,8 +35,35 @@ class Service:
     def __init__(self, settings=None, providers=None, converter=None):
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
+        with self.store.connect() as db:
+            override = db.execute("SELECT value FROM config_overrides WHERE id=1").fetchone()
+        if override:
+            self.settings.config = Config.model_validate_json(override["value"])
         self.providers = providers or Providers(self.store)
         self.converter = converter or render.convert
+
+    def save_configuration(self, value):
+        config = Config.model_validate(value)
+        with preparation_lock(self.settings.data_dir):
+            for frame in self.store.frames():
+                config.site(frame["site_id"])
+            with self.store.connect() as db:
+                db.execute(
+                    "INSERT INTO config_overrides(id,value) VALUES(1,?) "
+                    "ON CONFLICT(id) DO UPDATE SET value=excluded.value",
+                    (config.model_dump_json(),),
+                )
+            self.settings.config = config
+
+    def delivered_image(self, frame):
+        tag = frame.get("last_served_etag") or ""
+        digest = tag.strip('"').split("-c")[0]
+        with self.store.connect() as db:
+            image = db.execute(
+                "SELECT * FROM images WHERE frame_id=? AND body_hash=? ORDER BY id DESC LIMIT 1",
+                (frame["id"], digest),
+            ).fetchone()
+        return dict(image) if image else None
 
     def cache_path(self, name):
         path = (self.settings.data_dir / name).resolve()
@@ -45,25 +72,33 @@ class Service:
         return path
 
     def _new_plan(self, frame, local_date, revision, profile, offline):
-        policy = json.loads(frame["policy"])
+        policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
         site = self.settings.config.site(frame["site_id"])
         inputs = self.providers.inputs(site, local_date, offline=offline)
         cutoff = (
             date.fromisoformat(local_date) - timedelta(days=policy["repeat_penalty_days"])
         ).isoformat()
         with self.store.connect() as db:
-            recent = [
-                json.loads(r["manifest"])["artwork"]["scientific_name"]
+            manifests = [
+                json.loads(r["manifest"])
                 for r in db.execute(
                     """SELECT manifest FROM images WHERE frame_id=?
                        AND local_date>=? AND local_date<?""",
                     (frame["id"], cutoff, local_date),
                 )
             ]
+        recent = [
+            a["scientific_name"] for m in manifests for a in m.get("artworks", [m["artwork"]])
+        ]
         seed = hashlib.sha256(
             f"{frame['id']}:{local_date}:{revision}:{profile}".encode()
         ).hexdigest()
-        artwork = render.choose_art(self.settings.artworks, local_date, inputs, recent, seed)
+        candidates = self.settings.artworks
+        if policy["allowed_species"]:
+            candidates = [
+                a for a in candidates if a["scientific_name"] in policy["allowed_species"]
+            ]
+        artworks = render.choose_artworks(candidates, local_date, inputs, recent, seed, policy)
         return {
             "frame_id": frame["id"],
             "local_date": local_date,
@@ -72,7 +107,9 @@ class Service:
             "policy": policy,
             "inputs": inputs,
             "seed": seed,
-            "artwork": artwork,
+            "artwork": artworks[0],
+            "artworks": artworks,
+            "layout": {"bird_count": len(artworks), "panel_capacity": 2},
             "license": "CC-BY-SA-4.0",
             "renderer_version": render.RENDER_VERSION,
             "converter_version": self.settings.config.render.initial_converter_version,
@@ -89,6 +126,7 @@ class Service:
         local_date = local_date or datetime.now(ZoneInfo(site.timezone)).date().isoformat()
         date.fromisoformat(local_date)
         profile = render.profile_hash(policy.model_dump(), self.settings.catalog)
+        profile = hashlib.sha256((profile + stable_json(site.model_dump())).encode()).hexdigest()
         with self.store.connect() as db:
             job = db.execute(
                 """SELECT * FROM jobs WHERE frame_id=? AND local_date=? AND profile_hash=?
@@ -241,7 +279,9 @@ class Service:
         with self.store.connect() as db:
             expired = db.execute(
                 """SELECT * FROM images WHERE local_date<? AND id NOT IN
-                   (SELECT active_image_id FROM frames WHERE active_image_id IS NOT NULL)""",
+                   (SELECT active_image_id FROM frames WHERE active_image_id IS NOT NULL)
+                   AND NOT EXISTS (SELECT 1 FROM frames WHERE frames.id=images.frame_id AND
+                       images.body_hash=substr(trim(frames.last_served_etag,'"'),1,64))""",
                 (cutoff,),
             ).fetchall()
             for image in expired:
@@ -275,14 +315,15 @@ class Service:
                     raise RuntimeError("Backup database failed integrity validation")
             finally:
                 destination.close()
-        shutil.copy2(self.settings.config_path, output / "site.json")
+        (output / "site.json").write_text(self.settings.config.model_dump_json(indent=2))
         shutil.copytree(self.settings.art_dir, output / "art", dirs_exist_ok=True)
         # Cache images are rebuildable but the active last-good image is useful for recovery.
         cache = output / "active-cache"
         cache.mkdir(exist_ok=True)
         for frame in self.store.frames():
-            image = self.store.active_image(frame)
-            if image:
+            for image in (self.store.active_image(frame), self.delivered_image(frame)):
+                if not image:
+                    continue
                 for name in (image["path"], image["preview_path"]):
                     shutil.copy2(self.cache_path(name), cache / Path(name).name)
         (output / "COMPLETE").write_text(utcnow())

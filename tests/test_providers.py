@@ -18,11 +18,26 @@ def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
                 "unit": "hours",
                 "timezone": "America/Denver",
             }
+            if "stations(first" in payload["query"]:
+                return httpx.Response(
+                    200,
+                    json={
+                        "data": {
+                            "stations": {
+                                "nodes": [
+                                    {"id": "1", "coords": {"lat": 39.7392, "lon": -104.9903}},
+                                    {"id": "2", "coords": {"lat": 40.05, "lon": -104.7}},
+                                ]
+                            }
+                        }
+                    },
+                )
+            assert payload["variables"]["stationIds"] == ["1"]
             return httpx.Response(
                 200,
                 json={
                     "data": {
-                        "topBirdnetSpecies": [
+                        "topSpecies": [
                             {
                                 "count": 8,
                                 "species": {
@@ -64,12 +79,17 @@ def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
     assert first["birdweather"]["regional"] is True
     assert first["open_meteo"]["local_date"] == "2026-10-08"
     assert adapter.inputs(site, "2026-10-08") == first
-    assert len(requests) == 2
+    assert len(requests) == 3
 
 
 def test_provider_outage_omits_stale_weather_and_old_birds(service):
     site = service.settings.config.sites[0]
-    service.store.save_snapshot(site.id, "birdweather", "2026-10-07", {"birds": []})
+    service.store.save_snapshot(
+        site.id,
+        "birdweather",
+        "2026-10-07",
+        {"birds": [], "scope": Providers(service.store).scope(site, "birdweather")},
+    )
     service.store.save_snapshot(site.id, "open_meteo", "2026-10-07", {"local_date": "2026-10-07"})
 
     def unavailable(request):
@@ -95,3 +115,69 @@ def test_graphql_error_and_wrong_forecast_date_use_catalog_fallback(service):
 
     adapter = Providers(service.store, httpx.Client(transport=httpx.MockTransport(invalid)))
     assert adapter.inputs(service.settings.config.sites[0], "2026-10-08") == {}
+
+
+def test_ebird_presence_uses_secret_header_and_omits_personal_fields(
+    service, tmp_path, monkeypatch
+):
+    secret = tmp_path / "ebird-key"
+    secret.write_text("test-ebird-secret")
+    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(secret))
+    calls = []
+
+    def respond(request):
+        calls.append(request)
+        assert request.headers["X-eBirdApiToken"] == "test-ebird-secret"
+        assert "test-ebird-secret" not in str(request.url)
+        assert request.url.params["dist"] == "25"
+        assert request.url.params["back"] == "7"
+        assert request.url.params["maxResults"] == "100"
+        assert request.url.params["includeProvisional"] == "false"
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "sciName": "Pica hudsonia",
+                    "comName": "Black-billed Magpie",
+                    "speciesCode": "bkbmag1",
+                    "obsDt": "2026-10-07 10:15",
+                    "howMany": 99,
+                    "lat": 39.7,
+                    "lng": -105.0,
+                    "locName": "Private backyard",
+                    "subId": "S123",
+                }
+            ]
+            * 2,
+        )
+
+    site = service.settings.config.sites[0].model_copy(deep=True)
+    site.providers.birdweather.enabled = False
+    site.providers.open_meteo.enabled = False
+    site.providers.ebird.enabled = True
+    adapter = Providers(service.store, httpx.Client(transport=httpx.MockTransport(respond)))
+    first = adapter.inputs(site, "2026-10-08")
+    assert len(first["ebird"]["birds"]) == 1
+    assert first["ebird"]["evidence_type"] == "reported_presence"
+    serialized = json.dumps(first)
+    assert all(
+        value not in serialized
+        for value in (
+            "test-ebird-secret",
+            "Private backyard",
+            "subId",
+            "howMany",
+            "locName",
+        )
+    )
+    assert adapter.inputs(site, "2026-10-08") == first
+    assert len(calls) == 1
+
+
+def test_missing_ebird_secret_does_not_block_offline_art(service, tmp_path, monkeypatch):
+    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(tmp_path / "missing"))
+    site = service.settings.config.sites[0].model_copy(deep=True)
+    site.providers.birdweather.enabled = False
+    site.providers.open_meteo.enabled = False
+    site.providers.ebird.enabled = True
+    assert Providers(service.store).inputs(site, "2026-10-08") == {}

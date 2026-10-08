@@ -123,7 +123,8 @@ def create_app(service=None, schedule=True):
         if firmware:
             firmware = firmware[:80]
         client_tag = request.headers.get("if-none-match", "")[:256]
-        service.store.telemetry(frame["id"], battery, firmware, client_tag, tag)
+        if firmware:
+            service.store.telemetry(frame["id"], battery, firmware, client_tag, tag)
         headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
         if etag_matches(client_tag, tag):
             return Response(status_code=304, headers=headers)
@@ -161,7 +162,7 @@ def create_app(service=None, schedule=True):
     def credits():
         return service.settings.catalog
 
-    @app.get("/", response_class=HTMLResponse)
+    @app.get("/library", response_class=HTMLResponse)
     def index():
         cards, names = [], set()
         for artwork in service.settings.artworks:
@@ -210,10 +211,43 @@ def create_app(service=None, schedule=True):
         Adaptations include resizing, seasonal/weather composition, labels, and panel dithering.
         Original plate sources are linked above; <a href="/credits.json">full credits</a>.<br>
         Regional detections from <a href="https://app.birdweather.com/">BirdWeather</a>;
-        these do not establish visits to an individual garden. Forecasts:
+        optional regional reports from <a href="https://ebird.org/">eBird, Cornell Lab</a>.
+        These do not establish visits to an individual garden. Forecasts:
         <a href="https://open-meteo.com/">Open-Meteo</a>,
         <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
         The artwork is a daily outlook, not a live weather report.</footer></main></html>"""
         )
 
+    @app.get("/")
+    def display_home():
+        from .owner import page
+
+        body = '<img style="width:100%;height:auto" src="/display.jpg" alt="Current bird artwork">'
+        body += (
+            '<p class="quiet"><a href="/manage">Manage</a> · '
+            '<a href="/library">Artwork and credits</a></p>'
+        )
+        return page("Daily bird art", body)
+
+    @app.get("/display.jpg")
+    def public_display():
+        identifier = service.settings.config.public_frame_id
+        if not identifier:
+            raise HTTPException(404, "No public display")
+        try:
+            frame = service.store.frame(identifier)
+        except ValueError:
+            raise HTTPException(404, "No public display") from None
+        record = service.delivered_image(frame)
+        if not record:
+            raise HTTPException(404, "The frame has not fetched its first image")
+        return FileResponse(
+            service.cache_path(record["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-cache"},
+        )
+
+    from .owner import attach_owner
+
+    attach_owner(app, service)
     return app

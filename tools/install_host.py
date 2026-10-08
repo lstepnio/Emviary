@@ -59,6 +59,9 @@ for directory, subdirectories, files in os.walk(root / "backups/einkartifact"):
     for name in files:
         os.chown(Path(directory) / name, 1000, 1000)
 os.chmod(root / "appdata/einkartifact/data", 0o700)
+secret_dir = root / "appdata/einkartifact/secrets"
+secret_dir.mkdir(exist_ok=True, mode=0o700)
+os.chown(secret_dir, 1000, 1000)
 print(
     json.dumps(
         {"backup": str(backup), "compose": "service added", "config_export": "allowlisted only"}

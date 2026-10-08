@@ -1,7 +1,7 @@
 # Fragment for /docker/docker-compose.yml under its existing services map.
 # Reuse the existing caddy network definition; it resolves to docker_caddy.
   einkartifact:
-    image: einkartifact:poc-001
+    image: einkartifact:poc-003
     pull_policy: never
     container_name: einkartifact
     user: "1000:1000"
@@ -26,11 +26,13 @@
       EINK_ART_DIR: /art
       EINK_BACKUP_DIR: /backups
       EINK_PORT: "8080"
+      EINK_EBIRD_API_KEY_FILE: /run/secrets/ebird-api-key
     volumes:
       - /docker/appdata/einkartifact/config:/config:ro
       - /docker/appdata/einkartifact/art:/art:ro
       - /docker/appdata/einkartifact/data:/data
       - /docker/backups/einkartifact:/backups
+      - /docker/appdata/einkartifact/secrets:/run/secrets
     networks:
       - caddy
     labels:

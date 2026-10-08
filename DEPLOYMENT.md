@@ -49,7 +49,7 @@ Add `einkartifact` under the existing Compose `services` map and attach it to `c
 
 Use [deployment/compose-service.yml](deployment/compose-service.yml) as the service fragment. Build the image and create its persistent directories before starting it.
 
-The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `einkartifact:poc-001` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
+The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `einkartifact:poc-002` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
 
 The proposed application data, configuration, and master-art paths are covered by the host's existing Git ignore rules. Extend the sanitized configuration export to include our nonsecret site configuration, art catalog/credits, and image-version manifest. The SQLite database, token hashes, and artwork need a separate consistent backup; a Compose Git commit alone does not recover them.
 
@@ -178,7 +178,7 @@ Use BirdWeather's `topBirdnetSpecies` GraphQL query with an explicit bounded tim
 
 The proposed Denver box is southwest `39.45,-105.30` to northeast `40.05,-104.55`. It is regional and can be narrowed later. Match evidence to our catalog by scientific name plus a versioned provider-ID mapping. Ignore unknown, unsupported, or seasonally implausible entries rather than generating unreviewed art.
 
-eBird remains an optional complementary adapter after obtaining a personal API key. A curated catalog is always the final fallback. Missing observations do not prove absence.
+eBird is implemented as an optional complementary adapter using a mounted secret file. A curated catalog is always the final fallback. Missing observations do not prove absence.
 
 For Open-Meteo, use approximate Denver center `39.7392,-104.9903` and `timezone=America/Denver`. Request the target local date, with daily `weather_code`, `temperature_2m_min`, `temperature_2m_max`, `precipitation_probability_max`, `snowfall_sum`, and `wind_speed_10m_max`. Verify the returned date and units. Daily weather code summarizes the day's most severe condition, so present cues as an outlook rather than an all-day promise. [Forecast API](https://open-meteo.com/en/docs)
 

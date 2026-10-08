@@ -9,24 +9,29 @@
         "latitude": 39.7392,
         "longitude": -104.9903
       },
-      "birdweather_bounds": {
-        "southwest": {"latitude": 39.45, "longitude": -105.30},
-        "northeast": {"latitude": 40.05, "longitude": -104.55}
-      },
       "bird_lookback_hours": 24,
       "prepare_local_time": "02:30",
       "providers": {
-        "birdweather": {"enabled": true},
-        "open_meteo": {"enabled": true},
-        "ebird": {"enabled": false}
-      }
+        "birdweather": {
+          "enabled": true
+        },
+        "open_meteo": {
+          "enabled": true
+        },
+        "ebird": {
+          "enabled": false
+        }
+      },
+      "locality_radius_km": 25
     }
   ],
   "frame_defaults": {
     "site_id": "denver-gift",
     "wake_local_time": "03:15",
     "firmware_timezone": "MST7MDT,M3.2.0,M11.1.0",
-    "firmware_rotate_cron": ["15 3 *"],
+    "firmware_rotate_cron": [
+      "15 3 *"
+    ],
     "panel": {
       "width": 800,
       "height": 480,
@@ -38,7 +43,8 @@
     "repeat_penalty_days": 7,
     "show_species_name": true,
     "show_dated_weather_text": false,
-    "weather_cues": true
+    "weather_cues": true,
+    "max_birds": 2
   },
   "render": {
     "concurrency": 1,
@@ -47,5 +53,6 @@
   },
   "online_image_generation": {
     "enabled": false
-  }
+  },
+  "public_frame_id": "gift-e1002"
 }

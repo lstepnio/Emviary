@@ -4,6 +4,27 @@ Service: https://eink.majjix.com
 Host: `lstepnio@one.majjix.com`
 Compose service: `einkartifact`; container: `einkartifact`
 
+## Management
+
+Open https://eink.majjix.com/manage and sign in with the private owner password.
+The dashboard manages frame schedules, one/two-bird layouts, selection constraints,
+labels, season/forecast cues, local coordinates/radius, provider settings, eBird
+credentials, frame provisioning and password changes. Settings are validated and
+persisted in SQLite; no Docker rebuild is needed. An owner preview can differ
+from the public mirror until the sleeping device retrieves its next image.
+
+The bootstrap password is in the private host file
+`/docker/appdata/einkartifact/data/provisioning/owner-login.txt` (0600).
+Change it through management. `init-owner` bootstraps a previously uninitialized
+installation and refuses to replace an existing owner password. Keep the mounted `/run/secrets` directory private and writable by UID 1000 so
+management can replace password hashes and provider credentials.
+
+The public root mirrors the selected frame's last delivered image. This is based
+on firmware fetch telemetry, not direct panel sensing. Choose the public frame
+in management or hide it. The source-art library is at `/library`.
+
+The CLI below is retained for recovery and administration.
+
 ## Routine checks
 
 ```sh
@@ -52,10 +73,11 @@ creates another selection; routine retries reuse the persisted plan.
 ## Backup and recovery
 
 Nightly at 03:00 local time the application backs up SQLite through its online
-backup API, the site config, artwork/credits, and each active image. Seven daily
+backup API, the site config, artwork/credits, and both active and last-delivered images. Seven daily
 backups live in `/docker/backups/einkartifact`. Image history is kept for 30 days,
 provider snapshots for 14 days, and the active last-good image is kept regardless
-of age. Raw token/provisioning files are excluded from application backups.
+of age. Last-delivered images are also protected while a newer image waits
+for a sleeping device. Raw token/provisioning files are excluded from application backups.
 
 ```sh
 docker exec einkartifact einkartifact backup
@@ -96,3 +118,14 @@ on Docker Hub. A prior image rollback does not undo a database schema migration.
 The host config-export script includes only site config, release metadata,
 catalog and credits for this service. SQLite, tokens, and provisioning files
 stay out of that export. Firmware remains pinned separately in `firmware.lock.json`.
+
+## eBird secret
+
+The key lives at `/docker/appdata/einkartifact/secrets/ebird-api-key` with mode
+0600, owner 1000, in a 0700 directory. Management replaces this secret atomically;
+the container mounts the secret directory writable for this purpose.
+No container rebuild is needed. The API token is sent in `X-eBirdApiToken`, never
+in the URL. Management enables the adapter and sets the lookback window and
+shared locality radius. The POC caps recent eBird results at 100 species. Missing credentials or an API failure fall
+back to other evidence and the curated library. Back up credentials separately
+in a private secret store; application backups deliberately exclude them.

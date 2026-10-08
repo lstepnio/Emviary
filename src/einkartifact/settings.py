@@ -1,5 +1,6 @@
 import hashlib
 import json
+import math
 import os
 import re
 from pathlib import Path
@@ -46,17 +47,23 @@ class Provider(Model):
     enabled: bool = True
 
 
+class EBirdProvider(Provider):
+    lookback_days: int = Field(default=7, ge=1, le=30)
+    max_results: int = Field(default=100, ge=1, le=200)
+
+
 class Providers(Model):
     birdweather: Provider = Field(default_factory=Provider)
     open_meteo: Provider = Field(default_factory=Provider)
-    ebird: Provider = Field(default_factory=lambda: Provider(enabled=False))
+    ebird: EBirdProvider = Field(default_factory=lambda: EBirdProvider(enabled=False))
 
 
 class Site(Model):
     id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,47}$")
     timezone: str = "America/Denver"
     weather_location: Location
-    birdweather_bounds: Bounds
+    birdweather_bounds: Bounds | None = None  # Legacy configurations remain readable.
+    locality_radius_km: int = Field(default=25, ge=1, le=50)
     bird_lookback_hours: int = Field(default=24, ge=1, le=168)
     prepare_local_time: str = "02:30"
     providers: Providers = Field(default_factory=Providers)
@@ -65,9 +72,25 @@ class Site(Model):
     def validate_site(self):
         ZoneInfo(self.timezone)
         valid_time(self.prepare_local_time)
-        if self.providers.ebird.enabled:
-            raise ValueError("The optional eBird adapter is not implemented in this release")
+        if abs(self.weather_location.latitude) > 85:
+            raise ValueError("This locality query does not support polar regions")
         return self
+
+    @property
+    def locality_bounds(self):
+        center = self.weather_location
+        latitude_delta = self.locality_radius_km / 111.195
+        longitude_delta = latitude_delta / math.cos(math.radians(center.latitude))
+        return Bounds(
+            southwest=Location(
+                latitude=center.latitude - latitude_delta,
+                longitude=center.longitude - longitude_delta,
+            ),
+            northeast=Location(
+                latitude=center.latitude + latitude_delta,
+                longitude=center.longitude + longitude_delta,
+            ),
+        )
 
 
 class Panel(Model):
@@ -89,6 +112,9 @@ class FramePolicy(Model):
     show_species_name: bool = True
     show_dated_weather_text: bool = False
     weather_cues: bool = True
+    max_birds: Literal[1, 2] = 2
+    allowed_species: list[str] = Field(default_factory=list, max_length=64)
+    seasonal_themes: bool = True
     processing_preset: Literal["balanced", "dynamic", "vivid", "soft"] = "balanced"
     dither_algorithm: Literal["floyd-steinberg", "stucki", "burkes", "sierra"] = "stucki"
 
@@ -116,6 +142,7 @@ class Config(Model):
     frame_defaults: FramePolicy = Field(default_factory=FramePolicy)
     render: Render = Field(default_factory=Render)
     online_image_generation: Generation = Field(default_factory=Generation)
+    public_frame_id: str | None = Field(default="gift-e1002", pattern=r"^[a-z0-9][a-z0-9-]{0,47}$")
 
     @model_validator(mode="after")
     def unique_sites(self):
