@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from .store import stable_json
 
-RENDER_VERSION = 1
+RENDER_VERSION = 2
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -92,6 +92,58 @@ def _font(art_dir, size, italic=False):
     return ImageFont.truetype(str(path), size)
 
 
+def weather_label(values):
+    code = int(values["weather_code"])
+    if code in (71, 73, 75, 77, 85, 86) and values["snowfall_sum"] > 0:
+        return "SNOW"
+    if code in (95, 96, 99):
+        return "STORMS"
+    if code >= 51 and values["precipitation_probability_max"] >= 50:
+        return "RAIN"
+    if values["wind_speed_10m_max"] >= 30:
+        return "WINDY"
+    if code in (45, 48):
+        return "FOG"
+    return {0: "CLEAR", 1: "MOSTLY CLEAR", 2: "PARTLY SUNNY", 3: "OVERCAST"}.get(code, "OUTLOOK")
+
+
+def draw_weather_mark(draw, values, x, y):
+    # Small, high-contrast ink strokes in the header, never pale filled clouds.
+    label = weather_label(values)
+    ink = "#333333"
+    if label in ("CLEAR", "MOSTLY CLEAR", "PARTLY SUNNY"):
+        draw.ellipse((x - 4, y - 4, x + 4, y + 4), outline=ink, width=2)
+        for angle in range(0, 360, 45):
+            theta = math.radians(angle)
+            draw.line(
+                (
+                    x + round(7 * math.cos(theta)),
+                    y + round(7 * math.sin(theta)),
+                    x + round(10 * math.cos(theta)),
+                    y + round(10 * math.sin(theta)),
+                ),
+                fill=ink,
+                width=2,
+            )
+        if label == "PARTLY SUNNY":
+            draw.line((x - 10, y + 12, x + 10, y + 12), fill=ink, width=2)
+    elif label in ("RAIN", "STORMS"):
+        for offset in (-8, 0, 8):
+            draw.line((x + offset + 2, y - 6, x + offset - 2, y + 6), fill=ink, width=2)
+    elif label == "SNOW":
+        for angle in (0, 60, 120):
+            theta = math.radians(angle)
+            dx, dy = round(8 * math.cos(theta)), round(8 * math.sin(theta))
+            draw.line((x - dx, y - dy, x + dx, y + dy), fill=ink, width=2)
+    elif label == "WINDY":
+        for offset in (-5, 3):
+            draw.line((x - 11, y + offset, x + 5, y + offset), fill=ink, width=2)
+            draw.arc((x + 1, y + offset - 6, x + 11, y + offset), 180, 360, fill=ink, width=2)
+    else:
+        for offset, halfwidth in ((-6, 9), (0, 12), (6, 8)):
+            draw.line((x - halfwidth, y + offset, x + halfwidth, y + offset), fill=ink, width=2)
+
+
 def compose(art_dir, artwork, plan, output):
     date = plan["local_date"]
     season = season_for(int(date[5:7]))
@@ -123,21 +175,10 @@ def compose(art_dir, artwork, plan, output):
     policy = plan["policy"]
     if weather_valid and policy["weather_cues"]:
         values = forecast["values"]
-        code = int(values["weather_code"])
-        if code >= 2:
-            for n in range(3):
-                draw.ellipse((595 + n * 23, 60 - n * 5, 648 + n * 23, 78), fill="#d6d9cd")
-        if code in (71, 73, 75, 77, 85, 86) and values["snowfall_sum"] > 0:
-            for x, y in [(630, 99), (681, 104), (656, 126)]:
-                draw.line((x - 3, y, x + 3, y), fill="#839496", width=1)
-                draw.line((x, y - 3, x, y + 3), fill="#839496", width=1)
-        elif values["precipitation_probability_max"] >= 50 and code >= 51:
-            for n in range(4):
-                x = 612 + n * 24
-                draw.line((x, 95, x - 5, 108), fill="#8b9d9b", width=1)
-        if values["wind_speed_10m_max"] >= 30:
-            draw.arc((584, 135, 689, 153), 180, 335, fill="#929b89", width=1)
-            draw.arc((610, 151, 707, 166), 190, 340, fill="#929b89", width=1)
+        label = weather_label(values)
+        if not policy["show_dated_weather_text"]:
+            draw_weather_mark(draw, values, 617, 39)
+            draw.text((746, 39), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
     birds = plan.get("artworks", [artwork])
     if not 1 <= len(birds) <= min(2, policy.get("max_birds", 2)):
         raise ValueError("The panel supports at most two birds")
@@ -174,7 +215,8 @@ def compose(art_dir, artwork, plan, output):
     draw.text((53, 39), f"DENVER  /  {date}", font=_font(art_dir, 12), fill="#333333")
     if policy["show_dated_weather_text"] and weather_valid:
         v = forecast["values"]
-        text = f"OUTLOOK {date}: {v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
+        condition = weather_label(v) + " / " if policy["weather_cues"] else ""
+        text = f"{condition}{v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
         draw.text((746, 39), text, font=_font(art_dir, 11), fill="#7c715d", anchor="ra")
     canvas.convert("RGB").save(output, format="PNG")
 

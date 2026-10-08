@@ -37,8 +37,9 @@ pigments and lighting still differ from a screen. The public image follows the
 last frame delivery rather than a newly prepared composition.
 
 Seasonal motifs follow the local calendar. Forecast cues stay behind the bird
-layer and in the margin: cloud cover, rainfall likelihood, forecast snowfall or
-strong wind. Do not imply measured garden conditions. Do not add snow from a
+layer and in the margin: a small sun or sky-line sketch with a short condition label, rainfall
+likelihood, forecast snowfall or strong wind. Pale filled cloud blobs are excluded.
+Weather marks use strong strokes in the header, away from bird silhouettes. Do not imply measured garden conditions. Do not add snow from a
 low temperature alone. Missing or stale forecasts produce no weather cues.
 The printed date identifies the outlook if the frame retains an older image.
 
