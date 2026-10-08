@@ -77,3 +77,52 @@ def test_neutral_graphics_preserve_bird_pixels(tmp_path):
     assert ink(70, 39) == 1
     assert ink(65, 39) == 3  # Colored content is not recolored.
     assert ink(400, 200) == 3  # Bird-cell pixels keep the color conversion.
+
+
+def test_composition_has_safe_nonoverlapping_art_and_caption_regions():
+    layouts = {
+        1: ["solo", "solo-left", "solo-right", "plate", "occasion"],
+        2: ["pair", "lead-left-pair", "lead-right-pair"],
+        3: ["trio", "lead-left-trio", "lead-right-trio", "center-lead-trio"],
+    }
+    for count, names in layouts.items():
+        for name in names:
+            cells, captions = render.composition_cells(name, count)
+            assert len(cells) == len(captions) == count
+            for left, top, right, bottom in cells:
+                assert 24 <= left < right <= 776
+                assert 48 <= top < bottom <= 376
+            for index, (left, top, right, bottom) in enumerate(cells):
+                for other_left, other_top, other_right, other_bottom in cells[index + 1 :]:
+                    assert (
+                        right <= other_left
+                        or other_right <= left
+                        or bottom <= other_top
+                        or other_bottom <= top
+                    )
+            for center, width in captions:
+                assert 20 <= center - width / 2 < center + width / 2 <= 780
+
+
+def test_layout_preserves_wings_and_inward_look_space(service):
+    art = next(a for a in service.settings.artworks if a.get("facing") == "left")
+    for seed in map(str, range(30)):
+        assert render.choose_layout([art], seed) != "solo-left"
+        assert render.choose_layout([art, art], seed) != "lead-left-pair"
+    wide = next(
+        a
+        for a in service.settings.artworks
+        if a.get("kind", "cutout") == "cutout"
+        and render.artwork_aspect(service.settings.art_dir, a) > 1.6
+    )
+    assert render.choose_layout([wide], "wide", art_dir=service.settings.art_dir) == "solo"
+    history = [{"layout": {"name": "pair"}}]
+    assert render.choose_layout([art, art], "fresh", history) != "pair"
+
+
+def test_detail_capacity_overrides_three_bird_default(service):
+    birds = [a for a in service.settings.artworks if a["approved"] and a.get("kind") == "cutout"]
+    constrained = [{**a, "composition_max_birds": 2} for a in birds]
+    policy = service.settings.config.frame_defaults.model_dump()
+    for seed in map(str, range(30)):
+        assert len(render.choose_artworks(constrained, "2026-10-08", {}, [], seed, policy)) <= 2

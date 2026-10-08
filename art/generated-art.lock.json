@@ -1,0 +1,41 @@
+{
+  "tool": "Built-in image_gen, reference-guided edit",
+  "artwork": {
+    "id": "emviary-sialia-currucoides-woodcut",
+    "scientific_name": "Sialia currucoides",
+    "common_name": "Mountain Bluebird",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "asset": "masters/emviary-sialia-currucoides-woodcut.png",
+    "approved": false,
+    "review_status": "Reviewed illustrative male form and transparent silhouette; corrected invented white wing bars before approval. Physical panel review pending.",
+    "asset_sha256": "0a594fb0217b06f72c0b33bfb85b6ae4d7a5607b3c11d96ffdc6993b7a44923d",
+    "source": "Emviary reference-guided AI illustration",
+    "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/generated-art.lock.json",
+    "reference_url": "https://www.allaboutbirds.org/guide/Mountain_Bluebird/id",
+    "reference_asset": "habird-sialia-currucoides",
+    "license": "MIT",
+    "license_file": "licenses/HABirdDashboard-MIT.txt",
+    "credit": "AI-assisted woodcut variation by Emviary; anatomy reference from HABirdDashboard / AvianVisitors contributors, MIT.",
+    "generated": true,
+    "kind": "cutout",
+    "depicted_birds": 1,
+    "composition_max_birds": 3,
+    "style": "woodcut",
+    "pose": "perched",
+    "facing": "right"
+  },
+  "reference_source": "HABirdDashboard / AvianVisitors",
+  "diagnostic_review": "Male blue head/back/breast, darker plain blue flight feathers, pale lower belly and undertail, no orange breast, no white wing bars; coherent two-foot perch. Artistic simplification is disclosed; not a detection image.",
+  "review_correction": "Initial draft invented white wing bars, and was not added to rotation. Targeted correction removed those markings.",
+  "prompt": "Use case: style-transfer, scientifically grounded bird art for a 7.3-inch 800x480 six-color e-paper frame. Input image is an anatomy reference for a MALE Mountain Bluebird (Sialia currucoides), not a background to preserve. Create ONE new full-body Mountain Bluebird in a distinct clean modern woodcut / hand-pulled screenprint illustration style, perched on a very short simple twig, three-quarter view with the head slightly turned. Preserve natural proportions, exactly two anatomically coherent feet, folded wings and long tapering tail. Diagnostic plumage: male sky-blue head, back and breast; deeper blue wings and tail; paler lower belly, white undertail; dark eye and slender black bill. NO orange/rust breast, no crest, no invented stripes, no extra feathers, no human expression. Use restrained blue, white and black large flat shapes with sparse deliberate black feather strokes. Broad readable tonal regions and clean silhouette suitable for rendering at 230px width; avoid noisy texture, hairline crosshatching, gradients, fake paper stains or haloes. TRANSPARENT BACKGROUND with actual alpha, isolated bird and short twig only, generous room around entire tail, feet and beak. No lettering, frame, border, scenery or second bird. This is an illustrative variant, not an observation or photograph. Output a polished standalone PNG cutout.",
+  "correction_prompt": "Scientific correction to this Mountain Bluebird illustration only: adult male Sialia currucoides has plain blue wings with deeper blue flight feathers, NOT white wing bars. Remove ALL conspicuous white bars, white feather-tip rows and white stripe edges from the wings, replacing them with the appropriate lighter or darker blue. Preserve white only on the lower belly and undertail. Keep the existing full-body pose, two feet, short twig, proportions, woodcut/screenprint style, isolated silhouette and actual transparent alpha background unchanged. No text, no new elements."
+}

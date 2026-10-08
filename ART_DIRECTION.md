@@ -46,7 +46,9 @@ The printed date identifies the outlook if the frame retains an older image.
 
 ## Optional AI work
 
-No online generation is enabled in the POC. Existing art is sufficient.
+No nightly online generation is enabled. A reference-guided Mountain Bluebird woodcut
+prototype is stored with its exact prompts and correction history in
+`art/generated-art.lock.json`; it stays outside rotation pending physical-panel review.
 If generation is added, begin with background treatments or missing variants,
 not unrestricted daily pictures. A request must contain a reviewed species
 reference, geographic/season eligibility, a named style, an approved palette,
@@ -99,3 +101,34 @@ enabled match wins; February 29 is not moved in non-leap years. An explicitly
 chosen approved seasonal artwork takes precedence over the ordinary species
 filter for that occasion. If it later becomes unavailable, seasonal selection
 is the fallback. Normal rotation resumes on the next day.
+
+
+## Colorado collection and composition (renderer version 7)
+
+The library covers 61 Colorado species with 136 approved variants. Coverage is
+selective, not a complete state checklist. Reviewed flight and perched variants,
+multiple historical illustrators and complete Audubon plates provide variety.
+Season windows and regional forms are reviewed separately; a Pacific Steller's
+Jay form and the new AI woodcut remain outside rotation.
+
+The border sits 8 pixels from the panel edge; artwork has at least 24 pixels of
+horizontal safe space and a separate header and caption region. Contain scaling
+preserves silhouettes, wing tips and diagnostic markings. No source is mirrored.
+Single compact studies can sit on a third with look space ahead of the bird;
+wide flight studies retain the full width. Pairs and trios alternate between
+balanced, asymmetric and center-led arrangements. Larger lead cells establish
+hierarchy and staggered smaller cells add rhythm without overlapping artwork.
+Known facing direction constrains primary placement toward the composition.
+Caption columns follow the actual artwork cells rather than fixed equal slots.
+
+Recent exact variants, styles, bird counts and layout names receive repeat
+penalties. Variation remains subordinate to seasonal eligibility, source
+reports, artwork detail and readable labels. Wide or detailed assets cap their
+composition at two birds. Plates and already grouped cutouts remain alone.
+Selection is deterministic for the saved plan so retries never reshuffle it.
+
+The pinned six-color LAB/Stucki pipeline and neutral text preservation remain
+in use. Review packed previews at 800 by 480, then verify the physical panel;
+screen previews cannot certify pigment appearance. New master images remain
+unchanged and every downloaded source is hash pinned. See
+`research/COLORADO_ART.md` for source research and import commands.

@@ -261,6 +261,9 @@ class Settings:
             bird_count = artwork.get("depicted_birds", 1)
             if type(bird_count) is not int or bird_count not in (1, 2, 3):
                 raise ValueError("Artwork may depict at most three birds")
+            composition_capacity = artwork.get("composition_max_birds", 3)
+            if type(composition_capacity) is not int or composition_capacity not in (1, 2, 3):
+                raise ValueError("Artwork composition capacity must be between one and three")
             months = artwork.get("months", [])
             if not months or any(type(m) is not int or not 1 <= m <= 12 for m in months):
                 raise ValueError("Artwork needs valid seasonal eligibility")

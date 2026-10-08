@@ -85,7 +85,8 @@ class Service:
                 json.loads(r["manifest"])
                 for r in db.execute(
                     """SELECT manifest FROM images WHERE frame_id=?
-                       AND local_date>=? AND local_date<?""",
+                       AND local_date>=? AND local_date<?
+                       ORDER BY local_date DESC, revision DESC LIMIT 21""",
                     (frame["id"], cutoff, local_date),
                 )
             ]
@@ -124,7 +125,9 @@ class Service:
                 )
             ]
         else:
-            artworks = render.choose_artworks(candidates, local_date, inputs, recent, seed, policy)
+            artworks = render.choose_artworks(
+                candidates, local_date, inputs, recent, seed, policy, manifests
+            )
         return {
             "frame_id": frame["id"],
             "location_label": "COLORADO" if site.bird_area == "colorado" else "DENVER",
@@ -138,6 +141,9 @@ class Service:
             "artworks": artworks,
             "special_day": occasion,
             "layout": {
+                "name": "occasion"
+                if occasion
+                else render.choose_layout(artworks, seed, manifests, self.settings.art_dir),
                 "bird_count": sum(a.get("depicted_birds", 1) for a in artworks),
                 "panel_capacity": 3,
             },

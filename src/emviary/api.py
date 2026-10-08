@@ -220,8 +220,14 @@ def create_app(service=None, schedule=True):
                     if item.get("license_file")
                     else "https://creativecommons.org/licenses/by-sa/4.0/"
                 )
-                status = "In rotation" if item["approved"] else "Web reference only"
-                medium = "Existing AI-generated art" if item.get("generated") else "Historical art"
+                status = (
+                    "In rotation"
+                    if item["approved"]
+                    else "Web reference only"
+                    if item.get("kind") == "field_study"
+                    else "Review pending"
+                )
+                medium = "AI-assisted illustration" if item.get("generated") else "Historical art"
                 details.append(
                     '<section class="variant"><a href="/art/'
                     + identifier
@@ -235,6 +241,9 @@ def create_app(service=None, schedule=True):
                     + status
                     + " / "
                     + medium
+                    + "<br>"
+                    + escape(item.get("style", "natural history").replace("-", " "))
+                    + (" / " + escape(item["pose"]) if item.get("pose") else "")
                     + "</p><p>"
                     + escape(item.get("credit", ""))
                     + '</p><p><a href="'
@@ -263,7 +272,7 @@ def create_app(service=None, schedule=True):
                 + str(active)
                 + " rotation images"
                 + (
-                    " / " + str(len(variants) - active) + " web references"
+                    " / " + str(len(variants) - active) + " references / review candidates"
                     if active < len(variants)
                     else ""
                 )
@@ -292,11 +301,12 @@ def create_app(service=None, schedule=True):
         .variant{border-top:1px solid #d9d5c5;margin-top:18px;padding-top:14px}
         footer{border-top:1px solid #d1cbb9;padding-top:28px;font:14px/1.7 system-ui;color:#6a6d5d}
         </style><main><p><a href="/">Display</a> / <a href="/manage">Manage</a></p>
-        <div class="eyebrow">Denver / natural history / e-paper</div>
+        <div class="eyebrow">Colorado / natural history / e-paper</div>
         <h1>Emviary</h1><p>A little bird art, every morning.</p>
         <p class="intro">"""
-            + f"{active_count} rotation images covering {species_count} Denver-area species. "
-            + """Historical illustrations and selected existing generated art bring variety to the
+            + f"{active_count} rotation images covering {species_count} Colorado species. "
+            + """Historical illustrations and reference-guided illustrated variants bring
+        variety to the
         frame. Text-heavy field studies are web references only. Seasonal eligibility applies to
         each pose; local reports influence selection without claiming a backyard visit.</p>
         <div class="gallery">"""

@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 6
+RENDER_VERSION = 7
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -46,7 +46,9 @@ def season_for(month):
     return "autumn"
 
 
-def choose_art(artworks, local_date, inputs, recent_species, seed):
+def choose_art(
+    artworks, local_date, inputs, recent_species, seed, recent_artworks=(), recent_styles=()
+):
     month = int(local_date[5:7])
     eligible = [a for a in artworks if a["approved"] and month in a["months"]]
     if not eligible:
@@ -68,13 +70,29 @@ def choose_art(artworks, local_date, inputs, recent_species, seed):
     rng = random.Random(seed)
     name = rng.choices(species, weights=weights, k=1)[0]
     variants = sorted((a for a in eligible if a["scientific_name"] == name), key=lambda a: a["id"])
-    return rng.choice(variants)
+    variant_weights = []
+    for artwork in variants:
+        weight = 1.0
+        if len(variants) > 1 and artwork["id"] in recent_artworks:
+            weight *= 0.08
+        if len({a.get("style") for a in variants}) > 1 and artwork.get("style") in recent_styles:
+            weight *= 0.35
+        variant_weights.append(weight)
+    return rng.choices(variants, weights=variant_weights, k=1)[0]
 
 
-def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
+def choose_artworks(
+    artworks, local_date, inputs, recent_species, seed, policy, recent_manifests=()
+):
     capacity = min(policy.get("max_birds", 3), 3)
     candidates = [a for a in artworks if a.get("depicted_birds", 1) <= capacity]
-    first = choose_art(candidates, local_date, inputs, recent_species, seed)
+    recent_artworks = [a["id"] for m in recent_manifests for a in m.get("artworks", [m["artwork"]])]
+    recent_styles = [
+        a.get("style") for m in recent_manifests[:2] for a in m.get("artworks", [m["artwork"]])
+    ]
+    first = choose_art(
+        candidates, local_date, inputs, recent_species, seed, recent_artworks, recent_styles
+    )
     if (
         capacity < 2
         or first.get("kind", "cutout") != "cutout"
@@ -82,8 +100,13 @@ def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
     ):
         return [first]
     selected = [first]
+    capacity = min(capacity, first.get("composition_max_birds", 3))
+    previous_count = (
+        recent_manifests[0].get("layout", {}).get("bird_count") if recent_manifests else None
+    )
+    count_weights = [0.15 if n == previous_count else 1 for n in range(1, capacity + 1)]
     target = random.Random(seed + ":layout").choices(
-        range(1, capacity + 1), weights=range(1, capacity + 1), k=1
+        range(1, capacity + 1), weights=count_weights, k=1
     )[0]
     while len(selected) < target:
         alternatives = [
@@ -92,6 +115,7 @@ def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
             if a["scientific_name"] not in {b["scientific_name"] for b in selected}
             and a.get("kind", "cutout") == "cutout"
             and a.get("depicted_birds", 1) == 1
+            and a.get("composition_max_birds", 3) >= target
             and compatible_licenses([*selected, a])
         ]
         try:
@@ -102,11 +126,74 @@ def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
                     inputs,
                     recent_species,
                     seed + f":bird-{len(selected)}",
+                    recent_artworks,
+                    recent_styles,
                 )
             )
         except ValueError:
             break
     return selected
+
+
+def artwork_aspect(art_dir, artwork):
+    with Image.open(art_dir / artwork["asset"]) as image:
+        box = image.convert("RGBA").getchannel("A").getbbox()
+        if not box:
+            raise ValueError("Artwork is entirely transparent")
+        return (box[2] - box[0]) / (box[3] - box[1])
+
+
+def choose_layout(artworks, seed, recent_manifests=(), art_dir=None):
+    count = len(artworks)
+    if artworks[0].get("kind") == "plate":
+        return "plate"
+    names = {
+        1: ["solo", "solo-left", "solo-right"],
+        2: ["pair", "lead-left-pair", "lead-right-pair"],
+        3: ["trio", "lead-left-trio", "lead-right-trio", "center-lead-trio"],
+    }[count]
+    # Wide wings need the full width; never crop or mirror diagnostic plumage.
+    if count == 1 and art_dir and artwork_aspect(art_dir, artworks[0]) > 1.6:
+        return "solo"
+    facing = artworks[0].get("facing")
+    if facing in ("left", "right"):
+        outward = "left" if facing == "left" else "right"
+        names = [n for n in names if n != f"solo-{outward}" and not n.startswith(f"lead-{outward}")]
+    previous = recent_manifests[0].get("layout", {}).get("name") if recent_manifests else None
+    return random.Random(seed + ":composition").choice([n for n in names if n != previous] or names)
+
+
+def composition_cells(name, count):
+    """Nonoverlapping contain boxes and aligned caption columns on an 800x480 panel."""
+    cells = {
+        1: [(32, 48, 768, 376)],
+        2: [(28, 48, 380, 376), (420, 48, 772, 376)],
+        3: [(28, 48, 252, 376), (288, 48, 512, 376), (548, 48, 772, 376)],
+    }[count]
+    captions = {
+        1: [(400, 700)],
+        2: [(204, 350), (596, 350)],
+        3: [(140, 224), (400, 224), (660, 224)],
+    }[count]
+    if name in ("solo-left", "solo-right"):
+        cells = [(52, 48, 482, 376)] if name == "solo-left" else [(318, 48, 748, 376)]
+    elif name in ("lead-left-pair", "lead-right-pair"):
+        cells = [(28, 48, 472, 376), (500, 94, 772, 340)]
+        captions = [(250, 440), (636, 272)]
+    elif name in ("lead-left-trio", "lead-right-trio"):
+        cells = [(28, 48, 356, 376), (388, 48, 568, 320), (596, 104, 776, 376)]
+        captions = [(192, 328), (478, 180), (686, 180)]
+    elif name == "center-lead-trio":
+        cells = [(278, 48, 522, 376), (28, 94, 244, 348), (556, 94, 772, 348)]
+        captions = [(400, 244), (136, 216), (664, 216)]
+    if name in ("lead-right-pair", "lead-right-trio"):
+        cells = [(800 - right, top, 800 - left, bottom) for left, top, right, bottom in cells]
+        captions = [(800 - x, width) for x, width in captions]
+    if name == "plate":
+        cells = [(24, 48, 776, 376)]
+    if name == "occasion":
+        cells, captions = [(160, 55, 640, 305)], [(400, 700)]
+    return cells, captions
 
 
 def special_day_for(policy, local_date):
@@ -258,10 +345,10 @@ def compose(art_dir, artwork, plan, output):
     season = season_for(int(date[5:7]))
     canvas = Image.new("RGBA", (800, 480), "#ffffff")
     draw = ImageDraw.Draw(canvas)
-    draw.rectangle((22, 22, 778, 458), outline="#333333", width=1)
+    draw.rectangle((8, 8, 791, 471), outline="#333333", width=1)
     occasion = plan.get("special_day")
     draw.line(
-        (50, 363 if occasion else 392, 750, 363 if occasion else 392), fill="#333333", width=1
+        (20, 363 if occasion else 392, 780, 363 if occasion else 392), fill="#333333", width=1
     )
     palettes = {
         "winter": ("#829395", "#d1d9d5"),
@@ -273,7 +360,7 @@ def compose(art_dir, artwork, plan, output):
     seasonal_offset = -70 if occasion else 0
     # Marginal botanical motifs keep weather and season away from diagnostic plumage.
     for side in (1, -1) if plan["policy"].get("seasonal_themes", True) else ():
-        x = 57 if side == 1 else 743
+        x = 16 if side == 1 else 784
         draw.line(
             (x, 367 + seasonal_offset, x + side * 9, 288 + seasonal_offset), fill=dark, width=2
         )
@@ -292,8 +379,8 @@ def compose(art_dir, artwork, plan, output):
         values = forecast["values"]
         label = weather_label(values)
         if not policy["show_dated_weather_text"]:
-            draw_weather_mark(draw, values, 617, 39)
-            draw.text((746, 39), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
+            draw_weather_mark(draw, values, 650, 25)
+            draw.text((776, 25), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
     birds = plan.get("artworks", [artwork])
     count = sum(a.get("depicted_birds", 1) for a in birds)
     if not 1 <= count <= min(3, policy.get("max_birds", 3)):
@@ -305,34 +392,29 @@ def compose(art_dir, artwork, plan, output):
     composition_license(birds)
     if occasion and (len(birds) != 1 or count != 1):
         raise ValueError("Special-day greetings use one bird")
-    centers = {1: [400], 2: [222, 578], 3: [165, 400, 635]}[len(birds)]
-    limits = {1: (572, 313), 2: (302, 285), 3: (190, 285)}[len(birds)]
-    if birds[0].get("kind") == "plate":
-        limits = (660, 313)
+    layout_name = plan.get("layout", {}).get(
+        "name", "solo" if len(birds) == 1 else "pair" if len(birds) == 2 else "trio"
+    )
+    cells, captions = composition_cells(layout_name, len(birds))
     if occasion:
-        limits = (520, 250) if birds[0].get("kind") == "plate" else (480, 250)
+        cells, captions = composition_cells("occasion", 1)
         draw_occasion_art(draw, occasion["theme"])
-    for item, center in zip(birds, centers, strict=True):
+    for item, cell, caption in zip(birds, cells, captions, strict=True):
+        left, top, right, bottom = cell
+        center, width = caption
         with Image.open(art_dir / item["asset"]) as original:
             bird = original.convert("RGBA")
             box = bird.getchannel("A").getbbox()
             if not box:
                 raise ValueError("Artwork is entirely transparent")
-            bird = ImageOps.contain(bird.crop(box), limits, Image.Resampling.LANCZOS)
-            x = center - bird.width // 2
-            y = (
-                55 + (250 - bird.height) // 2
-                if occasion
-                else (
-                    69 + (285 - bird.height) // 2
-                    if len(birds) > 1
-                    else 55 + (313 - bird.height) // 2
-                )
+            bird = ImageOps.contain(
+                bird.crop(box), (right - left, bottom - top), Image.Resampling.LANCZOS
             )
+            x = left + (right - left - bird.width) // 2
+            y = top + (bottom - top - bird.height) // 2
             canvas.alpha_composite(bird, (x, y))
         draw = ImageDraw.Draw(canvas)
         if policy["show_species_name"]:
-            width = {1: 650, 2: 322, 3: 226}[len(birds)]
             font, lines = fitted_lines(
                 art_dir,
                 draw,
@@ -340,18 +422,19 @@ def compose(art_dir, artwork, plan, output):
                 width,
                 24 if len(birds) == 1 else 19,
                 17,
-                2 if len(birds) == 3 else 1,
+                2 if len(birds) > 1 else 1,
             )
             title_y = 327 if occasion else (404 if len(lines) == 2 else 415)
             for n, line in enumerate(lines):
                 draw.text((center, title_y + n * 21), line, fill="#111111", font=font, anchor="mm")
+            scientific_font, scientific_lines = fitted_lines(
+                art_dir, draw, item["scientific_name"], width, 17 if len(birds) == 1 else 13, 11, 1
+            )
             draw.text(
                 (center, 350 if occasion else 445 if len(birds) == 3 else 442),
-                item["scientific_name"],
+                scientific_lines[0],
                 fill="#333333",
-                font=_font(
-                    art_dir, 17 if len(birds) == 1 else 13 if len(birds) == 3 else 14, italic=True
-                ),
+                font=_font(art_dir, scientific_font.size, italic=True),
                 anchor="mm",
             )
     if occasion:
@@ -378,7 +461,7 @@ def compose(art_dir, artwork, plan, output):
                 )
     # Dating every composition also makes stale retained weather cues understandable.
     draw.text(
-        (53, 39),
+        (24, 20),
         f"{plan.get('location_label', 'DENVER')}  /  {date}",
         font=_font(art_dir, 12),
         fill="#333333",
@@ -387,9 +470,9 @@ def compose(art_dir, artwork, plan, output):
         v = forecast["values"]
         condition = weather_label(v) + " / " if policy["weather_cues"] else ""
         text = f"{condition}{v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
-        draw.text((746, 39), text, font=_font(art_dir, 11), fill="#7c715d", anchor="ra")
+        draw.text((776, 25), text, font=_font(art_dir, 11), fill="#7c715d", anchor="ra")
     metadata = PngImagePlugin.PngInfo()
-    metadata.add_text("eink_neutral_bands", json.dumps([[0, 55], [310 if occasion else 392, 480]]))
+    metadata.add_text("eink_neutral_bands", json.dumps([[0, 48], [310 if occasion else 392, 480]]))
     canvas.convert("RGB").save(output, format="PNG", pnginfo=metadata)
 
 
@@ -486,7 +569,7 @@ def preserve_neutral_graphics(source, target):
         raise ValueError("Invalid packed dimensions")
     for index in range(384000):
         x, y = index % 800, index // 800
-        if not (any(start <= y < end for start, end in bands) or x <= 25 or x >= 775):
+        if not (any(start <= y < end for start, end in bands) or x < 12 or x >= 788):
             continue
         offset = index * 3
         r, g, b = pixels[offset : offset + 3]

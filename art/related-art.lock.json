@@ -73,7 +73,9 @@
           "path": "illustrations/spinus-tristis.png",
           "verification": "Byte-identical sampled pack member; license obtained from the pinned HABirdDashboard source, not assumed from the ZIP."
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-spinus-tristis-2",
@@ -105,7 +107,9 @@
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
       "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
-      "plumage_note": "Bright breeding male; this artwork is restricted to April-September even though the species is resident."
+      "plumage_note": "Bright breeding male; this artwork is restricted to April-September even though the species is resident.",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-zenaida-macroura",
@@ -150,7 +154,9 @@
           "path": "illustrations/zenaida-macroura.png",
           "verification": "Byte-identical sampled pack member; license obtained from the pinned HABirdDashboard source, not assumed from the ZIP."
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-zenaida-macroura-2",
@@ -187,7 +193,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-streptopelia-decaocto",
@@ -224,7 +232,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-streptopelia-decaocto-2",
@@ -261,7 +271,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-melospiza-melodia",
@@ -298,7 +310,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-melospiza-melodia-2",
@@ -335,7 +349,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-junco-hyemalis",
@@ -367,7 +383,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-junco-hyemalis-2",
@@ -399,7 +417,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sitta-carolinensis",
@@ -436,7 +456,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sitta-carolinensis-2",
@@ -473,7 +495,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-buteo-jamaicensis",
@@ -510,7 +534,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-buteo-jamaicensis-2",
@@ -547,7 +573,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-bubo-virginianus",
@@ -584,7 +612,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-bubo-virginianus-2",
@@ -621,7 +651,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-falco-sparverius",
@@ -658,7 +690,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-falco-sparverius-2",
@@ -695,7 +729,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-branta-canadensis",
@@ -732,7 +768,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-branta-canadensis-2",
@@ -769,7 +807,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-anas-platyrhynchos",
@@ -806,7 +846,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-anas-platyrhynchos-2",
@@ -843,7 +885,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-agelaius-phoeniceus",
@@ -880,7 +924,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-agelaius-phoeniceus-2",
@@ -917,7 +963,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-megaceryle-alcyon",
@@ -954,7 +1002,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-megaceryle-alcyon-2",
@@ -991,7 +1041,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-bombycilla-cedrorum",
@@ -1028,7 +1080,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-bombycilla-cedrorum-2",
@@ -1065,7 +1119,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-corvus-corax",
@@ -1110,7 +1166,9 @@
           "path": "illustrations/corvus-corax.png",
           "verification": "Byte-identical sampled pack member; license obtained from the pinned HABirdDashboard source, not assumed from the ZIP."
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-corvus-corax-2",
@@ -1147,7 +1205,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-selasphorus-platycercus",
@@ -1178,7 +1238,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-selasphorus-platycercus-2",
@@ -1209,7 +1271,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-cathartes-aura",
@@ -1242,7 +1306,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-cathartes-aura-2",
@@ -1275,7 +1341,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-hirundo-rustica",
@@ -1306,7 +1374,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-hirundo-rustica-2",
@@ -1337,7 +1407,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sialia-currucoides",
@@ -1370,7 +1442,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sialia-currucoides-2",
@@ -1403,7 +1477,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-pipilo-maculatus",
@@ -1440,7 +1516,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-pipilo-maculatus-2",
@@ -1477,7 +1555,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-poecile-atricapillus",
@@ -1514,7 +1594,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-poecile-atricapillus-2",
@@ -1551,7 +1633,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-cyanocitta-cristata",
@@ -1588,7 +1672,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-cyanocitta-cristata-2",
@@ -1625,7 +1711,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-corvus-brachyrhynchos",
@@ -1662,7 +1750,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-corvus-brachyrhynchos-2",
@@ -1699,7 +1789,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-haemorhous-mexicanus",
@@ -1736,7 +1828,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-haemorhous-mexicanus-2",
@@ -1773,7 +1867,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-pica-hudsonia",
@@ -1810,7 +1906,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-pica-hudsonia-2",
@@ -1847,7 +1945,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-turdus-migratorius",
@@ -1884,7 +1984,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-turdus-migratorius-2",
@@ -1921,7 +2023,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sitta-canadensis",
@@ -1958,7 +2062,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-sitta-canadensis-2",
@@ -1995,7 +2101,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-dryobates-pubescens",
@@ -2032,7 +2140,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "habird-dryobates-pubescens-2",
@@ -2069,7 +2179,9 @@
       "license_file": "licenses/HABirdDashboard-MIT.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Adam Oberley, Teddy Warner and HABirdDashboard contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "belkins-passer-domesticus",
@@ -2106,7 +2218,9 @@
       "license_file": "licenses/Belkins-CC-BY-NC-SA-4.0.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Belkins and AvianVisitors contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "belkins-passer-domesticus-2",
@@ -2143,7 +2257,9 @@
       "license_file": "licenses/Belkins-CC-BY-NC-SA-4.0.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Belkins and AvianVisitors contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "belkins-troglodytes-aedon",
@@ -2174,7 +2290,9 @@
       "license_file": "licenses/Belkins-CC-BY-NC-SA-4.0.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Belkins and AvianVisitors contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "belkins-troglodytes-aedon-2",
@@ -2205,7 +2323,9 @@
       "license_file": "licenses/Belkins-CC-BY-NC-SA-4.0.txt",
       "review_status": "Visual anatomy, identity and layout screening; not an ornithologist review; physical panel review pending",
       "credit": "Belkins and AvianVisitors contributors",
-      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits"
+      "locality_basis": "Denver / Front Range curated eligibility; provider reports do not establish garden visits",
+      "style": "naturalist-illustration",
+      "composition_max_birds": 3
     },
     {
       "id": "audubon-havell-001",
@@ -2263,7 +2383,9 @@
       },
       "review_status": "Historical identity crosswalk plus visual bird-count/layout screening; physical panel review pending",
       "locality_basis": "Denver-area open-space species; eligible regionally, not a claim of backyard presence",
-      "taxonomy_revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a"
+      "taxonomy_revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a",
+      "style": "historical-plate",
+      "composition_max_birds": 1
     },
     {
       "id": "audubon-havell-031",
@@ -2321,7 +2443,9 @@
       },
       "review_status": "Historical identity crosswalk plus visual bird-count/layout screening; physical panel review pending",
       "locality_basis": "Denver-area open-space species; eligible regionally, not a claim of backyard presence",
-      "taxonomy_revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a"
+      "taxonomy_revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a",
+      "style": "historical-plate",
+      "composition_max_birds": 1
     },
     {
       "id": "inky-house-finch",
@@ -2419,7 +2543,9 @@
           "source_url": "https://www.inaturalist.org/observations/189791563",
           "width": 2048
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 1
     },
     {
       "id": "inky-mourning-dove",
@@ -2517,7 +2643,9 @@
           "source_url": "https://www.inaturalist.org/observations/188733227",
           "width": 1536
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 1
     },
     {
       "id": "inky-common-raven",
@@ -2615,7 +2743,9 @@
           "source_url": "https://www.inaturalist.org/observations/191984643",
           "width": 2048
         }
-      ]
+      ],
+      "style": "naturalist-illustration",
+      "composition_max_birds": 1
     }
   ],
   "downloads": [
@@ -2984,7 +3114,7 @@
     "licenses/Audubon-PUBLIC-DOMAIN.txt": "The Birds of America, Havell edition (1827-1838), by John James Audubon: public domain.\nSource: https://github.com/wr/historical-bird-plates and https://github.com/wr/featherframe/blob/0e06ea0333b3091018f70b01ec417f00dd31bef3/THIRD_PARTY.md\nCourtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing.\nCleaned release crops by William Riley. Metadata crosswalk: CC0-1.0.\nPublic Domain Mark: https://creativecommons.org/publicdomain/mark/1.0/\nRetain the plate-specific artist/engraver credit in catalog.json.\n"
   },
   "catalog_metadata": {
-    "curation": "Reviewed Denver-area subset of historical art and existing generated illustrations; reference-only field studies are excluded from rotation",
+    "curation": "Reviewed Colorado-wide historical and generated bird artwork, with habitat/season-aware eligibility and reference-only material excluded from rotation",
     "adaptations": "Masters unchanged; rendered outputs resize, compose, label and dither. Historical plates appear alone; reference plates remain web-only."
   }
 }
