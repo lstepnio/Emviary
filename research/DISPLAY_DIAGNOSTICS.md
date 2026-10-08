@@ -72,3 +72,26 @@ in this configuration.
 Until those checks complete, the blanking report is unresolved. The owner UI
 release is held while the hardware is investigated; the existing backend remains
 live. Battery endurance has not been measured.
+
+## Follow-up investigation, 2026-10-08
+
+The owner again described finding the frame white over time and believes this
+also occurred with earlier firmware. It is not yet established that the behavior
+recurred after the patch. On reconnecting USB the owner reported the picture
+already visible, before any new image request from this investigation.
+
+The persisted debug log was recovered before another redraw. It records one
+wake attributed to the rotate-button input (GPIO 5), a completed display refresh
+of about 27 seconds, and a return to sleep. It records no clear-button wake or
+clear-screen action in the captured interval. An attributed GPIO wake does not
+prove a person pressed that button. Refresh whitening could explain a transient
+observation, but does not explain finding the frame persistently blank.
+
+A controlled manual sleep request was issued while powered by USB, without an
+image request. The device became unreachable and the owner confirmed that the
+picture remained visible after the two-minute sleep-only check. This establishes
+short-term retention for that transition, not overnight battery retention.
+
+No further firmware change was applied. Longer battery-only retention and a
+freshly captured actual blanking event remain necessary. The device was left
+sleeping with its 03:15 Denver schedule unchanged. Saved logs remain private.
