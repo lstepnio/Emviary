@@ -157,3 +157,13 @@ in the URL. Management enables the adapter and sets the lookback window and
 shared locality radius. The POC caps recent eBird results at 100 species. Missing credentials or an API failure fall
 back to other evidence and the curated library. Back up credentials separately
 in a private secret store; application backups deliberately exclude them.
+
+## Statewide bird selection
+
+Management offers Near the weather location or All Colorado. Colorado uses eBird
+region `US-CO` and Colorado bounds for BirdWeather, without changing the Denver
+weather coordinates, timezone or wake schedule. The local radius is ignored in
+statewide mode. Scope changes invalidate cached bird evidence. Queries remain
+bounded to 100 BirdWeather stations, 32 top species and the configured eBird
+result limit; this is regional evidence, not an exhaustive state inventory.
+Only available approved, seasonally eligible artwork participates in rotation.

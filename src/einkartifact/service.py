@@ -125,6 +125,7 @@ class Service:
             artworks = render.choose_artworks(candidates, local_date, inputs, recent, seed, policy)
         return {
             "frame_id": frame["id"],
+            "location_label": "COLORADO" if site.bird_area == "colorado" else "DENVER",
             "local_date": local_date,
             "revision": revision,
             "profile_hash": profile,

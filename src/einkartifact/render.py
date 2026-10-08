@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 5
+RENDER_VERSION = 6
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -377,7 +377,12 @@ def compose(art_dir, artwork, plan, output):
                     anchor="mm",
                 )
     # Dating every composition also makes stale retained weather cues understandable.
-    draw.text((53, 39), f"DENVER  /  {date}", font=_font(art_dir, 12), fill="#333333")
+    draw.text(
+        (53, 39),
+        f"{plan.get('location_label', 'DENVER')}  /  {date}",
+        font=_font(art_dir, 12),
+        fill="#333333",
+    )
     if policy["show_dated_weather_text"] and weather_valid:
         v = forecast["values"]
         condition = weather_label(v) + " / " if policy["weather_cues"] else ""

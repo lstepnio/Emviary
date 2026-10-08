@@ -22,6 +22,7 @@
           "enabled": false
         }
       },
+      "bird_area": "colorado",
       "locality_radius_km": 25
     }
   ],

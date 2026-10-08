@@ -75,6 +75,7 @@ def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
     client = httpx.Client(transport=httpx.MockTransport(respond))
     adapter = Providers(service.store, client)
     site = service.settings.config.sites[0]
+    site.bird_area = "local"
     first = adapter.inputs(site, "2026-10-08")
     assert first["birdweather"]["regional"] is True
     assert first["open_meteo"]["local_date"] == "2026-10-08"
@@ -84,6 +85,7 @@ def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
 
 def test_provider_outage_omits_stale_weather_and_old_birds(service):
     site = service.settings.config.sites[0]
+    site.bird_area = "local"
     service.store.save_snapshot(
         site.id,
         "birdweather",
@@ -152,6 +154,7 @@ def test_ebird_presence_uses_secret_header_and_omits_personal_fields(
         )
 
     site = service.settings.config.sites[0].model_copy(deep=True)
+    site.bird_area = "local"
     site.providers.birdweather.enabled = False
     site.providers.open_meteo.enabled = False
     site.providers.ebird.enabled = True
@@ -177,7 +180,55 @@ def test_ebird_presence_uses_secret_header_and_omits_personal_fields(
 def test_missing_ebird_secret_does_not_block_offline_art(service, tmp_path, monkeypatch):
     monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(tmp_path / "missing"))
     site = service.settings.config.sites[0].model_copy(deep=True)
+    site.bird_area = "local"
     site.providers.birdweather.enabled = False
     site.providers.open_meteo.enabled = False
     site.providers.ebird.enabled = True
     assert Providers(service.store).inputs(site, "2026-10-08") == {}
+
+
+def test_colorado_queries_state_and_accepts_distant_in_state_birds(service, tmp_path, monkeypatch):
+    secret = tmp_path / "key"
+    secret.write_text("test-secret")
+    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(secret))
+    site = service.settings.config.sites[0].model_copy(deep=True)
+    site.bird_area = "colorado"
+    requests = []
+
+    def respond(request):
+        requests.append(request)
+        if request.method == "POST":
+            payload = json.loads(request.content)
+            if "stations(first" in payload["query"]:
+                assert payload["variables"]["sw"]["lat"] == 37
+                return httpx.Response(
+                    200,
+                    json={
+                        "data": {
+                            "stations": {
+                                "nodes": [
+                                    {"id": "far", "coords": {"lat": 38.5, "lon": -108.5}},
+                                    {"id": "outside", "coords": {"lat": 42, "lon": -105}},
+                                ]
+                            }
+                        }
+                    },
+                )
+            assert payload["variables"]["stationIds"] == ["far"]
+            return httpx.Response(200, json={"data": {"topSpecies": []}})
+        assert request.url.path == "/v2/data/obs/US-CO/recent"
+        assert "dist" not in request.url.params
+        return httpx.Response(
+            200,
+            json=[
+                {"sciName": "Pica hudsonia", "lat": 38.5, "lng": -108.5},
+                {"sciName": "Outside", "lat": 42, "lng": -105},
+            ],
+        )
+
+    adapter = Providers(service.store, httpx.Client(transport=httpx.MockTransport(respond)))
+    assert len(adapter.ebird(site)["birds"]) == 1
+    assert adapter.birds(site)["station_count"] == 1
+    local = site.model_copy(update={"bird_area": "local"})
+    assert adapter.scope(local, "ebird") != adapter.scope(site, "ebird")
+    assert site.weather_location == local.weather_location

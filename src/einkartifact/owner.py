@@ -483,9 +483,17 @@ def attach_owner(app, service):
                 "number",
                 'step="any" min="-180" max="180" required',
             )
+            body += '<label>Bird-selection area<select name="bird_area">'
+            for value, label in (
+                ("local", "Near the weather location"),
+                ("colorado", "All Colorado"),
+            ):
+                selected = " selected" if site.bird_area == value else ""
+                body += f'<option value="{value}"{selected}>{label}</option>'
+            body += "</select></label>"
             body += field(
                 "radius",
-                "Shared bird locality (km)",
+                "Local bird radius (km; ignored for All Colorado)",
                 site.locality_radius_km,
                 "number",
                 'min="1" max="50" required',
@@ -711,6 +719,7 @@ def attach_owner(app, service):
                     "latitude": float(data["latitude"]),
                     "longitude": float(data["longitude"]),
                 },
+                bird_area=data.get("bird_area", site.get("bird_area", "local")),
                 locality_radius_km=int(data["radius"]),
                 prepare_local_time=data["prepare"],
                 bird_lookback_hours=int(data["hours"]),

@@ -43,6 +43,18 @@ class Providers:
             if not self.client:
                 client.close()
 
+    @staticmethod
+    def contains(site, latitude, longitude):
+        if not all(isinstance(v, (int, float)) and math.isfinite(v) for v in (latitude, longitude)):
+            return False
+        if site.bird_area == "colorado":
+            bounds = site.locality_bounds
+            return (
+                bounds.southwest.latitude <= latitude <= bounds.northeast.latitude
+                and bounds.southwest.longitude <= longitude <= bounds.northeast.longitude
+            )
+        return distance_km(site.weather_location, latitude, longitude) <= site.locality_radius_km
+
     def birds(self, site):
         bounds = site.locality_bounds
         period = {"count": site.bird_lookback_hours, "unit": "hours", "timezone": site.timezone}
@@ -68,10 +80,7 @@ class Providers:
         station_ids = []
         for station in stations["data"]["stations"]["nodes"][:100]:
             coords = station["coords"]
-            if (
-                distance_km(site.weather_location, coords["lat"], coords["lon"])
-                <= site.locality_radius_km
-            ):
+            if self.contains(site, coords["lat"], coords["lon"]):
                 station_ids.append(str(station["id"]))
         payload = {
             "query": """query($period:InputDuration,$stationIds:[ID!]!) {
@@ -109,7 +118,8 @@ class Providers:
             "birds": birds,
             "query": variables,
             "station_count": len(station_ids),
-            "radius_km": site.locality_radius_km,
+            "radius_km": site.locality_radius_km if site.bird_area == "local" else None,
+            "bird_area": site.bird_area,
             "window_end": datetime.now(UTC).isoformat(),
             "window_hours": site.bird_lookback_hours,
             "regional": True,
@@ -168,9 +178,13 @@ class Providers:
             "maxResults": options.max_results,
             "includeProvisional": "false",
         }
+        region = "US-CO" if site.bird_area == "colorado" else "geo"
+        if site.bird_area == "colorado":
+            for field in ("lat", "lng", "dist"):
+                query.pop(field)
         result = self._json(
             "GET",
-            "https://api.ebird.org/v2/data/obs/geo/recent",
+            f"https://api.ebird.org/v2/data/obs/{region}/recent",
             headers={"X-eBirdApiToken": key},
             params=query,
         )
@@ -186,7 +200,7 @@ class Providers:
                 continue
             if not math.isfinite(latitude) or not math.isfinite(longitude):
                 continue
-            if distance_km(site.weather_location, latitude, longitude) > site.locality_radius_km:
+            if not self.contains(site, latitude, longitude):
                 continue
             if isinstance(name, str) and 0 < len(name) <= 100:
                 species.setdefault(
@@ -209,9 +223,10 @@ class Providers:
 
     def scope(self, site, provider):
         return {
-            "version": 2,
+            "version": 3,
             "center": site.weather_location.model_dump(),
-            "radius_km": site.locality_radius_km,
+            "radius_km": site.locality_radius_km if site.bird_area == "local" else None,
+            "bird_area": site.bird_area,
             "timezone": site.timezone,
             "lookback": site.bird_lookback_hours
             if provider == "birdweather"

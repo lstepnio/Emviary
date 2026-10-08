@@ -66,6 +66,7 @@ class Site(Model):
     timezone: str = "America/Denver"
     weather_location: Location
     birdweather_bounds: Bounds | None = None  # Legacy configurations remain readable.
+    bird_area: Literal["local", "colorado"] = "local"
     locality_radius_km: int = Field(default=25, ge=1, le=50)
     bird_lookback_hours: int = Field(default=24, ge=1, le=168)
     prepare_local_time: str = "02:30"
@@ -81,6 +82,11 @@ class Site(Model):
 
     @property
     def locality_bounds(self):
+        if self.bird_area == "colorado":
+            return Bounds(
+                southwest=Location(latitude=37, longitude=-109.0603),
+                northeast=Location(latitude=41.0007, longitude=-102.0415),
+            )
         center = self.weather_location
         latitude_delta = self.locality_radius_km / 111.195
         longitude_delta = latitude_delta / math.cos(math.radians(center.latitude))
