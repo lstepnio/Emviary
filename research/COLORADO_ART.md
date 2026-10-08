@@ -128,3 +128,15 @@ Both passes preserve unchanged masters and reject digest or curated-record
 mismatches. Credits remain per asset, with the Colorado historical cutout source
 links also in `art/COLORADO-ATTRIBUTION.md`. No paid API, microphone, cloud art
 subscription or daily generation dependency is introduced by this import.
+
+## Emviary style prototype
+
+A separate Mountain Bluebird woodcut was generated once with the built-in
+image tool using an existing species illustration and Cornell identification
+notes as references. A first draft invented white wing bars; a targeted edit
+removed them before saving the candidate. The unchanged final PNG, exact
+prompts, parent reference and correction notes are in
+`art/generated-art.lock.json`. It is an additional review candidate, outside
+nightly rotation until physical-panel review. The full catalog therefore has
+141 entries: 136 rotation images, three field-study references, and two review
+candidates. There is no daily generation charge or new API dependency.
