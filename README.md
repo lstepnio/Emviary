@@ -10,7 +10,7 @@ Raspberry Pi or online image generation is required for this POC.
 
 ## Implementation
 
-- 61 Colorado species, 136 rotation images, three web-only field studies and two review candidates; original masters,
+- 62 Colorado species, 143 rotation images, three web-only field studies and two review candidates; original masters,
   source credits and per-asset provenance retained.
 - 800×480 Spectra6 conversion through pinned `epaper-image-convert`, producing
   validated EPDGZ files. Rendering happens before the frame fetches.

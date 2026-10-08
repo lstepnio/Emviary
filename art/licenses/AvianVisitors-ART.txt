@@ -1,0 +1,8 @@
+AvianVisitors illustration and sketch assets
+Creator: Teddy Warner / Avian Visitors contributors
+Source: https://github.com/Twarner491/AvianVisitors
+Official artwork bundle terms: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+Terms declared in the AvianVisitors README and official bundle catalog at commit 2f18a66676b85d9548cfcbca21d94a4aab88e17a.
+Artwork is credited and identified as AI-generated. Local masters are unchanged.
+The simenf/birdframe ZIP is a distributor; its code license is not assigned to these images.
