@@ -1,0 +1,9 @@
+{
+  "name": "einkartifact-converter",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@aitjcize/epaper-image-convert": "0.1.21",
+    "canvas": "3.2.1"
+  }
+}

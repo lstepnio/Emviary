@@ -1,0 +1,72 @@
+{
+  "checked_on": "2026-10-07 America/Denver",
+  "endpoint": "https://app.birdweather.com/graphql",
+  "http_status": 200,
+  "authentication_used": false,
+  "region": "Approximate Denver metropolitan bounding box",
+  "period": "API default; documentation says previous 24 hours",
+  "query": "query { topBirdnetSpecies(limit: 8, ne: {lat: 40.05, lon: -104.55}, sw: {lat: 39.45, lon: -105.30}) { count species { commonName scientificName } } }",
+  "response": {
+    "data": {
+      "topBirdnetSpecies": [
+        {
+          "count": 8,
+          "species": {
+            "commonName": "Black-billed Magpie",
+            "scientificName": "Pica hudsonia"
+          }
+        },
+        {
+          "count": 7,
+          "species": {
+            "commonName": "Blue Jay",
+            "scientificName": "Cyanocitta cristata"
+          }
+        },
+        {
+          "count": 4,
+          "species": {
+            "commonName": "House Finch",
+            "scientificName": "Haemorhous mexicanus"
+          }
+        },
+        {
+          "count": 3,
+          "species": {
+            "commonName": "American Crow",
+            "scientificName": "Corvus brachyrhynchos"
+          }
+        },
+        {
+          "count": 3,
+          "species": {
+            "commonName": "Great Horned Owl",
+            "scientificName": "Bubo virginianus"
+          }
+        },
+        {
+          "count": 2,
+          "species": {
+            "commonName": "White-crowned Sparrow",
+            "scientificName": "Zonotrichia leucophrys"
+          }
+        },
+        {
+          "count": 2,
+          "species": {
+            "commonName": "Northern Flicker",
+            "scientificName": "Colaptes auratus"
+          }
+        },
+        {
+          "count": 2,
+          "species": {
+            "commonName": "Common Grackle",
+            "scientificName": "Quiscalus quiscula"
+          }
+        }
+      ]
+    }
+  },
+  "interpretation": "These are reported acoustic detection events, not counts of individual birds or proof of backyard presence. API access worked without a key; long-term access terms and limits were not established by this request."
+}

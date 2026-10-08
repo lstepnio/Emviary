@@ -1,0 +1,14 @@
+.git
+.venv
+.private
+.state
+firmware
+art
+research
+tests
+**/node_modules
+**/__pycache__
+*.bin
+*.elf
+
+experiments

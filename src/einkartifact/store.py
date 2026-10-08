@@ -1,0 +1,182 @@
+import hashlib
+import json
+import secrets
+import sqlite3
+from contextlib import contextmanager
+from datetime import UTC, datetime
+
+
+def utcnow() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def stable_json(value) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+class Store:
+    def __init__(self, path):
+        self.path = path
+        with self.connect() as db:
+            db.execute("PRAGMA journal_mode=WAL")
+            db.executescript("""
+                CREATE TABLE IF NOT EXISTS frames (
+                    id TEXT PRIMARY KEY,
+                    site_id TEXT NOT NULL,
+                    token_hash TEXT NOT NULL UNIQUE,
+                    policy TEXT NOT NULL,
+                    config_revision INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    last_contact TEXT,
+                    battery INTEGER,
+                    firmware TEXT,
+                    last_client_etag TEXT,
+                    last_served_etag TEXT,
+                    active_image_id INTEGER
+                );
+                CREATE TABLE IF NOT EXISTS images (
+                    id INTEGER PRIMARY KEY,
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    local_date TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    profile_hash TEXT NOT NULL,
+                    artwork_id TEXT NOT NULL,
+                    path TEXT NOT NULL,
+                    preview_path TEXT NOT NULL,
+                    body_hash TEXT NOT NULL,
+                    manifest TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(frame_id, local_date, revision)
+                );
+                CREATE TABLE IF NOT EXISTS jobs (
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    local_date TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    profile_hash TEXT NOT NULL,
+                    plan TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    started_at TEXT,
+                    finished_at TEXT,
+                    error TEXT,
+                    PRIMARY KEY(frame_id, local_date, revision)
+                );
+                CREATE TABLE IF NOT EXISTS provider_snapshots (
+                    site_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    local_date TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    received_at TEXT NOT NULL,
+                    PRIMARY KEY(site_id, provider, local_date)
+                );
+                PRAGMA user_version=1;
+            """)
+
+    @contextmanager
+    def connect(self):
+        db = sqlite3.connect(self.path, timeout=5)
+        db.row_factory = sqlite3.Row
+        db.execute("PRAGMA foreign_keys=ON")
+        try:
+            yield db
+            db.commit()
+        except BaseException:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def frame(self, frame_id):
+        with self.connect() as db:
+            row = db.execute("SELECT * FROM frames WHERE id=?", (frame_id,)).fetchone()
+        if row is None:
+            raise ValueError(f"Unknown frame: {frame_id}")
+        return dict(row)
+
+    def frames(self):
+        with self.connect() as db:
+            return [dict(r) for r in db.execute("SELECT * FROM frames ORDER BY id")]
+
+    def add_frame(self, frame_id, policy):
+        token = secrets.token_urlsafe(32)
+        with self.connect() as db:
+            db.execute(
+                "INSERT INTO frames(id,site_id,token_hash,policy,created_at) VALUES(?,?,?,?,?)",
+                (
+                    frame_id,
+                    policy.site_id,
+                    token_hash(token),
+                    stable_json(policy.model_dump()),
+                    utcnow(),
+                ),
+            )
+        return token
+
+    def authenticate(self, token):
+        if not token or len(token) > 128:
+            return None
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT * FROM frames WHERE token_hash=?", (token_hash(token),)
+            ).fetchone()
+        return dict(row) if row else None
+
+    def rotate_token(self, frame_id):
+        self.frame(frame_id)
+        token = secrets.token_urlsafe(32)
+        with self.connect() as db:
+            db.execute("UPDATE frames SET token_hash=? WHERE id=?", (token_hash(token), frame_id))
+        return token
+
+    def set_policy(self, frame_id, policy):
+        self.frame(frame_id)
+        with self.connect() as db:
+            db.execute(
+                "UPDATE frames SET policy=?,site_id=?,config_revision=config_revision+1 WHERE id=?",
+                (stable_json(policy.model_dump()), policy.site_id, frame_id),
+            )
+
+    def active_image(self, frame):
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT * FROM images WHERE id=? AND frame_id=?",
+                (frame["active_image_id"], frame["id"]),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def telemetry(self, frame_id, battery, firmware, client_etag, served_etag):
+        with self.connect() as db:
+            db.execute(
+                """UPDATE frames SET last_contact=?,battery=COALESCE(?,battery),
+                   firmware=COALESCE(?,firmware),last_client_etag=?,last_served_etag=?
+                   WHERE id=?""",
+                (utcnow(), battery, firmware, client_etag, served_etag, frame_id),
+            )
+
+    def snapshot(self, site_id, provider, local_date=None):
+        with self.connect() as db:
+            if local_date:
+                row = db.execute(
+                    """SELECT * FROM provider_snapshots
+                       WHERE site_id=? AND provider=? AND local_date=?""",
+                    (site_id, provider, local_date),
+                ).fetchone()
+            else:
+                row = db.execute(
+                    """SELECT * FROM provider_snapshots WHERE site_id=? AND provider=?
+                       ORDER BY received_at DESC LIMIT 1""",
+                    (site_id, provider),
+                ).fetchone()
+        return dict(row) if row else None
+
+    def save_snapshot(self, site_id, provider, local_date, payload):
+        with self.connect() as db:
+            db.execute(
+                """INSERT OR REPLACE INTO provider_snapshots
+                   VALUES(?,?,?,?,?)""",
+                (site_id, provider, local_date, stable_json(payload), utcnow()),
+            )

@@ -1,0 +1,9 @@
+{
+  "upstream": "https://github.com/aitjcize/esp32-photoframe",
+  "fork": "https://github.com/lstepnio/einkartifact-firmware",
+  "branch": "einkartifact-poc",
+  "release": "v2.19.0",
+  "commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
+  "board": "seeedstudio_reterminal_e1002",
+  "behavior": "Unmodified pinned upstream with per-frame service configuration"
+}
