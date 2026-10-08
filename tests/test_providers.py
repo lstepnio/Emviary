@@ -63,6 +63,11 @@ def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
                     "snowfall_sum": [0],
                     "wind_speed_10m_max": [15],
                 },
+                "hourly": {
+                    "time": ["2026-10-08T09:00", "2026-10-08T12:00"],
+                    "weather_code": [0, 0],
+                    "is_day": [1, 1],
+                },
                 "daily_units": {
                     "temperature_2m_min": "°C",
                     "temperature_2m_max": "°C",

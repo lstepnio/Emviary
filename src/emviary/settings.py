@@ -161,6 +161,7 @@ class FramePolicy(Model):
     repeat_penalty_days: int = Field(default=7, ge=0, le=90)
     show_species_name: bool = True
     show_dated_weather_text: bool = False
+    show_forecast_temperatures: bool = True
     weather_cues: bool = True
     wifi_networks: list[WifiNetwork] | None = Field(default=None, max_length=5)
     wifi_forget_ssids: list[str] = Field(default_factory=list, max_length=32)

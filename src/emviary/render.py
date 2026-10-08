@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 8
+RENDER_VERSION = 9
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -24,6 +24,7 @@ def profile_hash(policy, catalog):
             "show_species_name",
             "show_dated_weather_text",
             "weather_cues",
+            "show_forecast_temperatures",
             "processing_preset",
             "dither_algorithm",
             "max_birds",
@@ -238,22 +239,29 @@ def weather_label(values):
     code = int(values["weather_code"])
     if code in (71, 73, 75, 77, 85, 86) and values["snowfall_sum"] > 0:
         return "SNOW"
-    if code in (95, 96, 99):
+    if code in (95, 96, 97, 99):
         return "STORMS"
     if code >= 51 and values["precipitation_probability_max"] >= 50:
         return "RAIN"
     if values["wind_speed_10m_max"] >= 30:
         return "WINDY"
+    code = int(values.get("daylight_weather_code", code))
     if code in (45, 48):
         return "FOG"
-    return {0: "CLEAR", 1: "MOSTLY CLEAR", 2: "PARTLY SUNNY", 3: "OVERCAST"}.get(code, "OUTLOOK")
+    return {0: "SUNNY", 1: "MOSTLY SUNNY", 2: "PARTLY SUNNY", 3: "OVERCAST"}.get(code, "OUTLOOK")
+
+
+def forecast_temperatures(values):
+    high = round(values["temperature_2m_max"] * 9 / 5 + 32)
+    low = round(values["temperature_2m_min"] * 9 / 5 + 32)
+    return f"H {high}° / L {low}°F"
 
 
 def draw_weather_mark(draw, values, x, y):
     # Small, high-contrast ink strokes in the header, never pale filled clouds.
     label = weather_label(values)
     ink = "#333333"
-    if label in ("CLEAR", "MOSTLY CLEAR", "PARTLY SUNNY"):
+    if label in ("SUNNY", "MOSTLY SUNNY", "PARTLY SUNNY"):
         draw.ellipse((x - 4, y - 4, x + 4, y + 4), outline=ink, width=2)
         for angle in range(0, 360, 45):
             theta = math.radians(angle)
@@ -380,7 +388,15 @@ def compose(art_dir, artwork, plan, output):
         label = weather_label(values)
         if not policy["show_dated_weather_text"]:
             draw_weather_mark(draw, values, 650, 25)
-            draw.text((776, 25), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
+            draw.text((776, 18), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
+            if policy.get("show_forecast_temperatures", True):
+                draw.text(
+                    (776, 34),
+                    forecast_temperatures(values),
+                    font=_font(art_dir, 12),
+                    fill="#333333",
+                    anchor="ra",
+                )
     birds = plan.get("artworks", [artwork])
     count = sum(a.get("depicted_birds", 1) for a in birds)
     if not 1 <= count <= min(3, policy.get("max_birds", 3)):

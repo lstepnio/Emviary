@@ -362,6 +362,11 @@ def attach_owner(app, service):
                 "weather", "Subtle daily weather", policy["weather_cues"]
             )
             body += checkbox(
+                "forecast_temperatures",
+                "High / low beneath forecast (°F)",
+                policy.get("show_forecast_temperatures", True),
+            )
+            body += checkbox(
                 "forecast_text", "Dated forecast text", policy["show_dated_weather_text"]
             ) + checkbox("season", "Seasonal details", policy["seasonal_themes"])
             body += (
@@ -749,6 +754,7 @@ def attach_owner(app, service):
                 dither_algorithm=data["dither"],
                 show_species_name=data.get("labels") == "on",
                 weather_cues=data.get("weather") == "on",
+                show_forecast_temperatures=data.get("forecast_temperatures") == "on",
                 show_dated_weather_text=data.get("forecast_text") == "on",
                 seasonal_themes=data.get("season") == "on",
             )

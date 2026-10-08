@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import os
+from collections import Counter
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -144,6 +145,7 @@ class Providers:
                 "start_date": local_date,
                 "end_date": local_date,
                 "daily": ",".join(variables),
+                "hourly": "weather_code,is_day",
             },
         )
         if result.get("error") or result["daily"]["time"] != [local_date]:
@@ -156,6 +158,25 @@ class Providers:
         values = {key: result["daily"][key][0] for key in variables}
         if any(v is None or not math.isfinite(v) for v in values.values()):
             raise ValueError("Incomplete forecast")
+        hourly = result["hourly"]
+        times, codes, days = (hourly[key] for key in ("time", "weather_code", "is_day"))
+        if not times or len(times) != len(codes) or len(times) != len(days):
+            raise ValueError("Incomplete hourly forecast")
+        daylight = []
+        for time, code, day in zip(times, codes, days, strict=True):
+            if not time.startswith(local_date + "T") or day not in (0, 1):
+                raise ValueError("Invalid hourly forecast day")
+            if code is None or not math.isfinite(code):
+                raise ValueError("Incomplete hourly weather code")
+            if day:
+                daylight.append(int(code))
+        if not daylight:
+            raise ValueError("No daylight forecast hours")
+        # Summarize prevailing daylight sky, not the worst hour of a 24-hour day.
+        # Ties favor the cloudier code; daily precipitation/storm cues remain intact.
+        sky = Counter(code for code in daylight if code in (0, 1, 2, 3, 45, 48))
+        if sky:
+            values["daylight_weather_code"] = max(sky, key=lambda code: (sky[code], code))
         return {
             "provider": "open_meteo",
             "local_date": local_date,
@@ -223,7 +244,7 @@ class Providers:
 
     def scope(self, site, provider):
         return {
-            "version": 3,
+            "version": 4 if provider == "open_meteo" else 3,
             "center": site.weather_location.model_dump(),
             "radius_km": site.locality_radius_km if site.bird_area == "local" else None,
             "bird_area": site.bird_area,

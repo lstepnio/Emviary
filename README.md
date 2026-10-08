@@ -101,3 +101,7 @@ review, incorporated artwork, validation and prioritized feature ideas.
 Emviary was previously named eInkArtifact. Both application and firmware repositories are public; operational secrets and
 device provisioning files stay outside Git.
 See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.
+
+### Daily weather on the artwork
+
+The compact header summarizes the prevailing daylight sky for the dated Denver forecast, rather than the worst cloud condition across all 24 hours. Daily rain, snow, storm and wind cues take precedence. It is a forecast, not a live observation. High / low temperatures appear beneath the word in Fahrenheit by default; turn them off with **High / low beneath forecast (°F)** in frame management. The high and low cover the full local calendar day. Existing frames receive this default without firmware changes. Weather snapshots are tied to the requested date and location; older dates never supply weather cues.
