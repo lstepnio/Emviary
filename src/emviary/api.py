@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from . import __version__
+from .branding import BIRD_ICON, ICON_LINK
 from .firmware_updates import FirmwareUpdates
 from .service import Service
 from .settings import FramePolicy
@@ -111,6 +112,14 @@ def create_app(service=None, schedule=True):
                 status_code=308,
             )
         return await call_next(request)
+
+    @app.get("/favicon.svg")
+    def bird_icon():
+        return Response(
+            BIRD_ICON,
+            media_type="image/svg+xml",
+            headers={"Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff"},
+        )
 
     @app.get("/healthz")
     def health():
@@ -287,7 +296,9 @@ def create_app(service=None, schedule=True):
         return (
             """<!doctype html><html lang="en"><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Emviary · Artwork and credits</title><style>
+        <title>Emviary · Artwork and credits</title>"""
+            + ICON_LINK
+            + """<style>
         :root{color-scheme:light}*{box-sizing:border-box}
         body{margin:0;background:#f4f0e6;color:#343c32;font-family:Georgia,serif}
         main{max-width:1080px;margin:auto;padding:52px 24px}

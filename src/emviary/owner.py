@@ -15,6 +15,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from .api import config_payload
+from .branding import BRAND_MARK, ICON_LINK
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
 
@@ -69,7 +70,9 @@ def page(title, body):
         """<!doctype html><html lang="en"><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><title>"""
         + escape(title + " · Emviary" if title != "Emviary" else title)
-        + """</title>
+        + "</title>"
+        + ICON_LINK
+        + """
     <style>body{margin:0;background:#f4f0e6;color:#343c32;font:16px/1.6 Georgia,serif}
     main{max-width:920px;margin:auto;padding:35px 22px}h1,h2{font-weight:400}
     a{color:#536750}section{border-top:1px solid #d1cbb9;padding:20px 0;margin-top:20px}
@@ -78,7 +81,9 @@ def page(title, body):
     input[type=checkbox]{margin-right:10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,
     minmax(210px,1fr));gap:10px 25px}.preview{width:100%;max-width:800px;border:1px solid #d1cbb9}
     .quiet{font:13px/1.5 system-ui;color:#6a6d5d}.error{color:#8c2d23}</style>
-    <main><a class="quiet" href="/">Emviary · Display</a><h1>"""
+    <main><a class="quiet" href="/">"""
+        + BRAND_MARK
+        + """Emviary · Display</a><h1>"""
         + escape(title)
         + "</h1>"
         + body
