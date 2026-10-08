@@ -191,10 +191,14 @@ def test_frame_labels_use_only_common_names_and_leave_room_for_larger_art(
     from PIL import ImageDraw
 
     texts = []
+    text_boxes = []
     original = ImageDraw.ImageDraw.text
 
     def record_text(self, xy, text, *args, **kwargs):
         texts.append(text)
+        text_boxes.append(
+            self.textbbox(xy, text, font=kwargs.get("font"), anchor=kwargs.get("anchor"))
+        )
         return original(self, xy, text, *args, **kwargs)
 
     monkeypatch.setattr(ImageDraw.ImageDraw, "text", record_text)
@@ -214,7 +218,11 @@ def test_frame_labels_use_only_common_names_and_leave_room_for_larger_art(
             artworks=selected,
         )
         texts.clear()
+        text_boxes.clear()
         render.compose(service.settings.art_dir, selected[0], plan, tmp_path / f"names-{count}.png")
+        assert all(420 < top < bottom < 471 for _, top, _, bottom in text_boxes)
+        with Image.open(tmp_path / f"names-{count}.png") as image:
+            assert image.getpixel((20, 420)) == (51, 51, 51)
         assert all(a["common_name"] in " ".join(texts) for a in selected)
         assert all(a["scientific_name"] not in " ".join(texts) for a in selected)
     # The art reaches lower without entering the common-name caption band.

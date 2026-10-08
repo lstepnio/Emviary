@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 11
+RENDER_VERSION = 12
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -359,7 +359,7 @@ def compose(art_dir, artwork, plan, output):
     draw.rectangle((8, 8, 791, 471), outline="#333333", width=1)
     occasion = plan.get("special_day")
     draw.line(
-        (20, 363 if occasion else 428, 780, 363 if occasion else 428), fill="#333333", width=1
+        (20, 363 if occasion else 420, 780, 363 if occasion else 420), fill="#333333", width=1
     )
     palettes = {
         "winter": ("#829395", "#d1d9d5"),
@@ -443,7 +443,7 @@ def compose(art_dir, artwork, plan, output):
                 17,
                 2 if len(birds) > 1 else 1,
             )
-            title_y = 346 if occasion else (434 if len(lines) == 2 else 450)
+            title_y = 346 if occasion else (434 if len(lines) == 2 else 445)
             for n, line in enumerate(lines):
                 draw.text((center, title_y + n * 21), line, fill="#111111", font=font, anchor="mm")
     if occasion:
@@ -481,7 +481,7 @@ def compose(art_dir, artwork, plan, output):
         text = f"{condition}{v['temperature_2m_min']:.0f} to {v['temperature_2m_max']:.0f} C"
         draw.text((776, 25), text, font=_font(art_dir, 11), fill="#7c715d", anchor="ra")
     metadata = PngImagePlugin.PngInfo()
-    metadata.add_text("eink_neutral_bands", json.dumps([[0, 48], [328 if occasion else 428, 480]]))
+    metadata.add_text("eink_neutral_bands", json.dumps([[0, 48], [328 if occasion else 420, 480]]))
     canvas.convert("RGB").save(output, format="PNG", pnginfo=metadata)
 
 
@@ -567,7 +567,7 @@ def preserve_neutral_graphics(source, target):
         if image.size != (800, 480):
             raise ValueError("Invalid source dimensions")
         pixels = image.convert("RGB").tobytes()
-        bands = json.loads(image.info.get("eink_neutral_bands", "[[0,48],[428,480]]"))
+        bands = json.loads(image.info.get("eink_neutral_bands", "[[0,48],[420,480]]"))
         if any(
             not isinstance(b, list) or len(b) != 2 or not 0 <= b[0] < b[1] <= 480 for b in bands
         ):
