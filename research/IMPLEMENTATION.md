@@ -1,6 +1,8 @@
 # Implemented POC, 2026-10-08
 
-The private application repository is `lstepnio/Emviary`. Its application
+Historical implementation record: the repository is now public; see `EMVIARY_MIGRATION.md` for the current deployment.
+
+The application repository is `lstepnio/Emviary`. Its application
 release is commit `b355019`, version 0.2.0, deployed as `emviary:poc-003` on
 `one.majjix.com`. Docker image ID:
 `sha256:f0e43408350f9ab720dc98af8f1ef7cca9d7a71d1f3fdee22ad7b8ba594f852d`.

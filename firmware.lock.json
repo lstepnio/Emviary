@@ -2,13 +2,11 @@
   "upstream": "https://github.com/aitjcize/esp32-photoframe",
   "fork": "https://github.com/lstepnio/Emviary-firmware",
   "branch": "emviary-poc",
-  "release": "v2.19.0",
-  "commit": "04c423fca243edba5e39a0d9c816b79505beaaad",
+  "release": "v0.3.3",
+  "commit": "717804a37329fa15b4b23b2ebcc11505baab637e",
   "board": "seeedstudio_reterminal_e1002",
-  "behavior": "Pinned upstream protocol with cleared-panel ETag invalidation, one Spectra clear refresh, and disabled E1002 physical right-button clear/wake",
+  "behavior": "E1002 right-button clear and wake disabled; Emviary local hostname with PhotoFrame fallback; cloud-managed GitHub OTA with complete image digest verification; scheduled artwork refresh precedes firmware update",
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
-  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37798849988",
-  "application_sha256": "260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475",
-  "branding_commit": "141c7668536ea65c8f01af0fb25ea6c623295338",
-  "branding_note": "Emviary cloud-managed OTA and local aliases are at branding_commit; commit and application_sha256 identify the previously tested installed image until bootstrap verification."
+  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37818758586",
+  "application_sha256": "b43f3c300c0be64aeeb8462096faed53336ab3a71685d3d509edd1d4e89024dc"
 }

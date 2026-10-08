@@ -49,7 +49,7 @@ Add `emviary` under the existing Compose `services` map and attach it to `caddy`
 
 Use [deployment/compose-service.yml](deployment/compose-service.yml) as the service fragment. Build the image and create its persistent directories before starting it.
 
-The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `emviary:poc-002` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
+The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `emviary:poc-010` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
 
 The proposed application data, configuration, and master-art paths are covered by the host's existing Git ignore rules. Extend the sanitized configuration export to include our nonsecret site configuration, art catalog/credits, and image-version manifest. The SQLite database, token hashes, and artwork need a separate consistent backup; a Compose Git commit alone does not recover them.
 
