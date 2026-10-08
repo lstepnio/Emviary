@@ -1,6 +1,6 @@
 [project]
-name = "einkartifact"
-version = "0.2.0"
+name = "emviary"
+version = "0.3.0"
 description = "A sleeping bird-art frame with curated art and prepared nightly images"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-einkartifact = "einkartifact.cli:main"
+emviary = "emviary.cli:main"
 
 [build-system]
 requires = ["hatchling"]

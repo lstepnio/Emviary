@@ -1,9 +1,9 @@
-# eInkArtifact
+# Emviary
 
 A Denver-area bird-art gift built around the reTerminal E1002.
 
 A sleeping ESP32 PhotoFrame client retrieves one prepared image each night from
-https://eink.majjix.com. One Python Docker service on `one.majjix.com` combines
+https://emviary.majjix.com. One Python Docker service on `one.majjix.com` combines
 curated historical and existing illustrated bird art, regional BirdWeather detections and optional eBird observations, seasonal
 motifs and understated Open-Meteo forecast cues. No paid subscription, microphone,
 Raspberry Pi or online image generation is required for this POC.
@@ -31,7 +31,7 @@ Raspberry Pi or online image generation is required for this POC.
   are linked from management.
 - Health check, restricted container and existing Caddy integration.
 
-The firmware fork is https://github.com/lstepnio/einkartifact-firmware, pinned to
+The firmware fork is https://github.com/lstepnio/Emviary-firmware, pinned to
 upstream v2.19.0 with a small clear-screen recovery patch. It invalidates the
 image cache marker when the panel is cleared and avoids a duplicate Spectra
 refresh. The firmware lock pins `dev-04c423f`, with the E1002 physical clear button
@@ -41,18 +41,18 @@ See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
 ## Local development
 
 ```sh
-git clone --recurse-submodules git@github.com:lstepnio/eInkArtifact.git
-cd eInkArtifact
+git clone --recurse-submodules git@github.com:lstepnio/Emviary.git
+cd Emviary
 uv sync --locked
 npm ci --ignore-scripts --prefix converter
 npm run install --prefix converter/node_modules/canvas
-uv run einkartifact add-frame local-e1002 --token-file .state/provisioning/local-e1002.token
-uv run einkartifact prepare local-e1002 --offline
-uv run einkartifact serve
+uv run emviary add-frame local-e1002 --token-file .state/provisioning/local-e1002.token
+uv run emviary prepare local-e1002 --offline
+uv run emviary serve
 ```
 
-The default configuration is `deployment/site.example.json`. Set `EINK_CONFIG`,
-`EINK_DATA_DIR`, `EINK_ART_DIR`, and `EINK_BACKUP_DIR` to override paths. All owner
+The default configuration is `deployment/site.example.json`. Set `EMVIARY_CONFIG`,
+`EMVIARY_DATA_DIR`, `EMVIARY_ART_DIR`, and `EMVIARY_BACKUP_DIR` to override paths. All owner
 provisioning files are secrets and excluded from Git. The public homepage shows
 the selected frame's latest delivered art with a subtle management link.
 `/manage` requires the owner password; `/library` shows source artwork and credits.
@@ -60,8 +60,8 @@ the selected frame's latest delivered art with a subtle management link.
 is decoded from the exact packed pixels; perceived physical colors vary with
 lighting. Delivery telemetry is not a physical panel acknowledgement.
 
-For local management, set `EINK_SECRET_DIR` to a private writable directory and
-run `einkartifact init-owner --password-file .state/provisioning/owner-login.txt`.
+For local management, set `EMVIARY_SECRET_DIR` to a private writable directory and
+run `emviary init-owner --password-file .state/provisioning/owner-login.txt`.
 Production bootstrap credentials are delivered privately, never committed.
 
 ```sh
@@ -94,3 +94,7 @@ windows attached to the art, including breeding-plumage restrictions. It does
 not claim to be a complete bird catalogue. See
 [research/RELATED_PROJECTS.md](research/RELATED_PROJECTS.md) for the five-project
 review, incorporated artwork, validation and prioritized feature ideas.
+
+Emviary was previously named eInkArtifact. The installed frame retains its tested
+firmware image; the firmware repository and future build branding use Emviary.
+See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.

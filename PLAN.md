@@ -4,12 +4,12 @@ Planning date: October 7, 2026, America/Denver.
 
 ## Recommendation
 
-Use the E1002 as a sleeping image client, with a small hosted service preparing its artwork. Start with curated Denver bird art, seasonal eligibility, regional BirdWeather detections or eBird reports, and understated weather cues. Add actual backyard listening as a separate input once the frame and visual pipeline work reliably.
+Use the E1002 as a sleeping image client, with a small hosted service preparing its artwork. Start with curated Colorado bird art, seasonal eligibility, regional BirdWeather detections or eBird reports, and understated weather cues. Add actual backyard listening as a separate input once the frame and visual pipeline work reliably.
 
 Preferred implementation bases:
 
 - Frame: a pinned fork of [ESP32 PhotoFrame](https://github.com/aitjcize/esp32-photoframe), initially with upstream behavior.
-- Service: one purpose-built Python container at `eink.majjix.com` on `one.majjix.com`, integrated into the existing `/docker` Compose stack and Caddy network.
+- Service: one purpose-built Python container at `emviary.majjix.com` on `one.majjix.com`, integrated into the existing `/docker` Compose stack and Caddy network.
 - Image conversion: reuse the MIT-licensed [epaper-image-convert](https://github.com/aitjcize/epaper-image-convert) library as a short-lived conversion process.
 - Optional detection: the available modern Raspberry Pi running [BirdNET-Go](https://github.com/tphakala/birdnet-go), with a USB microphone first. Add a separate ESP32 microphone when it materially improves microphone placement.
 - Cloud classification remains a supported alternative. It requires a different audio transport and a measured compute budget, but the frame does not need to change.
@@ -27,7 +27,7 @@ The user selected the hostname and host and asked to finalize the deployment pla
 | Connectivity | Reliable Wi-Fi; device requires 2.4 GHz |
 | Refresh | Usually once nightly; proposed default 03:15 Denver time |
 | Battery | Three months between charges is a preferred target, with flexibility for better results |
-| Hosting | `eink.majjix.com` on `one.majjix.com` using the existing `/docker` patterns |
+| Hosting | `emviary.majjix.com` on `one.majjix.com` using the existing `/docker` patterns |
 | Other hardware | An older Pi and a modern, possibly current Pi are available; exact models remain unverified |
 | Additional purchases | Acceptable when they improve results |
 | Scope now | A researched, implementable plan; physical and deployed behavior remain unverified |

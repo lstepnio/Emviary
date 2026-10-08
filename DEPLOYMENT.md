@@ -16,7 +16,7 @@ flowchart LR
     J --> P[Pillow composition]
     P --> N[Upstream e-paper converter]
     N --> D[Validated cached EPDGZ]
-    F[E1002 wakes at 03:15] -->|HTTPS with frame token| C[eink.majjix.com]
+    F[E1002 wakes at 03:15] -->|HTTPS with frame token| C[emviary.majjix.com]
     C --> S[Python API on one /docker]
     D --> S
     S -->|Image and saved configuration| F
@@ -34,7 +34,7 @@ Read-only inspection found:
 | Item | Observed state |
 |---|---|
 | SSH | `lstepnio@one.majjix.com` works using the existing key |
-| Public hostname | `eink.majjix.com` resolves through `one.majjix.com` to `140.235.42.67`; no IPv6 answer was returned |
+| Public hostname | `emviary.majjix.com` resolves through `one.majjix.com` to `140.235.42.67`; no IPv6 answer was returned |
 | Architecture | `x86_64`, so build a `linux/amd64` container |
 | Compose | Existing stack at `/docker/docker-compose.yml`; Compose v5.5.1 |
 | HTTPS proxy | `lucaslorentz/caddy-docker-proxy` publishes TCP 80/443 |
@@ -45,27 +45,27 @@ Read-only inspection found:
 
 This establishes a suitable integration path, not sustained capacity, uptime, or successful TLS issuance for the new service. Resource measurements are a point-in-time snapshot.
 
-Add `einkartifact` under the existing Compose `services` map and attach it to `caddy`. Caddy labels specify `eink.majjix.com` and upstream port `8080`. The container does not publish another host port. Existing Caddy configuration can discover the new labels.
+Add `emviary` under the existing Compose `services` map and attach it to `caddy`. Caddy labels specify `emviary.majjix.com` and upstream port `8080`. The container does not publish another host port. Existing Caddy configuration can discover the new labels.
 
 Use [deployment/compose-service.yml](deployment/compose-service.yml) as the service fragment. Build the image and create its persistent directories before starting it.
 
-The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `einkartifact:poc-002` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
+The existing `/docker/upgrade.containers.sh` exports configuration, commits/pushes a backup, pulls stack images, and updates the stack. For the POC, use a locally built versioned `emviary:poc-002` image with `pull_policy: never` so that routine maintenance does not attempt to fetch this private local image from Docker Hub. Application updates explicitly build/load a new versioned image and update only this service. [Compose pull policy](https://docs.docker.com/reference/compose-file/services/#pull_policy)
 
 The proposed application data, configuration, and master-art paths are covered by the host's existing Git ignore rules. Extend the sanitized configuration export to include our nonsecret site configuration, art catalog/credits, and image-version manifest. The SQLite database, token hashes, and artwork need a separate consistent backup; a Compose Git commit alone does not recover them.
 
 Proposed layout:
 
 ```text
-/docker/appdata/einkartifact/
+/docker/appdata/emviary/
   source/                    versioned application checkout, including Dockerfile
   config/site.json           owner-edited nonsecret site and frame policy
   art/catalog.json           approved species, assets, seasons, and license metadata
   art/masters/               approved originals and compositing assets
-  data/einkartifact.sqlite3  frame registry, token hashes, jobs, and observations
+  data/emviary.sqlite3  frame registry, token hashes, jobs, and observations
   data/cache/                immutable display files and owner previews
   data/provider-cache/       bounded regional and forecast responses
 
-/docker/backups/einkartifact/
+/docker/backups/emviary/
   <timestamp>/               consistent database backup, manifests, and configuration
 ```
 
@@ -106,7 +106,7 @@ Initial device settings:
 
 | Setting | Value |
 |---|---|
-| Image URL | `https://eink.majjix.com/v1/image` |
+| Image URL | `https://emviary.majjix.com/v1/image` |
 | Authentication | Unique high-entropy bearer token per frame |
 | Rotation mode | `url` |
 | Automatic rotation | Enabled |
@@ -236,7 +236,7 @@ Before schema changes, keep a consistent backup and record the prior image ID. P
 | 2. Local service | Implement cached authenticated endpoint, registry/CLI, bootstrap image, configuration and ETag behavior | Two-frame isolation, invalid token, 200/304/config-change tests pass |
 | 3. Preparation | Add BirdWeather, weather, deterministic selection, Pillow composition, converter, atomic publication and restart recovery | Provider failures, corrupt output, and reruns preserve a stable good image |
 | 4. Container | Build a pinned `linux/amd64` image; run with the draft limits/mounts; capture memory and response measurements | Native converter works without Chromium; readiness and restart behavior verified |
-| 5. Host integration | Back up Compose, create directories, add only the new service, validate resolved Compose, start only `einkartifact` | Caddy HTTPS route and existing host services remain healthy |
+| 5. Host integration | Back up Compose, create directories, add only the new service, validate resolved Compose, start only `emviary` | Caddy HTTPS route and existing host services remain healthy |
 | 6. Remote frame | Provision token and HTTPS URL while awake; run a manual download and the nightly schedule on recipient-like Wi-Fi | Physical image, configuration persistence, TLS, and timer wake confirmed |
 | 7. Gift release | Exercise outages, DST, renewal, slow transfers, buttons, charging, and a 7 to 14-day unattended soak | Recorded power/quality evidence supports the agreed charging target |
 
@@ -244,8 +244,8 @@ Planned host commands, after the application and image exist:
 
 ```sh
 docker compose -f /docker/docker-compose.yml config --quiet
-docker compose -f /docker/docker-compose.yml up -d --no-deps einkartifact
-docker compose -f /docker/docker-compose.yml ps einkartifact
+docker compose -f /docker/docker-compose.yml up -d --no-deps emviary
+docker compose -f /docker/docker-compose.yml ps emviary
 ```
 
 Build or load the versioned image before starting the service, and record its image ID. Caddy should discover the routing labels; inspect the resulting route and TLS before considering deployment successful.

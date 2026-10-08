@@ -1,6 +1,6 @@
 # Related bird-frame projects: review and incorporated artwork
 
-Reviewed 2026-10-08. This is an expansion of eInkArtifact's existing backend,
+Reviewed 2026-10-08. This is an expansion of Emviary's existing backend,
 not a replacement firmware or an additional service on the recipient's network.
 The E1002 still wakes nightly to fetch one prepared 800×480 Spectra6 artifact.
 
@@ -213,12 +213,12 @@ owner approvals during normal use.
 ## Deployed release
 
 Runtime commit `d65eccfe2eebe16cb3281372f508cdb65077a94a`, image
-`einkartifact:poc-006`, renderer 4. Image ID:
+`emviary:poc-006`, renderer 4. Image ID:
 `sha256:7c27dfd87afb87748b01fe4b2bac9c520a892c66c603262b029f3c2044ee1b53`.
 
 The service was backed up before the update; rollback source, art and Compose
-copies are in `/docker/backups/einkartifact/release-poc-006`. Only the
-`einkartifact` Compose service was recreated. The live catalogue, library,
+copies are in `/docker/backups/emviary/release-poc-006`. Only the
+`emviary` Compose service was recreated. The live catalogue, library,
 PNG/JPEG art routes and license notices returned HTTPS 200. The service is
 healthy. Existing frame policy still allows all species, maximum two birds,
 and wake at 03:15.
@@ -232,4 +232,4 @@ panel acknowledgement. The public homepage still follows the latest actual
 firmware delivery. No synthetic device fetch was recorded for verification.
 
 The implementation's GitHub checks passed:
-https://github.com/lstepnio/eInkArtifact/actions/runs/37807445917.
+https://github.com/lstepnio/Emviary/actions/runs/37807445917.

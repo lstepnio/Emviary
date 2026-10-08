@@ -171,7 +171,7 @@ class Generation(Model):
 
 class Config(Model):
     schema_version: Literal[1] = 1
-    public_base_url: Literal["https://eink.majjix.com"] = "https://eink.majjix.com"
+    public_base_url: Literal["https://emviary.majjix.com"] = "https://emviary.majjix.com"
     sites: list[Site] = Field(min_length=1)
     frame_defaults: FramePolicy = Field(default_factory=FramePolicy)
     render: Render = Field(default_factory=Render)
@@ -197,17 +197,17 @@ class Config(Model):
 class Settings:
     def __init__(self, config_path=None, data_dir=None, art_dir=None, backup_dir=None):
         self.config_path = Path(
-            config_path or os.getenv("EINK_CONFIG", "deployment/site.example.json")
+            config_path or os.getenv("EMVIARY_CONFIG", "deployment/site.example.json")
         )
-        self.data_dir = Path(data_dir or os.getenv("EINK_DATA_DIR", ".state")).resolve()
-        self.art_dir = Path(art_dir or os.getenv("EINK_ART_DIR", "art")).resolve()
+        self.data_dir = Path(data_dir or os.getenv("EMVIARY_DATA_DIR", ".state")).resolve()
+        self.art_dir = Path(art_dir or os.getenv("EMVIARY_ART_DIR", "art")).resolve()
         self.backup_dir = Path(
-            backup_dir or os.getenv("EINK_BACKUP_DIR", str(self.data_dir / "backups"))
+            backup_dir or os.getenv("EMVIARY_BACKUP_DIR", str(self.data_dir / "backups"))
         ).resolve()
         self.config = Config.model_validate_json(self.config_path.read_text())
         for path in (self.data_dir, self.data_dir / "cache", self.backup_dir):
             path.mkdir(parents=True, exist_ok=True)
-        self.db_path = self.data_dir / "einkartifact.sqlite3"
+        self.db_path = self.data_dir / "emviary.sqlite3"
         self.catalog = json.loads((self.art_dir / "catalog.json").read_text())
         if self.catalog.get("license") not in ART_LICENSES | {"mixed"}:
             raise ValueError("Curated catalog must declare its artwork licenses")

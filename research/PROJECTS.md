@@ -3,7 +3,7 @@
 ## ESP32 PhotoFrame
 
 https://github.com/aitjcize/esp32-photoframe is the firmware base. Our fork is
-https://github.com/lstepnio/einkartifact-firmware, branch `einkartifact-poc`, pinned
+https://github.com/lstepnio/Emviary-firmware, branch `emviary-poc`, pinned
 to v2.19.0 (`186ebaf3b470305824d238c2d2dabf2c5bc59a7a`). The firmware lock records the installed fork. URL polling, bearer authentication, ETag caching, server configuration
 headers, scheduled wake, and deep sleep provide the needed protocol with
 small device-specific recovery and button changes. The submodule retains upstream licensing.

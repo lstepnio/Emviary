@@ -2,7 +2,7 @@ import gzip
 
 from PIL import Image
 
-from einkartifact import render
+from emviary import render
 
 
 def test_panel_limits_and_species_rules(service, tmp_path):
@@ -55,7 +55,7 @@ def test_neutral_graphics_preserve_bird_pixels(tmp_path):
 
     from PIL import Image
 
-    from einkartifact.render import preserve_neutral_graphics
+    from emviary.render import preserve_neutral_graphics
 
     source = tmp_path / "source.png"
     target = tmp_path / "panel.epdgz"

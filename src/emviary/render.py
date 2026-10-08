@@ -408,7 +408,7 @@ def validate_epdgz(path, width=800, height=480):
 
 
 def convert(source, target, preview, policy, timeout):
-    executable = os.getenv("EINK_CONVERTER") or shutil.which("epaper-image-convert")
+    executable = os.getenv("EMVIARY_CONVERTER") or shutil.which("epaper-image-convert")
     if not executable:
         local = Path("converter/node_modules/.bin/epaper-image-convert").resolve()
         if local.exists():

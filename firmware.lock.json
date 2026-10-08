@@ -1,12 +1,14 @@
 {
   "upstream": "https://github.com/aitjcize/esp32-photoframe",
-  "fork": "https://github.com/lstepnio/einkartifact-firmware",
-  "branch": "einkartifact-poc",
+  "fork": "https://github.com/lstepnio/Emviary-firmware",
+  "branch": "emviary-poc",
   "release": "v2.19.0",
   "commit": "04c423fca243edba5e39a0d9c816b79505beaaad",
   "board": "seeedstudio_reterminal_e1002",
   "behavior": "Pinned upstream protocol with cleared-panel ETag invalidation, one Spectra clear refresh, and disabled E1002 physical right-button clear/wake",
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
-  "build_run": "https://github.com/lstepnio/einkartifact-firmware/actions/runs/37798849988",
-  "application_sha256": "260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475"
+  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37798849988",
+  "application_sha256": "260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475",
+  "branding_commit": "ee6f4dedf6f0244f9e5414c63f09f950d5c8463b",
+  "branding_note": "Repository and build branding updated; commit and application_sha256 continue to identify the physically tested installed firmware."
 }

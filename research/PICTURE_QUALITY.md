@@ -46,8 +46,8 @@ Sources:
 
 ## Deployment and controlled comparison
 
-Runtime `6542ee8`, image `einkartifact:poc-005`, renderer version 3. The host backup
-completed before deployment. Only einkartifact was recreated; HTTPS and container
+Runtime `6542ee8`, image `emviary:poc-005`, renderer version 3. The host backup
+completed before deployment. Only emviary was recreated; HTTPS and container
 health checks passed. Revision 7 reuses revision 6's artwork selection and forecast
 inputs, while recording the new renderer/profile and immutable packed output.
 The device fetched revision 7 and logged a single completed 192000-byte refresh.

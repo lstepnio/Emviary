@@ -8,10 +8,10 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from einkartifact.api import create_app
-from einkartifact.render import choose_art, validate_epdgz
-from einkartifact.settings import FramePolicy, Settings
-from einkartifact.store import Store
+from emviary.api import create_app
+from emviary.render import choose_art, validate_epdgz
+from emviary.settings import FramePolicy, Settings
+from emviary.store import Store
 
 
 def test_http_cache_and_config_change_without_repainting(service, frame):
@@ -125,11 +125,11 @@ def test_backup_restores_registry_and_active_image(service, frame, tmp_path):
     image = service.prepare(frame_id, "2026-10-08")
     backup = tmp_path / "recovery"
     service.backup(backup)
-    with sqlite3.connect(backup / "einkartifact.sqlite3") as db:
+    with sqlite3.connect(backup / "emviary.sqlite3") as db:
         assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     recovered_data = tmp_path / "recovered-data"
     recovered_data.mkdir()
-    shutil.copy2(backup / "einkartifact.sqlite3", recovered_data / "einkartifact.sqlite3")
+    shutil.copy2(backup / "emviary.sqlite3", recovered_data / "emviary.sqlite3")
     shutil.copytree(backup / "active-cache", recovered_data / "cache")
     settings = Settings(
         config_path=backup / "site.json",
@@ -155,7 +155,7 @@ def test_art_month_filter_and_year_round_fallback(service):
 def test_missing_input_and_restart_are_idempotent(service, frame):
     frame_id, _ = frame
     initial = service.prepare(frame_id, "2026-10-08", offline=True)
-    from einkartifact.service import Service
+    from emviary.service import Service
 
     restarted = Service(service.settings, providers=service.providers, converter=service.converter)
     result = restarted.prepare(frame_id, "2026-10-08")

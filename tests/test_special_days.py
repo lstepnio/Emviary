@@ -4,8 +4,8 @@ import pytest
 from PIL import Image
 from test_owner import sign_in
 
-from einkartifact import render
-from einkartifact.settings import FramePolicy, SpecialDay
+from emviary import render
+from emviary.settings import FramePolicy, SpecialDay
 
 
 def day(**changes):

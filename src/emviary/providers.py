@@ -165,7 +165,7 @@ class Providers:
         }
 
     def ebird(self, site):
-        key_path = Path(os.getenv("EINK_EBIRD_API_KEY_FILE", "/run/secrets/ebird-api-key"))
+        key_path = Path(os.getenv("EMVIARY_EBIRD_API_KEY_FILE", "/run/secrets/ebird-api-key"))
         key = key_path.read_text().strip()
         if not key or len(key) > 256:
             raise ValueError("eBird key file is empty or invalid")

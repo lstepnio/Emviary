@@ -1,7 +1,7 @@
 # Implemented POC, 2026-10-08
 
-The private application repository is `lstepnio/eInkArtifact`. Its application
-release is commit `b355019`, version 0.2.0, deployed as `einkartifact:poc-003` on
+The private application repository is `lstepnio/Emviary`. Its application
+release is commit `b355019`, version 0.2.0, deployed as `emviary:poc-003` on
 `one.majjix.com`. Docker image ID:
 `sha256:f0e43408350f9ab720dc98af8f1ef7cca9d7a71d1f3fdee22ad7b8ba594f852d`.
 The non-secret host release manifest is in the service's config directory.
@@ -27,15 +27,15 @@ The non-secret host release manifest is in the service's config directory.
   Only this Compose service was recreated; the existing 21-container inventory
   remained present. SQLite integrity check returned `ok`.
 - Configuration/Compose backups preceded releases. An application backup at
-  `/docker/backups/einkartifact/owner-ui-poc003-20261008` includes effective config,
+  `/docker/backups/emviary/owner-ui-poc003-20261008` includes effective config,
   database, attribution/art and active plus last-delivered images. Secrets and
   raw provisioning files are excluded. Backups remain on the same host.
 - Twenty backend tests, formatting and lint passed. Application CI:
-  https://github.com/lstepnio/eInkArtifact/actions/runs/37781226592
+  https://github.com/lstepnio/Emviary/actions/runs/37781226592
 - Firmware build and flash details are in `DISPLAY_DIAGNOSTICS.md`. The patched
   firmware is `a514a2c`, physically restored art was confirmed stable, and an
   unchanged request skipped panel refresh. Firmware CI:
-  https://github.com/lstepnio/einkartifact-firmware/actions/runs/37744229866
+  https://github.com/lstepnio/Emviary-firmware/actions/runs/37744229866
 
 ## Remaining physical validation
 
@@ -51,7 +51,7 @@ but has not been physically approved on this panel. Future AI art is disabled.
 
 ## Weather artwork follow-up, 2026-10-08
 
-Runtime commit `e4a6402`, Docker image `einkartifact:poc-004`, renderer version 2.
+Runtime commit `e4a6402`, Docker image `emviary:poc-004`, renderer version 2.
 Removed the pale overlapping cloud ellipses. The header now uses small outlined
 sun rays, sky lines, rain strokes, a snowflake or wind strokes plus a condition
 label. No weather motif crosses the bird artwork. Forecast date validation and
@@ -59,7 +59,7 @@ the owner weather-cue toggle remain in effect. With dated temperature text enabl
 the weather condition appears alongside the temperature range instead of a glyph.
 
 All 20 tests and Ruff passed. Six weather cases were visually reviewed after
-Spectra6 conversion. Host backup completed before deployment; only einkartifact
+Spectra6 conversion. Host backup completed before deployment; only emviary
 was recreated and its health check passed. A new image was prepared as revision 6.
 The frame was left asleep: physical acceptance and public-mirror replacement wait
 for its next image fetch. This artwork change makes no claim to fix intermittent

@@ -18,11 +18,11 @@ from .api import config_payload
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
 
-COOKIE = "eink_owner"
+COOKIE = "emviary_owner"
 
 
 def secret_directory():
-    return Path(os.getenv("EINK_SECRET_DIR", "/run/secrets"))
+    return Path(os.getenv("EMVIARY_SECRET_DIR", "/run/secrets"))
 
 
 def write_private(path, value):
@@ -68,7 +68,7 @@ def page(title, body):
     return HTMLResponse(
         """<!doctype html><html lang="en"><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1"><title>"""
-        + escape(title)
+        + escape(title + " · Emviary" if title != "Emviary" else title)
         + """</title>
     <style>body{margin:0;background:#f4f0e6;color:#343c32;font:16px/1.6 Georgia,serif}
     main{max-width:920px;margin:auto;padding:35px 22px}h1,h2{font-weight:400}
@@ -78,7 +78,7 @@ def page(title, body):
     input[type=checkbox]{margin-right:10px}.grid{display:grid;grid-template-columns:repeat(auto-fit,
     minmax(210px,1fr));gap:10px 25px}.preview{width:100%;max-width:800px;border:1px solid #d1cbb9}
     .quiet{font:13px/1.5 system-ui;color:#6a6d5d}.error{color:#8c2d23}</style>
-    <main><a class="quiet" href="/">Display</a><h1>"""
+    <main><a class="quiet" href="/">Emviary · Display</a><h1>"""
         + escape(title)
         + "</h1>"
         + body
@@ -185,7 +185,7 @@ def attach_owner(app, service):
             + "<button>Sign in</button></form>",
         )
         response.set_cookie(
-            "eink_login",
+            "emviary_login",
             nonce,
             secure=True,
             httponly=True,
@@ -198,7 +198,7 @@ def attach_owner(app, service):
     @app.post("/manage/login")
     async def login(request: Request):
         data = await form(request, service.settings.config.public_base_url)
-        nonce = request.cookies.get("eink_login", "")
+        nonce = request.cookies.get("emviary_login", "")
         if not nonce or not hmac.compare_digest(nonce, data.get("csrf", "")):
             raise HTTPException(403, "Invalid sign-in form")
         peer = request.headers.get("x-forwarded-for", request.client.host).split(",")[-1].strip()
@@ -234,7 +234,7 @@ def attach_owner(app, service):
             max_age=28800,
             path="/manage",
         )
-        response.delete_cookie("eink_login", path="/manage")
+        response.delete_cookie("emviary_login", path="/manage")
         return response
 
     @app.post("/manage/logout")

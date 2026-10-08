@@ -2,17 +2,17 @@ import re
 
 from fastapi.testclient import TestClient
 
-from einkartifact.api import create_app
-from einkartifact.owner import set_password
-from einkartifact.service import Service
+from emviary.api import create_app
+from emviary.owner import set_password
+from emviary.service import Service
 
 
 def sign_in(service, tmp_path, monkeypatch):
     directory = tmp_path / "secrets"
     directory.mkdir()
-    monkeypatch.setenv("EINK_SECRET_DIR", str(directory))
+    monkeypatch.setenv("EMVIARY_SECRET_DIR", str(directory))
     set_password("a-long-test-owner-password")
-    client = TestClient(create_app(service, schedule=False), base_url="https://eink.majjix.com")
+    client = TestClient(create_app(service, schedule=False), base_url="https://emviary.majjix.com")
     response = client.get("/manage/login")
     csrf = re.search(r'name="csrf" value="([^"]+)"', response.text).group(1)
     response = client.post(
@@ -29,7 +29,9 @@ def sign_in(service, tmp_path, monkeypatch):
 
 
 def test_owner_auth_csrf_and_persistent_settings(service, frame, tmp_path, monkeypatch):
-    anonymous = TestClient(create_app(service, schedule=False), base_url="https://eink.majjix.com")
+    anonymous = TestClient(
+        create_app(service, schedule=False), base_url="https://emviary.majjix.com"
+    )
     assert anonymous.get("/manage", follow_redirects=False).status_code == 303
     assert anonymous.get("/manage/frames/test-frame/preview").status_code == 401
     client, csrf = sign_in(service, tmp_path, monkeypatch)

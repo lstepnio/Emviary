@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from einkartifact.service import Service
-from einkartifact.settings import Settings
+from emviary.service import Service
+from emviary.settings import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
 

@@ -3,8 +3,8 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from einkartifact import render
-from einkartifact.api import create_app
+from emviary import render
+from emviary.api import create_app
 
 
 def test_reference_plate_can_be_browsed_but_cannot_be_rendered(service, tmp_path):

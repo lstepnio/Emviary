@@ -24,7 +24,7 @@ Neither source defect proves an unsolicited clear occurred. The E1002 right
 button clears; its left button rotates; its green button wakes configuration.
 Normal full color refresh takes about 30 seconds. Deep sleep should retain art.
 
-The patch is committed to `einkartifact-firmware`, revision `a514a2c`. A dedicated
+The patch is committed to `emviary-firmware`, revision `a514a2c`. A dedicated
 E1002 workflow builds with ESP-IDF 6.0, matching the upstream build requirement.
 The installed local ESP-IDF 5.4.1 cannot build this upstream revision because it
 lacks the multiple-wakeup-causes API. No compatibility workaround was added.

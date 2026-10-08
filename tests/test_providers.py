@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 
-from einkartifact.providers import Providers
+from emviary.providers import Providers
 
 
 def test_real_adapter_shapes_are_bounded_and_cached_by_site(service):
@@ -124,7 +124,7 @@ def test_ebird_presence_uses_secret_header_and_omits_personal_fields(
 ):
     secret = tmp_path / "ebird-key"
     secret.write_text("test-ebird-secret")
-    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(secret))
+    monkeypatch.setenv("EMVIARY_EBIRD_API_KEY_FILE", str(secret))
     calls = []
 
     def respond(request):
@@ -178,7 +178,7 @@ def test_ebird_presence_uses_secret_header_and_omits_personal_fields(
 
 
 def test_missing_ebird_secret_does_not_block_offline_art(service, tmp_path, monkeypatch):
-    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(tmp_path / "missing"))
+    monkeypatch.setenv("EMVIARY_EBIRD_API_KEY_FILE", str(tmp_path / "missing"))
     site = service.settings.config.sites[0].model_copy(deep=True)
     site.bird_area = "local"
     site.providers.birdweather.enabled = False
@@ -190,7 +190,7 @@ def test_missing_ebird_secret_does_not_block_offline_art(service, tmp_path, monk
 def test_colorado_queries_state_and_accepts_distant_in_state_birds(service, tmp_path, monkeypatch):
     secret = tmp_path / "key"
     secret.write_text("test-secret")
-    monkeypatch.setenv("EINK_EBIRD_API_KEY_FILE", str(secret))
+    monkeypatch.setenv("EMVIARY_EBIRD_API_KEY_FILE", str(secret))
     site = service.settings.config.sites[0].model_copy(deep=True)
     site.bird_area = "colorado"
     requests = []

@@ -22,7 +22,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     serve = commands.add_parser("serve")
     serve.add_argument("--host", default="0.0.0.0")
-    serve.add_argument("--port", type=int, default=int(os.getenv("EINK_PORT", "8080")))
+    serve.add_argument("--port", type=int, default=int(os.getenv("EMVIARY_PORT", "8080")))
     add = commands.add_parser("add-frame")
     add.add_argument("id")
     add.add_argument("--site", default=None)
@@ -57,7 +57,7 @@ def main():
         import uvicorn
 
         uvicorn.run(
-            "einkartifact.api:create_app",
+            "emviary.api:create_app",
             host=args.host,
             port=args.port,
             factory=True,

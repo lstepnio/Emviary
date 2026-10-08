@@ -7,7 +7,7 @@ import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 
 from . import __version__
 from .service import Service
@@ -87,7 +87,7 @@ def create_app(service=None, schedule=True):
                 pass
 
     app = FastAPI(
-        title="eInkArtifact",
+        title="Emviary",
         version=__version__,
         lifespan=lifespan,
         docs_url=None,
@@ -95,6 +95,18 @@ def create_app(service=None, schedule=True):
         openapi_url=None,
     )
     app.state.service = service
+
+    @app.middleware("http")
+    async def canonical_host(request, call_next):
+        # Installed frames keep their original URL until they are reprovisioned.
+        if request.url.hostname == "eink.majjix.com" and not (
+            request.url.path.startswith("/v1/") or request.url.path == "/healthz"
+        ):
+            return RedirectResponse(
+                str(request.url.replace(scheme="https", netloc="emviary.majjix.com")),
+                status_code=308,
+            )
+        return await call_next(request)
 
     @app.get("/healthz")
     def health():
@@ -251,7 +263,7 @@ def create_app(service=None, schedule=True):
         return (
             """<!doctype html><html lang="en"><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Denver bird art</title><style>
+        <title>Emviary · Artwork and credits</title><style>
         :root{color-scheme:light}*{box-sizing:border-box}
         body{margin:0;background:#f4f0e6;color:#343c32;font-family:Georgia,serif}
         main{max-width:1080px;margin:auto;padding:52px 24px}
@@ -266,7 +278,7 @@ def create_app(service=None, schedule=True):
         footer{border-top:1px solid #d1cbb9;padding-top:28px;font:14px/1.7 system-ui;color:#6a6d5d}
         </style><main><p><a href="/">Display</a> / <a href="/manage">Manage</a></p>
         <div class="eyebrow">Denver / natural history / e-paper</div>
-        <h1>A little bird art,<br>every morning.</h1>
+        <h1>Emviary</h1><p>A little bird art, every morning.</p>
         <p class="intro">"""
             + f"{active_count} rotation images covering {species_count} Denver-area species. "
             + """Historical illustrations and selected existing generated art bring variety to the
@@ -302,7 +314,7 @@ def create_app(service=None, schedule=True):
             '<p class="quiet"><a href="/manage">Manage</a> · '
             '<a href="/library">Artwork and credits</a></p>'
         )
-        return page("Daily bird art", body)
+        return page("Emviary", body)
 
     @app.get("/display.jpg")
     def public_display():

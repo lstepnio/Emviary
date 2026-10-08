@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY pyproject.toml ./
 COPY src ./src
 RUN pip install --no-cache-dir --no-deps .
-ENV EINK_CONVERTER=/opt/converter/node_modules/.bin/epaper-image-convert \
+ENV EMVIARY_CONVERTER=/opt/converter/node_modules/.bin/epaper-image-convert \
     PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 USER 1000:1000
 EXPOSE 8080
-CMD ["einkartifact", "serve"]
+CMD ["emviary", "serve"]

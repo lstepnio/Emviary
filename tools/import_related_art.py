@@ -30,7 +30,7 @@ def main():
             raise ValueError("Artwork downloads require HTTPS")
         if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]:
             continue
-        request = urllib.request.Request(item["url"], headers={"User-Agent": "eInkArtifact/1.0"})
+        request = urllib.request.Request(item["url"], headers={"User-Agent": "Emviary/1.0"})
         with urllib.request.urlopen(request, timeout=60) as response:
             data = response.read(8_000_001)
         if len(data) > 8_000_000 or hashlib.sha256(data).hexdigest() != item["sha256"]:

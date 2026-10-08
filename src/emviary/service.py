@@ -391,7 +391,7 @@ class Service:
     def _backup(self, output):
         output = Path(output)
         output.mkdir(parents=True, exist_ok=True)
-        database = output / "einkartifact.sqlite3"
+        database = output / "emviary.sqlite3"
         with self.store.connect() as source:
             destination = sqlite3.connect(database)
             try:

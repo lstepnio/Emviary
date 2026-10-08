@@ -1,12 +1,12 @@
 # Owner operations
 
-Service: https://eink.majjix.com
+Service: https://emviary.majjix.com
 Host: `lstepnio@one.majjix.com`
-Compose service: `einkartifact`; container: `einkartifact`
+Compose service: `emviary`; container: `emviary`
 
 ## Management
 
-Open https://eink.majjix.com/manage and sign in with the private owner password.
+Open https://emviary.majjix.com/manage and sign in with the private owner password.
 The dashboard manages frame schedules, one-to-three-bird layouts, selection constraints,
 labels, season/forecast cues, local coordinates/radius, provider settings, eBird
 credentials, frame provisioning and password changes. Settings are validated and
@@ -14,7 +14,7 @@ persisted in SQLite; no Docker rebuild is needed. An owner preview can differ
 from the public mirror until the sleeping device retrieves its next image.
 
 The bootstrap password is in the private host file
-`/docker/appdata/einkartifact/data/provisioning/owner-login.txt` (0600).
+`/docker/appdata/emviary/data/provisioning/owner-login.txt` (0600).
 Change it through management. `init-owner` bootstraps a previously uninitialized
 installation and refuses to replace an existing owner password. Keep the mounted `/run/secrets` directory private and writable by UID 1000 so
 management can replace password hashes and provider credentials.
@@ -50,9 +50,9 @@ The CLI below is retained for recovery and administration.
 ```sh
 ssh lstepnio@one.majjix.com
 cd /docker
-docker compose ps einkartifact
-docker exec einkartifact einkartifact status
-docker logs --tail 50 einkartifact
+docker compose ps emviary
+docker exec emviary emviary status
+docker logs --tail 50 emviary
 ```
 
 `client_etag` matching `served_etag` on a later device request is evidence that
@@ -61,7 +61,7 @@ final check. USB operation does not validate deep sleep or battery endurance.
 
 ## Physical buttons
 
-The eInkArtifact E1002 firmware disables the right-hand button entirely: it does
+The Emviary E1002 firmware disables the right-hand button entirely: it does
 not clear the panel or wake the sleeping frame. Green wakes Wi-Fi/local management
 and resets the awake sleep timer. Left fetches the backend's prepared image; if
 asleep, it wakes, fetches and returns to sleep. A matching ETag skips repainting.
@@ -70,10 +70,10 @@ Left does not request a new backend art selection. Green alone does not refresh.
 ## Add another E1002
 
 ```sh
-docker exec einkartifact einkartifact add-frame another-frame \
+docker exec emviary emviary add-frame another-frame \
   --token-file /data/provisioning/another-frame.token
-docker exec einkartifact einkartifact prepare another-frame
-docker exec einkartifact einkartifact provision another-frame \
+docker exec emviary emviary prepare another-frame
+docker exec emviary emviary provision another-frame \
   --token-file /data/provisioning/another-frame.token \
   --output /data/provisioning/another-frame.json
 ```
@@ -87,9 +87,9 @@ Each frame has a separate bearer token; the database stores only its hash.
 ## Change wake time or appearance
 
 ```sh
-docker exec einkartifact einkartifact set-frame gift-e1002 --wake 03:15
-docker exec einkartifact einkartifact set-frame gift-e1002 --labels on --weather-cues on
-docker exec einkartifact einkartifact prepare gift-e1002
+docker exec emviary emviary set-frame gift-e1002 --wake 03:15
+docker exec emviary emviary set-frame gift-e1002 --labels on --weather-cues on
+docker exec emviary emviary prepare gift-e1002
 ```
 
 Configuration is delivered on the next request. Changes to the wake schedule
@@ -102,20 +102,20 @@ creates another selection; routine retries reuse the persisted plan.
 
 Nightly at 03:00 local time the application backs up SQLite through its online
 backup API, the site config, artwork/credits, and both active and last-delivered images. Seven daily
-backups live in `/docker/backups/einkartifact`. Image history is kept for 30 days,
+backups live in `/docker/backups/emviary`. Image history is kept for 30 days,
 provider snapshots for 14 days, and the active last-good image is kept regardless
 of age. Last-delivered images are also protected while a newer image waits
 for a sleeping device. Raw token/provisioning files are excluded from application backups.
 
 ```sh
-docker exec einkartifact einkartifact backup
+docker exec emviary emviary backup
 ```
 
 A `COMPLETE` marker is written after integrity validation and copying. These
 host-local backups still need an independent host backup to survive disk loss.
 
 For restore, stop only this service. Preserve the current data directory, restore
-the backup SQLite as `/docker/appdata/einkartifact/data/einkartifact.sqlite3`,
+the backup SQLite as `/docker/appdata/emviary/data/emviary.sqlite3`,
 copy `active-cache/*` into `data/cache/`, and restore `site.json` and `art/` to
 those bind mounts. Remove old WAL/SHM files only from the restored directory,
 with the service stopped. Maintain UID/GID 1000. Start the service and verify
@@ -126,7 +126,7 @@ rotation and reprovisioning.
 ## Token rotation
 
 ```sh
-docker exec einkartifact einkartifact rotate-token gift-e1002 \
+docker exec emviary emviary rotate-token gift-e1002 \
   --token-file /data/provisioning/gift-e1002-new.token
 ```
 
@@ -136,8 +136,8 @@ the new token using a new output filename, then test refresh before gifting.
 ## Releases
 
 Build on the amd64 host from the private application repository. Use a new image
-tag, back up first, update only the `einkartifact` image in Compose, validate
-`docker compose config --quiet`, then `docker compose up -d --no-deps einkartifact`.
+tag, back up first, update only the `emviary` image in Compose, validate
+`docker compose config --quiet`, then `docker compose up -d --no-deps emviary`.
 The pinned base images and lockfiles make dependencies explicit. Do not run the
 host's whole-stack upgrade or backup script just to release this application.
 `pull_policy: never` keeps routine stack pulls from looking for our local image
@@ -149,7 +149,7 @@ stay out of that export. Firmware remains pinned separately in `firmware.lock.js
 
 ## eBird secret
 
-The key lives at `/docker/appdata/einkartifact/secrets/ebird-api-key` with mode
+The key lives at `/docker/appdata/emviary/secrets/ebird-api-key` with mode
 0600, owner 1000, in a 0700 directory. Management replaces this secret atomically;
 the container mounts the secret directory writable for this purpose.
 No container rebuild is needed. The API token is sent in `X-eBirdApiToken`, never
