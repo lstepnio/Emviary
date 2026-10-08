@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 9
+RENDER_VERSION = 10
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -22,6 +22,7 @@ def profile_hash(policy, catalog):
         for k in (
             "panel",
             "show_species_name",
+            "show_location_date",
             "show_dated_weather_text",
             "weather_cues",
             "show_forecast_temperatures",
@@ -475,13 +476,13 @@ def compose(art_dir, artwork, plan, output):
                     font=font,
                     anchor="mm",
                 )
-    # Dating every composition also makes stale retained weather cues understandable.
-    draw.text(
-        (24, 20),
-        f"{plan.get('location_label', 'DENVER')}  /  {date}",
-        font=_font(art_dir, 12),
-        fill="#333333",
-    )
+    if policy.get("show_location_date", False):
+        draw.text(
+            (24, 20),
+            f"{plan.get('location_label', 'DENVER')}  /  {date}",
+            font=_font(art_dir, 12),
+            fill="#333333",
+        )
     if policy["show_dated_weather_text"] and weather_valid:
         v = forecast["values"]
         condition = weather_label(v) + " / " if policy["weather_cues"] else ""

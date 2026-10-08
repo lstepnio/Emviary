@@ -160,6 +160,7 @@ class FramePolicy(Model):
     art_mode: Literal["approved_library"] = "approved_library"
     repeat_penalty_days: int = Field(default=7, ge=0, le=90)
     show_species_name: bool = True
+    show_location_date: bool = False
     show_dated_weather_text: bool = False
     show_forecast_temperatures: bool = True
     weather_cues: bool = True

@@ -102,6 +102,10 @@ Emviary was previously named eInkArtifact. Both application and firmware reposit
 device provisioning files stay outside Git.
 See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.
 
+### Display header
+
+Location and date are hidden by default for both existing and new frames. Enable **Show location / date** in frame management to include them in the upper-left corner. This only changes the artwork; locality selection, forecast date validation and the nightly wake schedule continue to use the configured location and date.
+
 ### Daily weather on the artwork
 
 The compact header summarizes the prevailing daylight sky for the dated Denver forecast, rather than the worst cloud condition across all 24 hours. Daily rain, snow, storm and wind cues take precedence. It is a forecast, not a live observation. High / low temperatures appear beneath the word in Fahrenheit by default; turn them off with **High / low beneath forecast (°F)** in frame management. The high and low cover the full local calendar day. Existing frames receive this default without firmware changes. Weather snapshots are tied to the requested date and location; older dates never supply weather cues.

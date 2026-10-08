@@ -358,6 +358,7 @@ def attach_owner(app, service):
                 '<p class="quiet">A chosen version limits updates to that release. '
                 "Older versions are never installed automatically.</p></details>"
             )
+            body += checkbox("location_date", "Show location / date", policy["show_location_date"])
             body += checkbox("labels", "Species labels", policy["show_species_name"]) + checkbox(
                 "weather", "Subtle daily weather", policy["weather_cues"]
             )
@@ -753,6 +754,7 @@ def attach_owner(app, service):
                 processing_preset=data["preset"],
                 dither_algorithm=data["dither"],
                 show_species_name=data.get("labels") == "on",
+                show_location_date=data.get("location_date") == "on",
                 weather_cues=data.get("weather") == "on",
                 show_forecast_temperatures=data.get("forecast_temperatures") == "on",
                 show_dated_weather_text=data.get("forecast_text") == "on",

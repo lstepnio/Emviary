@@ -145,3 +145,40 @@ def test_seasonal_motifs_leave_a_white_gap_inside_the_border(service, tmp_path):
             for y in range(270, 380):
                 for x in (*range(9, 14), *range(786, 791)):
                     assert image.getpixel((x, y))[:3] == (255, 255, 255)
+
+
+def test_location_date_header_defaults_hidden_and_can_be_enabled(service, tmp_path):
+    from PIL import ImageChops
+
+    policy = service.settings.config.frame_defaults.model_dump()
+    assert policy["show_location_date"] is False
+    # Existing saved policies receive the same default when loaded.
+    from emviary.settings import FramePolicy
+
+    assert FramePolicy.model_validate({"site_id": "denver-gift"}).show_location_date is False
+    artwork = next(
+        a
+        for a in service.settings.artworks
+        if a["approved"] and a.get("kind", "cutout") == "cutout"
+    )
+    plan = dict(
+        local_date="2026-10-08",
+        location_label="COLORADO",
+        seed="header",
+        inputs={},
+        policy=policy,
+        artworks=[artwork],
+    )
+    hidden = tmp_path / "hidden.png"
+    visible = tmp_path / "visible.png"
+    render.compose(service.settings.art_dir, artwork, plan, hidden)
+    first_hash = render.profile_hash(policy, [])
+    policy["show_location_date"] = True
+    assert render.profile_hash(policy, []) != first_hash
+    render.compose(service.settings.art_dir, artwork, plan, visible)
+    with Image.open(hidden) as first, Image.open(visible) as second:
+        assert len(first.crop((24, 16, 350, 45)).getcolors()) == 1
+        changed = ImageChops.difference(first, second).getbbox()
+        assert changed is not None
+        assert changed[0] >= 24 and changed[1] >= 20
+        assert changed[2] <= 350 and changed[3] <= 45
