@@ -116,3 +116,26 @@ recorded delivery of revision 6 at 14:18:20 UTC with an empty client ETag, as
 expected after a clear. Firmware logged `Display update complete` and `Image
 displayed successfully`, with one 192000-byte panel transfer. Physical confirmation
 was requested separately; these logs alone do not prove visible panel retention.
+
+## Right-button disable patch, 2026-10-08
+
+Firmware commit `04c423fca243edba5e39a0d9c816b79505beaaad` changes the E1002
+`BOARD_HAL_CLEAR_KEY` from GPIO4 to GPIO_NUM_NC. The existing guards then exclude
+the right button from awake input handling, deep-sleep wake masks and clear-wake
+classification. Green wake and left refresh remain enabled. HTTP clear capability
+is unchanged; this patch specifically disables the physical button.
+
+The dedicated ESP-IDF v6.0 E1002 build passed in GitHub Actions run 37798849988.
+Application SHA256: `260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475`.
+A fresh private 40 KiB configuration-region backup was made. OTA sequences 1/2
+confirmed active slot 1 at 0x3a0000 before application-only flashing.
+
+The 2,052,064-byte application flash verified successfully at 0x3a0000. Saved
+boot logs confirm firmware `dev-04c423f`. Read-only API checks confirmed deep sleep,
+`15 3 *` rotation, Denver DST timezone rules and the TLS certificate pin survived.
+Physical right-button validation was requested separately.
+
+The owner pressed and released the right-hand button with USB connected and
+confirmed: `Picture remains visible`. Awake button behavior is physically verified.
+The sleep wake-mask exclusion is source/build verified; a separate physical
+right-button press during deep sleep was not performed in this check.

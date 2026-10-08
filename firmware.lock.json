@@ -3,10 +3,10 @@
   "fork": "https://github.com/lstepnio/einkartifact-firmware",
   "branch": "einkartifact-poc",
   "release": "v2.19.0",
-  "commit": "a514a2c83b0766e71cc0c5556f5eb9af3e79abed",
+  "commit": "04c423fca243edba5e39a0d9c816b79505beaaad",
   "board": "seeedstudio_reterminal_e1002",
-  "behavior": "Pinned upstream protocol with cleared-panel ETag invalidation and one Spectra clear refresh",
+  "behavior": "Pinned upstream protocol with cleared-panel ETag invalidation, one Spectra clear refresh, and disabled E1002 physical right-button clear/wake",
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
-  "build_run": "https://github.com/lstepnio/einkartifact-firmware/actions/runs/37744229866",
-  "application_sha256": "cf106428a894132efe97b053fe9db21412296abe253fd23a844ad409a173efaf"
+  "build_run": "https://github.com/lstepnio/einkartifact-firmware/actions/runs/37798849988",
+  "application_sha256": "260021d3c291cc49723482c74e4de90d7f580beb889660c3967e0df60c8f6475"
 }

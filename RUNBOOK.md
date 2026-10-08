@@ -39,6 +39,14 @@ docker logs --tail 50 einkartifact
 PhotoFrame accepted the previous image. Physical panel inspection remains the
 final check. USB operation does not validate deep sleep or battery endurance.
 
+## Physical buttons
+
+The eInkArtifact E1002 firmware disables the right-hand button entirely: it does
+not clear the panel or wake the sleeping frame. Green wakes Wi-Fi/local management
+and resets the awake sleep timer. Left fetches the backend's prepared image; if
+asleep, it wakes, fetches and returns to sleep. A matching ETag skips repainting.
+Left does not request a new backend art selection. Green alone does not refresh.
+
 ## Add another E1002
 
 ```sh
