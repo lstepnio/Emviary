@@ -95,3 +95,18 @@ short-term retention for that transition, not overnight battery retention.
 No further firmware change was applied. Longer battery-only retention and a
 freshly captured actual blanking event remain necessary. The device was left
 sleeping with its 03:15 Denver schedule unchanged. Saved logs remain private.
+
+## Captured white-screen event, 2026-10-08
+
+The owner reported a white panel after the short sleep-retention test. The device
+was reachable on Wi-Fi, so logs were downloaded before a reset or image request.
+They show a green/BOOT-button wake at external-RTC time 07:37:50, followed later
+by `Clear button pressed, clearing display`. The white refresh completed and the
+saved image identifier was cleared. The server's last image contact was still
+13:03:19 UTC, so no server image delivery caused this blanking event.
+
+The owner answered that the clear button may have been touched. This makes an
+intentional clear action a plausible explanation for this captured event, without
+establishing the cause of every historical white-screen report. The firmware
+currently accepts a short clear-button press. Green wake does not restore art;
+rotation is required after a clear. The raw diagnostic log remains private.
