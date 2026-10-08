@@ -209,3 +209,27 @@ owner approvals during normal use.
   physical pigments and depend on lighting.
 - No firmware flash or unscheduled physical refresh is part of this release.
   New artwork's physical rendering still needs owner observation after a wake.
+
+## Deployed release
+
+Runtime commit `d65eccfe2eebe16cb3281372f508cdb65077a94a`, image
+`einkartifact:poc-006`, renderer 4. Image ID:
+`sha256:7c27dfd87afb87748b01fe4b2bac9c520a892c66c603262b029f3c2044ee1b53`.
+
+The service was backed up before the update; rollback source, art and Compose
+copies are in `/docker/backups/einkartifact/release-poc-006`. Only the
+`einkartifact` Compose service was recreated. The live catalogue, library,
+PNG/JPEG art routes and license notices returned HTTPS 200. The service is
+healthy. Existing frame policy still allows all species, maximum two birds,
+and wake at 03:15.
+
+Revision 9 prepares House Sparrow and Red-winged Blackbird from the expanded
+collection. Its packed SHA-256 is
+`827304e0497599cae211b589c44ef7df0d9bb77165e7f81f63bc50979aaaecd4`;
+geometry/palette and the saved hash were verified on the host. Its actual packed
+preview was visually inspected. This is a **prepared** image, not a physical
+panel acknowledgement. The public homepage still follows the latest actual
+firmware delivery. No synthetic device fetch was recorded for verification.
+
+The implementation's GitHub checks passed:
+https://github.com/lstepnio/eInkArtifact/actions/runs/37807445917.
