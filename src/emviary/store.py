@@ -252,12 +252,14 @@ class Store:
         now = datetime.now(UTC)
         battery = battery if type(battery) is int and 0 <= battery <= 100 else None
         with self.connect() as db:
-            db.execute(
+            updated = db.execute(
                 """UPDATE frames SET last_contact=?,battery=COALESCE(?,battery),
                    firmware=COALESCE(?,firmware),last_client_etag=?,last_served_etag=?
                    WHERE id=?""",
                 (now.isoformat(), battery, firmware, client_etag, served_etag, frame_id),
             )
+            if updated.rowcount == 0:
+                return  # A frame can be removed after an in-flight download was authenticated.
             if battery is not None:
                 # One sample per quarter hour prevents button navigation from weighting trends.
                 db.execute(
@@ -295,12 +297,13 @@ class Store:
     def request_refill(self, frame_id, image_id):
         with self.connect() as db:
             db.execute(
-                """INSERT INTO image_refills(frame_id,consumed_image_id) VALUES(?,?)
+                """INSERT INTO image_refills(frame_id,consumed_image_id)
+                   SELECT ?,? WHERE EXISTS(SELECT 1 FROM frames WHERE id=?)
                    ON CONFLICT(frame_id) DO UPDATE SET
                    consumed_image_id=excluded.consumed_image_id,attempts=0,
                    attempt_date=NULL,last_attempt_at=NULL,error=NULL
                    WHERE excluded.consumed_image_id > image_refills.consumed_image_id""",
-                (frame_id, image_id),
+                (frame_id, image_id, frame_id),
             )
 
     def pending_refills(self, frame_id=None):

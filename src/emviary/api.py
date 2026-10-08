@@ -386,10 +386,10 @@ def create_app(service=None, schedule=True):
     def display_home():
         from .owner import page
 
-        body = '<img style="width:100%;height:auto" src="/display.jpg" alt="Current bird artwork">'
+        body = '<img style="width:100%;height:auto" src="/display.jpg" alt="Current frame artwork">'
         body += (
             '<p class="quiet"><a href="/manage">Manage</a> · '
-            '<a href="/library">Artwork and credits</a></p>'
+            '<a href="/library">Bird art, statistics and credits</a></p>'
         )
         return page("Emviary", body)
 

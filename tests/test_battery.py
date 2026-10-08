@@ -126,3 +126,11 @@ def test_real_image_304_persists_optional_power_headers(service, frame):
     samples = service.store.battery_samples(frame_id)
     assert len(samples) == 1
     assert samples[0]["voltage"] == 3.82 and samples[0]["charging"] == 0
+
+
+def test_inflight_delivery_after_frame_removal_does_not_leave_queue_or_fail(service, frame):
+    with service.store.connect() as db:
+        db.execute("DELETE FROM frames WHERE id=?", (frame[0],))
+    service.image_delivered(frame[0], 1, 50, "test", "", "", 3.9, False, False)
+    assert service.store.pending_refills() == []
+    assert service.store.battery_samples(frame[0]) == []
