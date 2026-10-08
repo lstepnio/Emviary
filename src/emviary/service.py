@@ -85,7 +85,7 @@ class Service:
                 json.loads(r["manifest"])
                 for r in db.execute(
                     """SELECT manifest FROM images WHERE frame_id=?
-                       AND local_date>=? AND local_date<?
+                       AND local_date>=? AND local_date<=?
                        ORDER BY local_date DESC, revision DESC LIMIT 21""",
                     (frame["id"], cutoff, local_date),
                 )
@@ -96,7 +96,8 @@ class Service:
         seed = hashlib.sha256(
             f"{frame['id']}:{local_date}:{revision}:{profile}".encode()
         ).hexdigest()
-        candidates = self.settings.artworks
+        excluded = self.store.excluded_artworks()
+        candidates = [a for a in self.settings.artworks if a["id"] not in excluded]
         if policy["allowed_species"]:
             candidates = [
                 a for a in candidates if a["scientific_name"] in policy["allowed_species"]
@@ -106,7 +107,7 @@ class Service:
             requested = next(
                 (
                     a
-                    for a in self.settings.artworks
+                    for a in candidates
                     if a["id"] == occasion["artwork_id"]
                     and a["approved"]
                     and int(local_date[5:7]) in a["months"]
@@ -219,7 +220,13 @@ class Service:
         local_date = local_date or datetime.now(ZoneInfo(site.timezone)).date().isoformat()
         date.fromisoformat(local_date)
         profile = render.profile_hash(policy.model_dump(), self.settings.catalog)
-        profile = hashlib.sha256((profile + stable_json(site.model_dump())).encode()).hexdigest()
+        profile = hashlib.sha256(
+            (
+                profile
+                + stable_json(site.model_dump())
+                + stable_json(sorted(self.store.excluded_artworks()))
+            ).encode()
+        ).hexdigest()
         with self.store.connect() as db:
             job = db.execute(
                 """SELECT * FROM jobs WHERE frame_id=? AND local_date=? AND profile_hash=?
@@ -291,6 +298,11 @@ class Service:
                 preview.replace(self.cache_path(preview_path))
                 master.replace(self.cache_path(f"cache/{stem}-master.png"))
             with self.store.connect() as db:
+                existing = db.execute(
+                    "SELECT id FROM images WHERE frame_id=? AND local_date=? AND revision=?", key
+                ).fetchone()
+                if not existing:
+                    self.store.count_render(db, plan)
                 db.execute(
                     """INSERT INTO images(frame_id,local_date,revision,profile_hash,artwork_id,
                        path,preview_path,body_hash,manifest,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)
@@ -330,10 +342,69 @@ class Service:
                 )
             raise
 
+    def image_delivered(self, frame_id, image_id, battery, firmware, client_tag, tag):
+        # Called after the HTTP body is sent; preview visits never consume the buffer.
+        self.store.telemetry(frame_id, battery, firmware, client_tag, tag)
+        self.store.request_refill(frame_id, image_id)
+        self.refill_pending(frame_id=frame_id)
+
+    def refill_pending(self, now=None, frame_id=None):
+        now = now or datetime.now(UTC)
+        try:
+            with preparation_lock(self.settings.data_dir):
+                for request in self.store.pending_refills(frame_id):
+                    frame = self.store.frame(request["frame_id"])
+                    key = (frame["id"], request["consumed_image_id"])
+                    if frame["active_image_id"] != request["consumed_image_id"]:
+                        # A concurrent download or scheduled preparation already refilled it.
+                        self.store.complete_refill(*key)
+                        continue
+                    site = self.settings.config.site(frame["site_id"])
+                    local_date = now.astimezone(ZoneInfo(site.timezone)).date().isoformat()
+                    attempts = request["attempts"] if request["attempt_date"] == local_date else 0
+                    if attempts >= 3:
+                        continue
+                    if (
+                        attempts
+                        and request["last_attempt_at"]
+                        and datetime.fromisoformat(request["last_attempt_at"])
+                        > now - timedelta(minutes=15)
+                    ):
+                        continue
+                    with self.store.connect() as db:
+                        db.execute(
+                            """UPDATE image_refills SET attempts=?,attempt_date=?,
+                               last_attempt_at=?,error=NULL
+                               WHERE frame_id=? AND consumed_image_id=?""",
+                            (attempts + 1, local_date, now.isoformat(), *key),
+                        )
+                    try:
+                        self._prepare(frame["id"], local_date, force=attempts == 0, offline=False)
+                        self.store.complete_refill(*key)
+                    except Exception as exc:
+                        with self.store.connect() as db:
+                            db.execute(
+                                """UPDATE image_refills SET error=?
+                                   WHERE frame_id=? AND consumed_image_id=?""",
+                                (type(exc).__name__, *key),
+                            )
+                        log.error(
+                            "Refill failed frame=%s error=%s", frame["id"], type(exc).__name__
+                        )
+        except RuntimeError as exc:
+            if str(exc) != "Another preparation or backup is already running":
+                raise
+            # The persistent queue will be picked up by the scheduler on its next tick.
+            log.debug("Refill postponed: preparation lock busy")
+
     def prepare_due(self, now=None):
         now = now or datetime.now(UTC)
+        self.refill_pending(now=now)
         with preparation_lock(self.settings.data_dir):
+            pending = {r["frame_id"] for r in self.store.pending_refills()}
             for frame in self.store.frames():
+                if frame["id"] in pending:
+                    continue
                 site = self.settings.config.site(frame["site_id"])
                 local = now.astimezone(ZoneInfo(site.timezone))
                 local_date = local.date().isoformat()

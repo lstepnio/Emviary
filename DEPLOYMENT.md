@@ -283,3 +283,13 @@ Production uses `emviary:poc-014`. Source/art rollback archives and the prior
 Compose file are stored under `/docker/backups/emviary/release-poc-014`; a
 consistent application backup preceded deployment. Firmware remains v0.4.1.
 Changes to composition and artwork live entirely in the backend.
+
+## Image navigation and gallery release 0.6.0
+
+The backend maintains a persistent one-image-ahead queue after firmware downloads. It renders under the existing single-process preparation lock, preserves the last delivered image for the public mirror, and retries failures at 15-minute intervals with three attempts per local day. Nightly preparation and the frame’s 03:15 cron remain in place. Button browsing uses `X-Image-Navigation: previous|next` and the panel’s persisted `If-None-Match` as a history cursor. Timer refreshes omit navigation and request the latest prepared composition.
+
+Firmware v0.5.0 remaps the E1002 white buttons: left previous, right next, including deep-sleep wake. The right button never clears the panel. The renderer is version 14, with a single weather header line and independent icon, condition and temperature toggles.
+
+Authenticated `/manage/images` provides history review and removal from navigation, with the current delivered image protected. `/manage/artwork` excludes or restores source art, including replacement of an affected prepared buffer. Persistent per-species successful render counters are seeded from retained history and survive removal and cleanup. Already expired history is not recoverable for initial statistics. A species appearing more than once in a composition counts once.
+
+SQLite migration adds the refill queue, history visibility, artwork exclusions and render counters. Back up before deployment; restoring the previous database and image together is the rollback path. Rendering failures retain existing cache bytes. Backend and firmware checks are independent of physical button/display validation.

@@ -32,7 +32,7 @@ Raspberry Pi or online image generation is required for this POC.
 - Health check, restricted container and existing Caddy integration.
 
 The public firmware fork is https://github.com/lstepnio/Emviary-firmware, based
-on upstream v2.19.0. It retains the safe panel refresh and disabled clear button,
+on upstream v2.19.0. It retains the safe panel refresh with clearing removed from the white buttons,
 advertises `emviary.local` plus `photoframe.local`, and checks the authenticated
 cloud update policy on every online wake. GitHub hosts immutable, board-specific
 releases; complete-image SHA-256 verification precedes the OTA boot switch.
@@ -113,3 +113,13 @@ Enable **Show location name** in frame management to include the area name (curr
 ### Daily weather on the artwork
 
 The compact header summarizes the prevailing daylight sky for the dated Denver forecast, rather than the worst cloud condition across all 24 hours. Daily rain, snow, storm and wind cues take precedence. It is a forecast, not a live observation. High / low temperatures appear beneath the word in Fahrenheit by default; turn them off with **High / low beneath forecast (°F)** in frame management. The high and low cover the full local calendar day. Existing frames receive this default without firmware changes. Weather snapshots are tied to the requested date and location; older dates never supply weather cues.
+
+### A picture ready for the next wake
+
+After a firmware image download completes, the backend prepares one new image in the background. The right white button advances to the next saved composition and the left white button returns to the previous one (firmware v0.5.0+), while the automatic 03:15 refresh remains unchanged. Allow a few seconds between wakes for rendering. The public display continues to mirror the image last delivered to the frame; management previews show the prepared next image.
+
+Preview requests do not advance the rotation. Duplicate downloads share one refill, and the persistent queue survives server restarts. Failed renders keep the last good image and retry every 15 minutes, up to three attempts per local day. Nightly preparation still supplies a fresh forecast for the new day. The refill queue works with existing firmware; bidirectional white-button navigation requires v0.5.0 or later.
+
+Management includes an authenticated image-history gallery and artwork rotation controls. Removing a composition excludes it from navigation; the image currently displayed is protected until the frame advances. Excluding source artwork also replaces an upcoming composition that uses it. Neither operation removes attribution. Species render counters count each species once per successful composition, across all frames, and survive history removal/expiry. Existing saved history seeds the initial counters; already expired history cannot be reconstructed.
+
+Weather appears on one header line. Icon, condition words and high/low temperatures each have an independent management toggle, enabled by default, under the master weather control. Date-mismatched forecasts remain omitted.

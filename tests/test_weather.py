@@ -88,3 +88,59 @@ def test_temperature_default_and_cache_invalidation():
     first = profile_hash(policy, [])
     policy["show_forecast_temperatures"] = False
     assert profile_hash(policy, []) != first
+
+
+@pytest.mark.parametrize(
+    "icon,condition,temperatures",
+    [
+        (False, False, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, True),
+        (True, True, True),
+    ],
+)
+def test_weather_components_share_one_line(
+    service, frame, tmp_path, monkeypatch, icon, condition, temperatures
+):
+    import json
+
+    from PIL import ImageDraw
+
+    from emviary import render
+
+    prepared = service.prepare(frame[0], "2026-10-08")
+    plan = json.loads(prepared["manifest"])
+    plan["inputs"]["open_meteo"] = {
+        "local_date": "2026-10-08",
+        "values": {
+            "weather_code": 0,
+            "temperature_2m_min": 10,
+            "temperature_2m_max": 25,
+            "wind_speed_10m_max": 10,
+            "snowfall_sum": 0,
+            "precipitation_probability_max": 0,
+        },
+    }
+    plan["policy"].update(
+        show_weather_icon=icon,
+        show_weather_condition=condition,
+        show_forecast_temperatures=temperatures,
+    )
+    labels, icons = [], []
+    original = ImageDraw.ImageDraw.text
+
+    def text(self, xy, value, *args, **kwargs):
+        if kwargs.get("anchor") == "rm":
+            labels.append((xy, value))
+        return original(self, xy, value, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", text)
+    monkeypatch.setattr(render, "draw_weather_mark", lambda *args: icons.append(args[2:]))
+    render.compose(service.settings.art_dir, plan["artwork"], plan, tmp_path / "weather.png")
+    assert bool(icons) == icon
+    assert bool(labels) == (condition or temperatures)
+    if labels:
+        assert labels[0][0] == (776, 25)
+        assert ("SUNNY" in labels[0][1]) == condition
+        assert ("°" in labels[0][1]) == temperatures

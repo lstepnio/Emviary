@@ -82,8 +82,68 @@ class Store:
                     csrf TEXT NOT NULL,
                     expires_at TEXT NOT NULL
                 );
-                PRAGMA user_version=1;
+                CREATE TABLE IF NOT EXISTS image_refills (
+                    frame_id TEXT PRIMARY KEY REFERENCES frames(id),
+                    consumed_image_id INTEGER NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    attempt_date TEXT,
+                    last_attempt_at TEXT,
+                    error TEXT
+                );
+                CREATE TABLE IF NOT EXISTS excluded_artworks (id TEXT PRIMARY KEY);
+                CREATE TABLE IF NOT EXISTS bird_render_counts (
+                    scientific_name TEXT PRIMARY KEY, common_name TEXT NOT NULL,
+                    renders INTEGER NOT NULL
+                );
+                PRAGMA user_version=2;
             """)
+
+        with self.connect() as db:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(images)")}
+            if "hidden" not in columns:
+                db.execute("ALTER TABLE images ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
+                for row in db.execute("SELECT manifest FROM images").fetchall():
+                    self.count_render(db, json.loads(row["manifest"]))
+
+    @staticmethod
+    def count_render(db, plan):
+        species = {
+            a["scientific_name"]: a["common_name"] for a in plan.get("artworks", [plan["artwork"]])
+        }
+        for scientific, common in species.items():
+            db.execute(
+                """INSERT INTO bird_render_counts VALUES(?,?,1)
+                   ON CONFLICT(scientific_name) DO UPDATE SET renders=renders+1""",
+                (scientific, common),
+            )
+
+    def bird_counts(self):
+        with self.connect() as db:
+            return {
+                r["scientific_name"]: r["renders"]
+                for r in db.execute("SELECT * FROM bird_render_counts")
+            }
+
+    def excluded_artworks(self):
+        with self.connect() as db:
+            return {r[0] for r in db.execute("SELECT id FROM excluded_artworks")}
+
+    def navigation_image(self, frame, direction, client_tag):
+        digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]
+        with self.connect() as db:
+            cursor = db.execute(
+                "SELECT * FROM images WHERE frame_id=? AND body_hash=? ORDER BY id DESC LIMIT 1",
+                (frame["id"], digest),
+            ).fetchone()
+            if cursor is None:
+                return self.active_image(frame)
+            comparison, order = ("<", "DESC") if direction == "previous" else (">", "ASC")
+            row = db.execute(
+                f"SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id{comparison}? "
+                f"ORDER BY id {order} LIMIT 1",
+                (frame["id"], cursor["id"]),
+            ).fetchone()
+            return dict(row or cursor)
 
     @contextmanager
     def connect(self):
@@ -155,6 +215,12 @@ class Store:
                 "SELECT * FROM images WHERE id=? AND frame_id=?",
                 (frame["active_image_id"], frame["id"]),
             ).fetchone()
+        if row and row["hidden"]:
+            with self.connect() as db:
+                row = db.execute(
+                    "SELECT * FROM images WHERE frame_id=? AND hidden=0 ORDER BY id DESC LIMIT 1",
+                    (frame["id"],),
+                ).fetchone()
         return dict(row) if row else None
 
     def telemetry(self, frame_id, battery, firmware, client_etag, served_etag):
@@ -164,6 +230,32 @@ class Store:
                    firmware=COALESCE(?,firmware),last_client_etag=?,last_served_etag=?
                    WHERE id=?""",
                 (utcnow(), battery, firmware, client_etag, served_etag, frame_id),
+            )
+
+    def request_refill(self, frame_id, image_id):
+        with self.connect() as db:
+            db.execute(
+                """INSERT INTO image_refills(frame_id,consumed_image_id) VALUES(?,?)
+                   ON CONFLICT(frame_id) DO UPDATE SET
+                   consumed_image_id=excluded.consumed_image_id,attempts=0,
+                   attempt_date=NULL,last_attempt_at=NULL,error=NULL
+                   WHERE excluded.consumed_image_id > image_refills.consumed_image_id""",
+                (frame_id, image_id),
+            )
+
+    def pending_refills(self, frame_id=None):
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT * FROM image_refills" + (" WHERE frame_id=?" if frame_id else ""),
+                (frame_id,) if frame_id else (),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def complete_refill(self, frame_id, consumed_image_id):
+        with self.connect() as db:
+            db.execute(
+                "DELETE FROM image_refills WHERE frame_id=? AND consumed_image_id=?",
+                (frame_id, consumed_image_id),
             )
 
     def snapshot(self, site_id, provider, local_date=None):

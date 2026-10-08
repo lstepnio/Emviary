@@ -13,9 +13,11 @@ from urllib.parse import parse_qs
 
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from starlette.background import BackgroundTask
 
 from .api import config_payload
 from .branding import BRAND_MARK, ICON_LINK
+from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
 
@@ -267,6 +269,8 @@ def attach_owner(app, service):
             + '<a href="http://photoframe.local" target="_blank" '
             + 'rel="noopener noreferrer">Legacy fallback</a>'
             + " (on the frame’s Wi-Fi, while awake).</p>"
+            + '<p><a href="/manage/images">Review image history</a> · '
+            + '<a href="/manage/artwork">Manage artwork rotation</a></p>'
         )
         statuses = {row["id"]: row for row in service.status()}
         for frame in service.store.frames():
@@ -360,16 +364,20 @@ def attach_owner(app, service):
             )
             body += checkbox("location_name", "Show location name", policy["show_location_name"])
             body += checkbox("labels", "Common bird names", policy["show_species_name"]) + checkbox(
-                "weather", "Subtle daily weather", policy["weather_cues"]
+                "weather", "Weather enabled", policy["weather_cues"]
             )
             body += checkbox(
                 "forecast_temperatures",
-                "High / low beneath forecast (°F)",
+                "High / low temperatures (°F)",
                 policy.get("show_forecast_temperatures", True),
             )
+            body += checkbox("weather_icon", "Weather icon", policy["show_weather_icon"])
             body += checkbox(
-                "forecast_text", "Dated forecast text", policy["show_dated_weather_text"]
-            ) + checkbox("season", "Seasonal details", policy["seasonal_themes"])
+                "weather_condition",
+                "Condition text (sunny, etc.)",
+                policy["show_weather_condition"],
+            )
+            body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
             body += (
                 "<details><summary>Birds to include</summary>"
                 '<input type="hidden" name="species_controls" value="1">'
@@ -552,8 +560,10 @@ def attach_owner(app, service):
             '<a href="http://photoframe.local">photoframe.local</a>. '
             "If neither resolves, use the frame’s IP address from your router. "
             "Avoid guest-network isolation when using local controls.</p>"
-            "<p>An ordinary reboot keeps saved settings. The left button requests a new "
-            "image; the right button is disabled. These buttons do not factory-reset "
+            "<p>An ordinary reboot keeps saved settings. On firmware v0.5.0 or later, "
+            "the left white button requests the previous image and the right white "
+            "button requests the next image. Neither clears the panel. "
+            "These buttons do not factory-reset "
             "Emviary firmware.</p></details>"
             "<details><summary>Reconnect after a factory reset</summary>"
             "<p>A factory reset from local Settings erases saved Wi-Fi, the cloud token, "
@@ -575,7 +585,7 @@ def attach_owner(app, service):
             "<strong>Settings → Maintenance → Config Backup → Import Config</strong>. "
             "Select the recovery import file and confirm Import. This restores the "
             "cloud connection and wake schedule without replacing the Wi-Fi you just set up.</li>"
-            "<li>Request a refresh with the left button or local image controls. "
+            "<li>Request a refresh with the right white button or local image controls. "
             "Confirm the picture returns and “Last contact” above advances. "
             "Cloud-managed Wi-Fi and display preferences arrive on the next online fetch. "
             "The factory reset also removes any local device password; set it again "
@@ -724,6 +734,155 @@ def attach_owner(app, service):
         )
         return page("Frame management", body)
 
+    @app.get("/manage/images")
+    def image_gallery(request: Request, frame: str | None = None, offset: int = 0):
+        auth = require(request)
+        offset = max(0, offset)
+        with service.store.connect() as db:
+            records = db.execute(
+                "SELECT * FROM images WHERE hidden=0"
+                + (" AND frame_id=?" if frame else "")
+                + " ORDER BY id DESC LIMIT 25 OFFSET ?",
+                (frame, offset) if frame else (offset,),
+            ).fetchall()
+        body = (
+            '<p><a href="/manage">Management</a></p><p>Saved compositions for previous '
+            "and next navigation. The currently displayed image stays protected. Removed "
+            "images leave navigation immediately; stored files expire with normal "
+            "history cleanup.</p>"
+        )
+        for record in records:
+            displayed = service.delivered_image(service.store.frame(record["frame_id"]))
+            current = displayed and displayed["id"] == record["id"]
+            plan = json.loads(record["manifest"])
+            birds = ", ".join(a["common_name"] for a in plan.get("artworks", [plan["artwork"]]))
+            body += (
+                "<section><h2>"
+                + escape(record["frame_id"])
+                + " · "
+                + escape(record["local_date"])
+                + " · "
+                + str(record["revision"])
+                + '</h2><img class="preview" loading="lazy" src="/manage/images/'
+                + str(record["id"])
+                + '/preview"><p>'
+                + escape(birds)
+                + "</p>"
+            )
+            if current:
+                body += "<p>Currently displayed</p>"
+            else:
+                body += (
+                    '<form method="post" action="/manage/images/'
+                    + str(record["id"])
+                    + '/remove">'
+                    + hidden(auth["csrf"])
+                    + "<button>Remove from history</button></form>"
+                )
+            body += "</section>"
+        from urllib.parse import urlencode
+
+        body += (
+            '<a href="/manage/images?'
+            + urlencode({"offset": offset + 25, **({"frame": frame} if frame else {})})
+            + '">Older images</a>'
+        )
+        return page("Image history", body)
+
+    @app.get("/manage/images/{image_id}/preview")
+    def history_preview(image_id: int, request: Request):
+        require(request)
+        with service.store.connect() as db:
+            record = db.execute(
+                "SELECT * FROM images WHERE id=? AND hidden=0", (image_id,)
+            ).fetchone()
+        if not record:
+            raise HTTPException(404, "Image unavailable")
+        return FileResponse(
+            service.cache_path(record["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.post("/manage/images/{image_id}/remove")
+    async def remove_image(image_id: int, request: Request):
+        await checked_form(request)
+        with preparation_lock(service.settings.data_dir):
+            with service.store.connect() as db:
+                record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
+                if not record:
+                    raise HTTPException(404, "Unknown image")
+                frame = service.store.frame(record["frame_id"])
+                displayed = service.delivered_image(frame)
+                if displayed and displayed["id"] == image_id:
+                    raise HTTPException(
+                        409, "Advance the frame before removing its displayed image"
+                    )
+                db.execute("UPDATE images SET hidden=1 WHERE id=?", (image_id,))
+            if frame["active_image_id"] == image_id:
+                service.store.request_refill(frame["id"], image_id)
+        return RedirectResponse(
+            "/manage/images", status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
+    @app.get("/manage/artwork")
+    def artwork_management(request: Request):
+        auth = require(request)
+        excluded = service.store.excluded_artworks()
+        counts = service.store.bird_counts()
+        body = (
+            '<p><a href="/manage">Management</a></p><p>Exclude artwork from future compositions '
+            "without removing its source credits or changing the picture on the frame. Render "
+            "counts include successful compositions, including images later removed "
+            "from history.</p>"
+        )
+        for art in sorted(service.settings.artworks, key=lambda a: (a["common_name"], a["id"])):
+            body += (
+                "<section><h2>"
+                + escape(art["common_name"])
+                + '</h2><img class="preview" loading="lazy" src="/art/'
+                + escape(art["id"])
+                + '"><p>'
+                + escape(art["id"])
+                + " · "
+                + str(counts.get(art["scientific_name"], 0))
+                + " species renders</p>"
+                + '<form method="post" action="/manage/artwork/'
+                + escape(art["id"])
+                + '">'
+                + hidden(auth["csrf"])
+                + '<input type="hidden" name="exclude" value="'
+                + ("0" if art["id"] in excluded else "1")
+                + '"><button>'
+                + ("Restore to rotation" if art["id"] in excluded else "Exclude from rotation")
+                + "</button></form></section>"
+            )
+        return page("Artwork rotation", body)
+
+    @app.post("/manage/artwork/{artwork_id}")
+    async def artwork_rotation(artwork_id: str, request: Request):
+        data = await checked_form(request)
+        if not any(a["id"] == artwork_id for a in service.settings.artworks):
+            raise HTTPException(404, "Unknown artwork")
+        with preparation_lock(service.settings.data_dir):
+            with service.store.connect() as db:
+                if data.get("exclude") == "1":
+                    db.execute("INSERT OR IGNORE INTO excluded_artworks VALUES(?)", (artwork_id,))
+                else:
+                    db.execute("DELETE FROM excluded_artworks WHERE id=?", (artwork_id,))
+            if data.get("exclude") == "1":
+                for frame in service.store.frames():
+                    image = service.store.active_image(frame)
+                    if image:
+                        plan = json.loads(image["manifest"])
+                        if any(
+                            a["id"] == artwork_id for a in plan.get("artworks", [plan["artwork"]])
+                        ):
+                            service.store.request_refill(frame["id"], image["id"])
+        return RedirectResponse(
+            "/manage/artwork", status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
     @app.get("/manage/frames/{identifier}/preview")
     def preview(identifier: str, request: Request):
         require(request)
@@ -756,6 +915,8 @@ def attach_owner(app, service):
                 show_species_name=data.get("labels") == "on",
                 show_location_name=data.get("location_name", data.get("location_date")) == "on",
                 weather_cues=data.get("weather") == "on",
+                show_weather_icon=data.get("weather_icon") == "on",
+                show_weather_condition=data.get("weather_condition") == "on",
                 show_forecast_temperatures=data.get("forecast_temperatures") == "on",
                 show_dated_weather_text=data.get("forecast_text") == "on",
                 seasonal_themes=data.get("season") == "on",

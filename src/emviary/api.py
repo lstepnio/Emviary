@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from starlette.background import BackgroundTask
 
 from . import __version__
 from .branding import BIRD_ICON, ICON_LINK
@@ -142,7 +143,16 @@ def create_app(service=None, schedule=True):
     def image(request: Request):
         frame = authenticated(request, service)
         check_geometry(request, frame)
-        record = service.store.active_image(frame)
+        direction = request.headers.get("x-image-navigation", "latest")
+        if direction not in {"latest", "previous", "next"}:
+            raise HTTPException(400, "Unknown image navigation direction")
+        record = (
+            service.store.active_image(frame)
+            if direction == "latest"
+            else service.store.navigation_image(
+                frame, direction, request.headers.get("if-none-match", "")
+            )
+        )
         if not record:
             raise HTTPException(503, "No prepared image", headers={"Retry-After": "300"})
         path = service.cache_path(record["path"])
@@ -160,16 +170,29 @@ def create_app(service=None, schedule=True):
         if firmware:
             firmware = firmware[:80]
         client_tag = request.headers.get("if-none-match", "")[:256]
-        if firmware:
-            service.store.telemetry(frame["id"], battery, firmware, client_tag, tag)
+        background = (
+            BackgroundTask(
+                service.image_delivered,
+                frame["id"],
+                record["id"],
+                battery,
+                firmware,
+                client_tag,
+                tag,
+            )
+            if firmware
+            else None
+        )
         headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
         if etag_matches(client_tag, tag):
-            return Response(status_code=304, headers=headers)
+            return Response(status_code=304, headers=headers, background=background)
         payload = config_payload(frame)
         if len(payload.encode()) > 1900:
             raise HTTPException(503, "Configuration exceeds the firmware header limit")
         headers["X-Config-Payload"] = payload
-        return FileResponse(path, media_type="application/octet-stream", headers=headers)
+        return FileResponse(
+            path, media_type="application/octet-stream", headers=headers, background=background
+        )
 
     @app.get("/v1/preview")
     def preview(request: Request):
@@ -212,6 +235,7 @@ def create_app(service=None, schedule=True):
     @app.get("/library", response_class=HTMLResponse)
     def index():
         escape = html.escape
+        counts = service.store.bird_counts()
         groups = {}
         for artwork in service.settings.artworks:
             groups.setdefault(artwork["scientific_name"], []).append(artwork)
@@ -279,7 +303,9 @@ def create_app(service=None, schedule=True):
                 + escape(name)
                 + "</i><br>"
                 + str(active)
-                + " rotation images"
+                + " rotation images / "
+                + str(counts.get(name, 0))
+                + " renders"
                 + (
                     " / " + str(len(variants) - active) + " references / review candidates"
                     if active < len(variants)
