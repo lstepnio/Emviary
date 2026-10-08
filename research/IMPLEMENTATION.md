@@ -48,3 +48,19 @@ behavior; turn it off after completing the hardware investigation.
 
 The new two-bird composition is prepared and visible to the owner in management,
 but has not been physically approved on this panel. Future AI art is disabled.
+
+## Weather artwork follow-up, 2026-10-08
+
+Runtime commit `e4a6402`, Docker image `einkartifact:poc-004`, renderer version 2.
+Removed the pale overlapping cloud ellipses. The header now uses small outlined
+sun rays, sky lines, rain strokes, a snowflake or wind strokes plus a condition
+label. No weather motif crosses the bird artwork. Forecast date validation and
+the owner weather-cue toggle remain in effect. With dated temperature text enabled,
+the weather condition appears alongside the temperature range instead of a glyph.
+
+All 20 tests and Ruff passed. Six weather cases were visually reviewed after
+Spectra6 conversion. Host backup completed before deployment; only einkartifact
+was recreated and its health check passed. A new image was prepared as revision 6.
+The frame was left asleep: physical acceptance and public-mirror replacement wait
+for its next image fetch. This artwork change makes no claim to fix intermittent
+white-screen behavior.
