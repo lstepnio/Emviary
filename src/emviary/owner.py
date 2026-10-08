@@ -525,8 +525,64 @@ def attach_owner(app, service):
             body += (
                 '<a class="quiet" href="/manage/frames/'
                 + identifier
-                + '/provision">Download private device configuration</a>'
+                + '/provision">Download private device configuration</a> · '
+                + '<a href="/manage/frames/'
+                + identifier
+                + '/provision?import_file=true">Download recovery import file</a> · '
+                + '<a href="#recovery">Recovery instructions</a>'
             )
+        body += (
+            '<section id="recovery"><h2>Frame recovery and Wi-Fi setup</h2>'
+            "<details><summary>Wake or restart an unresponsive frame</summary>"
+            "<p>Connect USB power and briefly press the green wake button. "
+            "Sleeping is normal: the picture should remain visible, while local controls "
+            "are unavailable until the frame wakes. On its Wi-Fi, open "
+            '<a href="http://emviary.local">emviary.local</a>, or '
+            '<a href="http://photoframe.local">photoframe.local</a>. '
+            "If neither resolves, use the frame’s IP address from your router. "
+            "Avoid guest-network isolation when using local controls.</p>"
+            "<p>An ordinary reboot keeps saved settings. The left button requests a new "
+            "image; the right button is disabled. These buttons do not factory-reset "
+            "Emviary firmware.</p></details>"
+            "<details><summary>Reconnect after a factory reset</summary>"
+            "<p>A factory reset from local Settings erases saved Wi-Fi, the cloud token, "
+            "and device settings, but leaves the installed firmware. Cloud artwork and "
+            "management settings remain on the server. Keep USB connected during recovery.</p>"
+            "<ol><li>While signed in here, download the <strong>recovery import file</strong> "
+            "for the existing frame below. Save it before switching Wi-Fi.</li>"
+            "<li>After reset, join the frame’s temporary open hotspot "
+            "<strong>PhotoFrame - XXXXX</strong> (five device-specific characters, "
+            "also shown on the setup screen). It has no Wi-Fi password. Choose "
+            "“stay connected” if your phone reports no internet. The current firmware "
+            "still uses this hotspot name even if a dialog says Emviary.</li>"
+            '<li>Open <a href="http://192.168.4.1/provision">http://192.168.4.1/provision</a> '
+            "if setup does not appear automatically. Choose your home’s 2.4 GHz Wi-Fi "
+            "and enter its password. Use automatic IP / DHCP for a new location. "
+            "The frame tests the connection and restarts after a successful setup.</li>"
+            "<li>Reconnect your phone or computer to the home Wi-Fi. Wake the frame "
+            "if needed, open emviary.local (or its router IP), and open "
+            "<strong>Settings → Maintenance → Config Backup → Import Config</strong>. "
+            "Select the recovery import file and confirm Import. This restores the "
+            "cloud connection and wake schedule without replacing the Wi-Fi you just set up.</li>"
+            "<li>Request a refresh with the left button or local image controls. "
+            "Confirm the picture returns and “Last contact” above advances. "
+            "Cloud-managed Wi-Fi and display preferences arrive on the next online fetch. "
+            "The factory reset also removes any local device password; set it again "
+            "in local advanced network settings if you previously used one.</li></ol>"
+            "<p>The recovery file contains the frame’s private access token and grants "
+            "access to its image service. Keep it private. Use the existing frame’s "
+            "file, rather than adding a new frame entry.</p></details>"
+            "<details><summary>No setup hotspot, or no saved network is available</summary>"
+            "<p>A frame with saved credentials keeps trying those networks; a normal "
+            "reboot does not turn it into a setup hotspot. Restore a saved network, "
+            "or temporarily create a 2.4 GHz phone/router hotspot with that saved "
+            "SSID and password. Then wake it, open local Settings, and add the new "
+            "network or deliberately factory-reset it using the procedure above.</p>"
+            "<p>If you cannot recreate any saved network or reach local controls, "
+            "contact the maintainer for USB recovery. Replacing firmware with stock "
+            "firmware requires reinstalling Emviary first; a configuration import "
+            "alone does not restore our firmware features.</p></details></section>"
+        )
         config = service.settings.config
         for site in config.sites:
             body += (
@@ -914,7 +970,7 @@ def attach_owner(app, service):
         return redirect()
 
     @app.get("/manage/frames/{identifier}/provision")
-    def provision(identifier: str, request: Request):
+    def provision(identifier: str, request: Request, import_file: bool = False):
         require(request)
         frame = service.store.frame(identifier)
         path = service.settings.data_dir / "provisioning" / (identifier + ".token")
@@ -929,12 +985,18 @@ def attach_owner(app, service):
         config.update(
             image_url=service.settings.config.public_base_url + "/v1/image", access_token=token
         )
+        payload = config
+        if import_file:
+            # Preserve the Wi-Fi used to recover, including device-only credentials.
+            config = {k: v for k, v in config.items() if not k.startswith("wifi_")}
+            payload = {"config": config}
+        filename = identifier + ("-recovery" if import_file else "") + ".json"
         return Response(
-            json.dumps(config, indent=2),
+            json.dumps(payload, indent=2),
             media_type="application/json",
             headers={
                 "Cache-Control": "no-store",
-                "Content-Disposition": f'attachment; filename="{identifier}.json"',
+                "Content-Disposition": f'attachment; filename="{filename}"',
             },
         )
 

@@ -209,3 +209,18 @@ selected on the next wake, with visible networks tried first in saved order.
 Use DHCP when moving between locations. Enterprise Wi-Fi and sign-in portals
 are outside this feature. Test connectivity at the destination before relying
 on unattended overnight operation.
+
+## Recipient recovery guide
+
+Authenticated management includes a frame recovery section and a per-frame
+**Download recovery import file** link. The installed Emviary firmware still
+uses `PhotoFrame - XXXXX` for its open setup hotspot; connect to it and open
+`http://192.168.4.1/provision`. An ordinary reboot retains settings and does not
+force a setup hotspot. Factory reset erases NVS, including Wi-Fi and the cloud
+token, but retains firmware. Restore Wi-Fi first, then import the recovery file
+under local Settings → Maintenance → Config Backup.
+
+The recovery download uses the webapp's `{"config": {...}}` format and omits
+Wi-Fi fields so it cannot replace the network just used to recover. The legacy
+flat provisioning download remains unchanged. Both are authenticated and sent
+with `Cache-Control: no-store`; the embedded frame token must be kept private.
