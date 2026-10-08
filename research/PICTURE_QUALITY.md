@@ -43,3 +43,18 @@ Sources:
 - https://github.com/Seeed-Projects/OSHW-reTerminal-Series-E-D/tree/main/examples/base/SD_ImagePipeline_E1002
 - https://github.com/aitjcize/epaper-image-convert
 - https://github.com/aitjcize/esp32-photoframe/tree/v2.19.0
+
+## Deployment and controlled comparison
+
+Runtime `6542ee8`, image `einkartifact:poc-005`, renderer version 3. The host backup
+completed before deployment. Only einkartifact was recreated; HTTPS and container
+health checks passed. Revision 7 reuses revision 6's artwork selection and forecast
+inputs, while recording the new renderer/profile and immutable packed output.
+The device fetched revision 7 and logged a single completed 192000-byte refresh.
+Physical quality feedback remains pending.
+
+The same-source preview also shows faint paper-colored halos in the upstream
+cutouts. Their pale shading becomes stippled on a six-color panel. Those source
+features were not removed or repainted in this release. A future edge treatment
+needs a separate comparison so it does not silently remove pale feathers or branch
+detail. Preserving the original master assets remains required.
