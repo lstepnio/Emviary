@@ -20,18 +20,19 @@ log = logging.getLogger(__name__)
 
 def config_payload(frame):
     policy = json.loads(frame["policy"])
-    return stable_json(
-        {
-            "config": {
-                "timezone": policy["firmware_timezone"],
-                "auto_rotate": True,
-                "rotate_cron": policy["firmware_rotate_cron"],
-                "rotation_mode": "url",
-                "deep_sleep_enabled": True,
-                "display_orientation": policy["panel"]["orientation"],
-            }
-        }
-    )
+    config = {
+        "timezone": policy["firmware_timezone"],
+        "auto_rotate": True,
+        "rotate_cron": policy["firmware_rotate_cron"],
+        "rotation_mode": "url",
+        "deep_sleep_enabled": True,
+        "display_orientation": policy["panel"]["orientation"],
+    }
+    if policy.get("wifi_networks") is not None:
+        config["wifi_networks"] = policy["wifi_networks"]
+        config["wifi_keep_existing"] = True
+        config["wifi_forget_ssids"] = policy.get("wifi_forget_ssids", [])
+    return stable_json({"config": config})
 
 
 def etag_for(frame, image):

@@ -132,6 +132,25 @@ class SpecialDay(Model):
         return self
 
 
+class WifiNetwork(Model):
+    ssid: str
+    password: str = Field(default="", repr=False)
+
+    @model_validator(mode="after")
+    def valid_credentials(self):
+        if not 1 <= len(self.ssid.encode("utf-8")) <= 32 or any(
+            ord(c) < 32 or ord(c) == 127 for c in self.ssid
+        ):
+            raise ValueError("SSID must contain 1 to 32 UTF-8 bytes without control characters")
+        if self.password and not (
+            8 <= len(self.password) <= 63
+            and all(32 <= ord(c) <= 126 for c in self.password)
+            or re.fullmatch(r"[0-9a-fA-F]{64}", self.password)
+        ):
+            raise ValueError("Password must be 8 to 63 printable ASCII characters or 64 hex digits")
+        return self
+
+
 class FramePolicy(Model):
     site_id: str = "denver-gift"
     wake_local_time: str = "03:15"
@@ -143,6 +162,8 @@ class FramePolicy(Model):
     show_species_name: bool = True
     show_dated_weather_text: bool = False
     weather_cues: bool = True
+    wifi_networks: list[WifiNetwork] | None = Field(default=None, max_length=5)
+    wifi_forget_ssids: list[str] = Field(default_factory=list, max_length=32)
     firmware_updates: Literal["automatic", "manual", "disabled"] = "automatic"
     firmware_pinned_version: str | None = Field(
         default=None,
@@ -162,6 +183,14 @@ class FramePolicy(Model):
             raise ValueError("Wake time and firmware cron disagree")
         if len({d.id for d in self.special_days}) != len(self.special_days):
             raise ValueError("Special-day entries must have unique identifiers")
+        if self.wifi_networks is not None and len({n.ssid for n in self.wifi_networks}) != len(
+            self.wifi_networks
+        ):
+            raise ValueError("Choose up to 5 Wi-Fi networks with unique SSIDs")
+        for ssid in self.wifi_forget_ssids:
+            WifiNetwork(ssid=ssid)
+        if len(set(self.wifi_forget_ssids)) != len(self.wifi_forget_ssids):
+            raise ValueError("Forgotten network names must be unique")
         return self
 
 

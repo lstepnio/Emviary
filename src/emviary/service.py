@@ -73,6 +73,8 @@ class Service:
 
     def _new_plan(self, frame, local_date, revision, profile, offline):
         policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
+        policy.pop("wifi_networks", None)
+        policy.pop("wifi_forget_ssids", None)
         site = self.settings.config.site(frame["site_id"])
         inputs = self.providers.inputs(site, local_date, offline=offline)
         cutoff = (

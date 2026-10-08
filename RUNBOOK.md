@@ -135,7 +135,7 @@ the new token using a new output filename, then test refresh before gifting.
 
 ## Releases
 
-Build on the amd64 host from the private application repository. Use a new image
+Build on the amd64 host from the public application repository. Use a new image
 tag, back up first, update only the `emviary` image in Compose, validate
 `docker compose config --quiet`, then `docker compose up -d --no-deps emviary`.
 The pinned base images and lockfiles make dependencies explicit. Do not run the
@@ -187,3 +187,25 @@ backend; frames download the binary directly from GitHub.
 
 Local controls: `http://emviary.local`, with `http://photoframe.local` as a fallback
 while the frame is awake on the same Wi-Fi. The primary frame is `emily-e1002`.
+
+## Stage Wi-Fi before gifting
+
+Wake the frame on its current Wi-Fi, then sign in to cloud management and open
+**Saved Wi-Fi networks** for `emily-e1002`. Add the destination's 2.4 GHz SSID
+and password. A blank password retains a previously saved password; select Open
+network explicitly for an unprotected network. Credentials are stored privately
+and are never shown again in management, status, or the public display.
+
+On the next online image fetch, firmware v0.4.0 merges cloud networks ahead of
+existing staging/recovery networks. Keep no more than five total networks. Wake
+and refresh before gifting, then check the saved list in the awake frame's local
+Settings. This confirms delivery without requiring the destination router nearby.
+Cloud removal forgets that cloud-managed SSID; the firmware refuses to delete its
+final network. Device-only networks can be removed or reordered locally.
+
+Local Settings also supports saved networks directly without an immediate
+reconnect. A blank password retains that SSID's saved credential. Networks are
+selected on the next wake, with visible networks tried first in saved order.
+Use DHCP when moving between locations. Enterprise Wi-Fi and sign-in portals
+are outside this feature. Test connectivity at the destination before relying
+on unattended overnight operation.

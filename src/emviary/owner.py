@@ -372,6 +372,46 @@ def attach_owner(app, service):
                 body += checkbox("species_" + str(index), artwork["common_name"], selected)
             body += "</details><p><button>Save frame settings</button></p></form>"
             body += (
+                '<details><summary>Saved Wi-Fi networks</summary><p class="quiet">'
+                "Stage up to five 2.4 GHz networks before gifting. Changes reach the frame "
+                "on its next online artwork fetch. These networks take priority and are added "
+                "to existing device networks, preserving its staging connection. The frame "
+                "holds five networks in total. Removal applies only to networks saved here. "
+                "Passwords are stored privately and never shown.</p>"
+            )
+            if policy["wifi_networks"] is None:
+                body += (
+                    '<p class="quiet">The frame currently manages its own Wi-Fi. Its existing '
+                    "networks are kept when adding a gift-location network here.</p>"
+                )
+            for network in policy["wifi_networks"] or []:
+                body += (
+                    '<form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/wifi">'
+                    + hidden(csrf)
+                    + '<input type="hidden" name="ssid" value="'
+                    + escape(network["ssid"])
+                    + '"><strong>'
+                    + escape(network["ssid"])
+                    + "</strong>"
+                    + field("password", "New password (blank keeps saved password)", "", "password")
+                    + checkbox("open", "Open network, no password", not network["password"])
+                    + '<p><button name="action" value="save">Update network</button> '
+                    + '<button name="action" value="remove">Remove network</button></p></form>'
+                )
+            body += (
+                '<form method="post" action="/manage/frames/'
+                + identifier
+                + '/wifi">'
+                + hidden(csrf)
+                + field("ssid", "Network name (SSID)", "", "text", "required")
+                + field("password", "Network password", "", "password")
+                + checkbox("open", "Open network, no password", False)
+                + '<p><button name="action" value="save">Add network</button></p></form>'
+                + "</details>"
+            )
+            body += (
                 '<form method="post" action="/manage/frames/'
                 + identifier
                 + '/prepare">'
@@ -666,6 +706,55 @@ def attach_owner(app, service):
             validated = FramePolicy.model_validate(policy)
         except (ValueError, KeyError):
             raise HTTPException(400, "Invalid frame settings") from None
+        service.store.set_policy(identifier, validated)
+        return redirect()
+
+    @app.post("/manage/frames/{identifier}/wifi")
+    async def save_wifi(identifier: str, request: Request):
+        data = await checked_form(request)
+        policy = FramePolicy.model_validate_json(
+            service.store.frame(identifier)["policy"]
+        ).model_dump()
+        networks = policy["wifi_networks"] or []
+        forgotten = policy["wifi_forget_ssids"]
+        ssid = data.get("ssid", "")
+        existing = next((n for n in networks if n["ssid"] == ssid), None)
+        try:
+            if data.get("action") == "remove":
+                if existing is None:
+                    raise ValueError("Network is not cloud managed")
+                networks.remove(existing)
+                if ssid not in forgotten:
+                    forgotten.append(ssid)
+            elif data.get("action") == "save":
+                password = data.get("password", "")
+                if data.get("open") == "on":
+                    password = ""
+                elif not password:
+                    if existing is None or not existing["password"]:
+                        raise ValueError("Enter a password or choose open network")
+                    password = existing["password"]
+                network = {"ssid": ssid, "password": password}
+                if existing is not None:
+                    networks[networks.index(existing)] = network
+                else:
+                    networks.append(network)
+                forgotten = [name for name in forgotten if name != ssid]
+            else:
+                raise ValueError("Unknown Wi-Fi action")
+            policy["wifi_networks"] = networks
+            policy["wifi_forget_ssids"] = forgotten
+            validated = FramePolicy.model_validate(policy)
+            payload = config_payload({"policy": validated.model_dump_json()})
+            if len(payload.encode()) > 1900:
+                raise ValueError("Network settings exceed the frame configuration limit")
+        except ValueError:
+            raise HTTPException(
+                400,
+                "Invalid Wi-Fi settings. Use up to 5 unique networks, SSID up to 32 UTF-8 "
+                "bytes, and a password of 8 to 63 ASCII characters (or 64 hex digits). "
+                "Choose open explicitly for a network without a password.",
+            ) from None
         service.store.set_policy(identifier, validated)
         return redirect()
 
