@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from .store import stable_json
 
-RENDER_VERSION = 2
+RENDER_VERSION = 3
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -149,8 +149,8 @@ def compose(art_dir, artwork, plan, output):
     season = season_for(int(date[5:7]))
     canvas = Image.new("RGBA", (800, 480), "#ffffff")
     draw = ImageDraw.Draw(canvas)
-    draw.rectangle((22, 22, 778, 458), outline="#c2b59a", width=1)
-    draw.line((50, 392, 750, 392), fill="#cbbd9e", width=1)
+    draw.rectangle((22, 22, 778, 458), outline="#333333", width=1)
+    draw.line((50, 392, 750, 392), fill="#333333", width=1)
     palettes = {
         "winter": ("#829395", "#d1d9d5"),
         "spring": ("#6f805c", "#a9b482"),
@@ -257,6 +257,8 @@ def convert(source, target, preview, policy, timeout):
         policy["processing_preset"],
         "--dither-algorithm",
         policy["dither_algorithm"],
+        "--color-method",
+        "lab",
         "-t",
         str(preview),
         "--thumbnail-max-dimension",
@@ -268,6 +270,7 @@ def convert(source, target, preview, policy, timeout):
         raise RuntimeError(f"Image converter exited with status {result.returncode}")
     validate_epdgz(target)
     preserve_paper_white(source, target)
+    preserve_neutral_graphics(source, target)
     digest = validate_epdgz(target)
     panel_preview(target, preview)
     return digest
@@ -290,6 +293,33 @@ def preserve_paper_white(source, target):
         if pixels[offset : offset + 3] == b"\xff\xff\xff":
             byte = index // 2
             packed[byte] = (packed[byte] & 0xF0) | 1 if index % 2 else (packed[byte] & 15) | 16
+    Path(target).write_bytes(gzip.compress(bytes(packed), mtime=0))
+
+
+def preserve_neutral_graphics(source, target):
+    # Text and fine rules should use black/white ink, not photo color diffusion.
+    # These bands exclude all bird cells and seasonal botanical artwork.
+    with Image.open(source) as image:
+        if image.size != (800, 480):
+            raise ValueError("Invalid source dimensions")
+        pixels = image.convert("RGB").tobytes()
+    with gzip.open(target, "rb") as handle:
+        packed = bytearray(handle.read(192001))
+    if len(packed) != 192000:
+        raise ValueError("Invalid packed dimensions")
+    for index in range(384000):
+        x, y = index % 800, index // 800
+        if not (y < 55 or y >= 392 or x <= 25 or x >= 775):
+            continue
+        offset = index * 3
+        r, g, b = pixels[offset : offset + 3]
+        if max(r, g, b) - min(r, g, b) > 8:
+            continue
+        ink = 0 if (r + g + b) / 3 < 160 else 1
+        byte = index // 2
+        packed[byte] = (
+            (packed[byte] & 0xF0) | ink if index % 2 else (packed[byte] & 15) | (ink << 4)
+        )
     Path(target).write_bytes(gzip.compress(bytes(packed), mtime=0))
 
 

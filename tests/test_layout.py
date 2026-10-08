@@ -48,3 +48,32 @@ def test_white_paper_uses_white_ink_without_changing_art(tmp_path):
     assert corrected[:1] == original[:1]
     assert corrected[1:] == bytes([0x11]) * 191999
     render.validate_epdgz(target)
+
+
+def test_neutral_graphics_preserve_bird_pixels(tmp_path):
+    import gzip
+
+    from PIL import Image
+
+    from einkartifact.render import preserve_neutral_graphics
+
+    source = tmp_path / "source.png"
+    target = tmp_path / "panel.epdgz"
+    image = Image.new("RGB", (800, 480), "white")
+    for point in ((60, 39), (400, 415), (400, 200)):
+        image.putpixel(point, (51, 51, 51))
+    image.putpixel((65, 39), (135, 19, 0))
+    image.save(source)
+    target.write_bytes(gzip.compress(bytes([0x33]) * 192000))
+    preserve_neutral_graphics(source, target)
+    packed = gzip.decompress(target.read_bytes())
+
+    def ink(x, y):
+        index = y * 800 + x
+        return (packed[index // 2] >> (0 if index % 2 else 4)) & 15
+
+    assert ink(60, 39) == 0
+    assert ink(400, 415) == 0
+    assert ink(70, 39) == 1
+    assert ink(65, 39) == 3  # Colored content is not recolored.
+    assert ink(400, 200) == 3  # Bird-cell pixels keep the color conversion.

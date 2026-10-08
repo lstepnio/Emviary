@@ -62,3 +62,10 @@ Pure white source pixels stay white in the packed panel output. Paper texture
 comes from the physical display; artificial paper grain is omitted to avoid
 colored dithering in empty areas. The palette conversion still handles all
 colored artwork and motifs.
+
+Picture-quality renderer version 3 uses LAB matching against the pinned perceived
+Spectra6 palette, retaining the owner's diffusion and tone-preset controls.
+Neutral text, weather marks and thin rules are packed as black/white in bands
+outside the bird cells. Borders and the label separator use neutral ink rather
+than pale tan that breaks into colored dots. Colored plumage remains subject to
+six-color conversion; neutral-graphics correction never touches bird cells.
