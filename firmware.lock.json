@@ -2,11 +2,11 @@
   "upstream": "https://github.com/aitjcize/esp32-photoframe",
   "fork": "https://github.com/lstepnio/Emviary-firmware",
   "branch": "emviary-poc",
-  "release": "v0.3.3",
-  "commit": "717804a37329fa15b4b23b2ebcc11505baab637e",
+  "release": "v0.4.1",
+  "commit": "9891e1be4336aea4e742db6a5635c724abb80a14",
   "board": "seeedstudio_reterminal_e1002",
-  "behavior": "E1002 right-button clear and wake disabled; Emviary local hostname with PhotoFrame fallback; cloud-managed GitHub OTA with complete image digest verification; scheduled artwork refresh precedes firmware update",
+  "behavior": "E1002 right-button clear and wake disabled; Emviary local hostname with PhotoFrame fallback; cloud-managed GitHub OTA with complete image digest verification; scheduled artwork refresh precedes firmware update; up to five saved Wi-Fi profiles, additive cloud destination staging, bounded visible-network selection and recovery fallback",
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
-  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37818758586",
-  "application_sha256": "b43f3c300c0be64aeeb8462096faed53336ab3a71685d3d509edd1d4e89024dc"
+  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37822452651",
+  "application_sha256": "34d8c03905753d954f49f281aa13755047a87908e71bb411acf9bf30bc26ad55"
 }
