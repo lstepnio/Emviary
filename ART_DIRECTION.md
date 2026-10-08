@@ -103,7 +103,7 @@ filter for that occasion. If it later becomes unavailable, seasonal selection
 is the fallback. Normal rotation resumes on the next day.
 
 
-## Colorado collection and composition (renderer version 7)
+## Colorado collection and composition (renderer version 8)
 
 The library covers 61 Colorado species with 136 approved variants. Coverage is
 selective, not a complete state checklist. Reviewed flight and perched variants,

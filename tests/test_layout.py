@@ -126,3 +126,22 @@ def test_detail_capacity_overrides_three_bird_default(service):
     policy = service.settings.config.frame_defaults.model_dump()
     for seed in map(str, range(30)):
         assert len(render.choose_artworks(constrained, "2026-10-08", {}, [], seed, policy)) <= 2
+
+
+def test_seasonal_motifs_leave_a_white_gap_inside_the_border(service, tmp_path):
+    art = next(a for a in service.settings.artworks if a["approved"] and a.get("kind") == "cutout")
+    policy = service.settings.config.frame_defaults.model_dump()
+    for month in (1, 4, 7, 10):
+        source = tmp_path / f"margin-{month}.png"
+        plan = {
+            "local_date": f"2026-{month:02d}-08",
+            "inputs": {},
+            "policy": policy,
+            "artworks": [art],
+            "layout": {"name": "solo"},
+        }
+        render.compose(service.settings.art_dir, art, plan, source)
+        with Image.open(source) as image:
+            for y in range(270, 380):
+                for x in (*range(9, 14), *range(786, 791)):
+                    assert image.getpixel((x, y))[:3] == (255, 255, 255)

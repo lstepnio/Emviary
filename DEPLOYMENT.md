@@ -270,16 +270,16 @@ Planning validation: the draft service fragment parsed successfully using the ho
 
 **Confidence:** High in the host integration and core architecture; moderate in converter memory, firmware provisioning, and battery performance until measured. Scope growth or poor physical artwork would justify revisiting the design.
 
-## Colorado artwork release 0.5.0
+## Colorado artwork release 0.5.1
 
-Renderer 7 adds adaptive compositions and an 8-pixel border. The library has
+Renderer 8 adds adaptive compositions and an 8-pixel border. The library has
 136 approved variants covering 61 Colorado species; the existing statewide
 bird scope, Denver weather, nightly wake and owner display controls remain in
 use. The AI woodcut and a regional-form review candidate stay outside rotation.
 Source assets are pinned in `art/colorado-art.lock.json`; the generated candidate
 has a separate provenance record in `art/generated-art.lock.json`.
 
-Production uses `emviary:poc-013`. Source/art rollback archives and the prior
-Compose file are stored under `/docker/backups/emviary/release-poc-013`; a
+Production uses `emviary:poc-014`. Source/art rollback archives and the prior
+Compose file are stored under `/docker/backups/emviary/release-poc-014`; a
 consistent application backup preceded deployment. Firmware remains v0.4.1.
 Changes to composition and artwork live entirely in the backend.

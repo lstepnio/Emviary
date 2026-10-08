@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 7
+RENDER_VERSION = 8
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -360,16 +360,16 @@ def compose(art_dir, artwork, plan, output):
     seasonal_offset = -70 if occasion else 0
     # Marginal botanical motifs keep weather and season away from diagnostic plumage.
     for side in (1, -1) if plan["policy"].get("seasonal_themes", True) else ():
-        x = 16 if side == 1 else 784
+        x = 20 if side == 1 else 780
         draw.line(
-            (x, 367 + seasonal_offset, x + side * 9, 288 + seasonal_offset), fill=dark, width=2
+            (x, 367 + seasonal_offset, x + side * 5, 288 + seasonal_offset), fill=dark, width=2
         )
         for n in range(4):
             y = 348 - n * 15 + seasonal_offset
             if season == "winter":
-                draw.line((x + side * 3, y, x + side * 13, y - 7), fill=dark, width=1)
+                draw.line((x + side * 3, y, x + side * 7, y - 7), fill=dark, width=1)
             else:
-                draw.ellipse((x - 8, y - 11, x + 7, y - 4), fill=light)
+                draw.ellipse((x - 6, y - 11, x + 5, y - 4), fill=light)
                 if season == "spring":
                     draw.ellipse((x - 2, y - 11, x + 3, y - 6), fill="#c1a96e")
     forecast = plan["inputs"].get("open_meteo")
