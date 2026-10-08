@@ -359,7 +359,7 @@ def attach_owner(app, service):
                 "Older versions are never installed automatically.</p></details>"
             )
             body += checkbox("location_date", "Show location / date", policy["show_location_date"])
-            body += checkbox("labels", "Species labels", policy["show_species_name"]) + checkbox(
+            body += checkbox("labels", "Common bird names", policy["show_species_name"]) + checkbox(
                 "weather", "Subtle daily weather", policy["weather_cues"]
             )
             body += checkbox(

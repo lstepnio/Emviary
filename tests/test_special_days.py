@@ -129,4 +129,4 @@ def test_long_labels_and_greetings_fit_without_touching_bird_pixels(service, tmp
     plan.update(artworks=[works[0]], special_day=event)
     render.compose(service.settings.art_dir, works[0], plan, path)
     with Image.open(path) as image:
-        assert json.loads(image.info["eink_neutral_bands"])[1][0] == 310
+        assert json.loads(image.info["eink_neutral_bands"])[1][0] == 328

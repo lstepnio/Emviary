@@ -60,7 +60,7 @@ def test_neutral_graphics_preserve_bird_pixels(tmp_path):
     source = tmp_path / "source.png"
     target = tmp_path / "panel.epdgz"
     image = Image.new("RGB", (800, 480), "white")
-    for point in ((60, 39), (400, 415), (400, 200)):
+    for point in ((60, 39), (400, 415), (400, 451), (400, 200)):
         image.putpixel(point, (51, 51, 51))
     image.putpixel((65, 39), (135, 19, 0))
     image.save(source)
@@ -73,7 +73,8 @@ def test_neutral_graphics_preserve_bird_pixels(tmp_path):
         return (packed[index // 2] >> (0 if index % 2 else 4)) & 15
 
     assert ink(60, 39) == 0
-    assert ink(400, 415) == 0
+    assert ink(400, 451) == 0
+    assert ink(400, 415) == 3  # Reclaimed art pixels retain their color conversion.
     assert ink(70, 39) == 1
     assert ink(65, 39) == 3  # Colored content is not recolored.
     assert ink(400, 200) == 3  # Bird-cell pixels keep the color conversion.
@@ -91,7 +92,7 @@ def test_composition_has_safe_nonoverlapping_art_and_caption_regions():
             assert len(cells) == len(captions) == count
             for left, top, right, bottom in cells:
                 assert 24 <= left < right <= 776
-                assert 48 <= top < bottom <= 376
+                assert 48 <= top < bottom <= 412
             for index, (left, top, right, bottom) in enumerate(cells):
                 for other_left, other_top, other_right, other_bottom in cells[index + 1 :]:
                     assert (
@@ -182,3 +183,41 @@ def test_location_date_header_defaults_hidden_and_can_be_enabled(service, tmp_pa
         assert changed is not None
         assert changed[0] >= 24 and changed[1] >= 20
         assert changed[2] <= 350 and changed[3] <= 45
+
+
+def test_frame_labels_use_only_common_names_and_leave_room_for_larger_art(
+    service, tmp_path, monkeypatch
+):
+    from PIL import ImageDraw
+
+    texts = []
+    original = ImageDraw.ImageDraw.text
+
+    def record_text(self, xy, text, *args, **kwargs):
+        texts.append(text)
+        return original(self, xy, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", record_text)
+    birds = [
+        a
+        for a in service.settings.artworks
+        if a["approved"] and a.get("kind", "cutout") == "cutout"
+    ][:3]
+    policy = service.settings.config.frame_defaults.model_dump()
+    for count in (1, 2, 3):
+        selected = birds[:count]
+        plan = dict(
+            local_date="2026-10-08",
+            seed="common-names",
+            inputs={},
+            policy=policy,
+            artworks=selected,
+        )
+        texts.clear()
+        render.compose(service.settings.art_dir, selected[0], plan, tmp_path / f"names-{count}.png")
+        assert all(a["common_name"] in " ".join(texts) for a in selected)
+        assert all(a["scientific_name"] not in " ".join(texts) for a in selected)
+    # The art reaches lower without entering the common-name caption band.
+    cells, _ = render.composition_cells("solo", 1)
+    assert cells[0][3] > 400
+    assert cells[0][3] < 428

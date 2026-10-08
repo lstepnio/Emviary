@@ -102,6 +102,10 @@ Emviary was previously named eInkArtifact. Both application and firmware reposit
 device provisioning files stay outside Git.
 See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.
 
+### Species captions
+
+The frame displays common bird names only. Scientific names remain in the web library, source credits and backend species matching. Removing the second caption row increases the main artwork region by 36 pixels in height, with 18 extra pixels for special-day bird art. Common names can still wrap onto two lines for multi-bird compositions.
+
 ### Display header
 
 Location and date are hidden by default for both existing and new frames. Enable **Show location / date** in frame management to include them in the upper-left corner. This only changes the artwork; locality selection, forecast date validation and the nightly wake schedule continue to use the configured location and date.
