@@ -31,6 +31,10 @@ def main():
     parser.add_argument("checkout", type=Path)
     parser.add_argument("--output", type=Path, default=Path("art"))
     args = parser.parse_args()
+    if (args.output / "catalog.json").exists():
+        raise ValueError(
+            "Import into a fresh directory; do not replace an existing curated catalog"
+        )
     revision = subprocess.check_output(
         ["git", "-C", str(args.checkout), "rev-parse", "HEAD"], text=True
     ).strip()

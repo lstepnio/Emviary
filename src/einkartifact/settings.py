@@ -9,6 +9,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+ART_LICENSES = {"CC-BY-SA-4.0", "CC-BY-NC-SA-4.0", "MIT", "Public-Domain"}
+
 
 class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -175,16 +177,32 @@ class Settings:
             path.mkdir(parents=True, exist_ok=True)
         self.db_path = self.data_dir / "einkartifact.sqlite3"
         self.catalog = json.loads((self.art_dir / "catalog.json").read_text())
-        if self.catalog.get("license") != "CC-BY-SA-4.0":
-            raise ValueError("Curated catalog must declare its artwork license")
+        if self.catalog.get("license") not in ART_LICENSES | {"mixed"}:
+            raise ValueError("Curated catalog must declare its artwork licenses")
         self.artworks = self.catalog["artworks"]
         if not self.artworks or len({a["id"] for a in self.artworks}) != len(self.artworks):
             raise ValueError("The artwork catalog must have unique entries")
         for artwork in self.artworks:
-            if not artwork.get("approved") or not artwork.get("source_url"):
-                raise ValueError("Every catalog entry needs approval and source attribution")
+            if not isinstance(artwork.get("approved"), bool) or not artwork.get("source_url"):
+                raise ValueError("Every catalog entry needs a review decision and attribution")
+            if artwork.get("license") not in ART_LICENSES:
+                raise ValueError("Artwork must have a supported, explicit license")
+            if artwork.get("kind", "cutout") not in {"cutout", "plate", "field_study"}:
+                raise ValueError("Unsupported artwork layout")
+            if artwork.get("kind") == "field_study" and artwork["approved"]:
+                raise ValueError("Field-study plates are reference only on this panel")
+            bird_count = artwork.get("depicted_birds", 1)
+            if type(bird_count) is not int or bird_count not in (1, 2):
+                raise ValueError("Artwork may depict at most two birds")
+            months = artwork.get("months", [])
+            if not months or any(type(m) is not int or not 1 <= m <= 12 for m in months):
+                raise ValueError("Artwork needs valid seasonal eligibility")
             asset = (self.art_dir / artwork["asset"]).resolve()
             if not asset.is_relative_to(self.art_dir) or not asset.is_file():
                 raise ValueError("Artwork path must resolve to a file within the art directory")
             if hashlib.sha256(asset.read_bytes()).hexdigest() != artwork.get("asset_sha256"):
                 raise ValueError("Artwork does not match its curated source hash")
+            if artwork.get("license_file"):
+                notice = (self.art_dir / artwork["license_file"]).resolve()
+                if not notice.is_relative_to(self.art_dir / "licenses") or not notice.is_file():
+                    raise ValueError("Artwork license notice is missing or outside the library")

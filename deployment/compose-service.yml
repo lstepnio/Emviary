@@ -1,7 +1,7 @@
 # Fragment for /docker/docker-compose.yml under its existing services map.
 # Reuse the existing caddy network definition; it resolves to docker_caddy.
   einkartifact:
-    image: einkartifact:poc-005
+    image: einkartifact:poc-006
     pull_policy: never
     container_name: einkartifact
     user: "1000:1000"

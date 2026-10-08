@@ -109,8 +109,12 @@ class Service:
             "seed": seed,
             "artwork": artworks[0],
             "artworks": artworks,
-            "layout": {"bird_count": len(artworks), "panel_capacity": 2},
-            "license": "CC-BY-SA-4.0",
+            "layout": {
+                "bird_count": sum(a.get("depicted_birds", 1) for a in artworks),
+                "panel_capacity": 2,
+            },
+            "license": render.composition_license(artworks),
+            "artwork_licenses": sorted({a["license"] for a in artworks}),
             "renderer_version": render.RENDER_VERSION,
             "converter_version": self.settings.config.render.initial_converter_version,
         }

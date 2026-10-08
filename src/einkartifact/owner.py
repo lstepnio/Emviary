@@ -330,7 +330,9 @@ def attach_owner(app, service):
                 "<details><summary>Birds to include</summary>"
                 '<input type="hidden" name="species_controls" value="1">'
             )
-            species = sorted({a["scientific_name"] for a in service.settings.artworks})
+            species = sorted(
+                {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
+            )
             for index, name in enumerate(species):
                 artwork = next(a for a in service.settings.artworks if a["scientific_name"] == name)
                 selected = not policy["allowed_species"] or name in policy["allowed_species"]
@@ -501,7 +503,9 @@ def attach_owner(app, service):
                 seasonal_themes=data.get("season") == "on",
             )
             if data.get("species_controls"):
-                species = sorted({a["scientific_name"] for a in service.settings.artworks})
+                species = sorted(
+                    {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
+                )
                 selected = [
                     name
                     for index, name in enumerate(species)

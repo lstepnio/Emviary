@@ -3,6 +3,7 @@ import hashlib
 import html
 import json
 import logging
+import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -154,7 +155,7 @@ def create_app(service=None, schedule=True):
             raise HTTPException(404, "Unknown artwork")
         return FileResponse(
             service.settings.art_dir / artwork["asset"],
-            media_type="image/webp",
+            media_type=mimetypes.guess_type(artwork["asset"])[0] or "application/octet-stream",
             headers={"Cache-Control": "public, max-age=3600"},
         )
 
@@ -162,26 +163,91 @@ def create_app(service=None, schedule=True):
     def credits():
         return service.settings.catalog
 
+    @app.get("/art-license/{artwork_id}")
+    def artwork_license(artwork_id: str):
+        artwork = next((a for a in service.settings.artworks if a["id"] == artwork_id), None)
+        if not artwork or not artwork.get("license_file"):
+            raise HTTPException(404, "License notice unavailable")
+        path = (service.settings.art_dir / artwork["license_file"]).resolve()
+        if not path.is_relative_to(service.settings.art_dir / "licenses") or not path.is_file():
+            raise HTTPException(404, "License notice unavailable")
+        return FileResponse(path, media_type="text/plain")
+
     @app.get("/library", response_class=HTMLResponse)
     def index():
-        cards, names = [], set()
+        escape = html.escape
+        groups = {}
         for artwork in service.settings.artworks:
-            if artwork["scientific_name"] in names:
-                continue
-            names.add(artwork["scientific_name"])
+            groups.setdefault(artwork["scientific_name"], []).append(artwork)
+        cards = []
+        for name, variants in sorted(groups.items(), key=lambda pair: pair[1][0]["common_name"]):
+            variants.sort(key=lambda a: (not a["approved"], a["id"]))
+            artwork = variants[0]
+            active = sum(a["approved"] for a in variants)
+            details = []
+            for item in variants:
+                identifier = escape(item["id"], quote=True)
+                label = item["license"].replace("-", " ")
+                license_link = (
+                    "/art-license/" + identifier
+                    if item.get("license_file")
+                    else "https://creativecommons.org/licenses/by-sa/4.0/"
+                )
+                status = "In rotation" if item["approved"] else "Web reference only"
+                medium = "Existing AI-generated art" if item.get("generated") else "Historical art"
+                details.append(
+                    '<section class="variant"><a href="/art/'
+                    + identifier
+                    + '"><img loading="lazy" src="/art/'
+                    + identifier
+                    + '" alt="'
+                    + escape(item["common_name"], quote=True)
+                    + '"></a><p>'
+                    + escape(item["source"])
+                    + "<br>"
+                    + status
+                    + " / "
+                    + medium
+                    + "</p><p>"
+                    + escape(item.get("credit", ""))
+                    + '</p><p><a href="'
+                    + escape(item["source_url"], quote=True)
+                    + '">Source artwork</a> / '
+                    + '<a href="'
+                    + license_link
+                    + '">'
+                    + escape(label)
+                    + "</a></p><p>"
+                    + escape(item["review_status"])
+                    + "</p></section>"
+                )
             cards.append(
-                '<article><img loading="lazy" src="/art/'
-                + html.escape(artwork["id"], quote=True)
-                + '" alt="Curated illustration of '
-                + html.escape(artwork["common_name"], quote=True)
-                + '"><h2>'
-                + html.escape(artwork["common_name"])
+                '<article><a href="/art/'
+                + escape(artwork["id"], quote=True)
+                + '"><img loading="lazy" src="/art/'
+                + escape(artwork["id"], quote=True)
+                + '" alt="'
+                + escape(artwork["common_name"], quote=True)
+                + '"></a><h2>'
+                + escape(artwork["common_name"])
                 + "</h2><p><i>"
-                + html.escape(artwork["scientific_name"])
-                + '</i></p><a href="'
-                + html.escape(artwork["source_url"], quote=True)
-                + '">Original plate</a></article>'
+                + escape(name)
+                + "</i><br>"
+                + str(active)
+                + " rotation images"
+                + (
+                    " / " + str(len(variants) - active) + " web references"
+                    if active < len(variants)
+                    else ""
+                )
+                + "</p><details><summary>Variants and credits</summary>"
+                + "".join(details)
+                + "</details></article>"
             )
+        active_count = sum(a["approved"] for a in service.settings.artworks)
+        species_count = len(
+            {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
+        )
         return (
             """<!doctype html><html lang="en"><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -191,31 +257,40 @@ def create_app(service=None, schedule=True):
         main{max-width:1080px;margin:auto;padding:52px 24px}
         .eyebrow{font:12px system-ui;letter-spacing:.16em;text-transform:uppercase;color:#69715e}
         h1{font-size:clamp(38px,7vw,70px);font-weight:400;line-height:1.1;margin:20px 0}
-        .intro{max-width:660px;font-size:19px;line-height:1.6;color:#656956}
+        .intro{max-width:680px;font-size:19px;line-height:1.6;color:#656956}
         .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
         gap:24px;margin:42px 0}article{padding:20px;background:#faf7ef;border:1px solid #d9d5c5}
         img{width:100%;height:190px;object-fit:contain}h2{font-weight:400;font-size:19px}
-        article p,article a{font-size:13px}a{color:#536750}footer{border-top:1px solid #d1cbb9;
-        padding-top:28px;font:14px/1.7 system-ui;color:#6a6d5d}
-        </style><main><div class="eyebrow">Denver / natural history / e-paper</div>
+        article p,article a{font-size:13px}a{color:#536750}summary{cursor:pointer}
+        .variant{border-top:1px solid #d9d5c5;margin-top:18px;padding-top:14px}
+        footer{border-top:1px solid #d1cbb9;padding-top:28px;font:14px/1.7 system-ui;color:#6a6d5d}
+        </style><main><p><a href="/">Display</a> / <a href="/manage">Manage</a></p>
+        <div class="eyebrow">Denver / natural history / e-paper</div>
         <h1>A little bird art,<br>every morning.</h1>
-        <p class="intro">Curated natural-history illustrations, selected for birds around Denver.
-        A fresh composition each night brings a quiet hint of the season and the day's outlook.</p>
+        <p class="intro">"""
+            + f"{active_count} rotation images covering {species_count} Denver-area species. "
+            + """Historical illustrations and selected existing generated art bring variety to the
+        frame. Text-heavy field studies are web references only. Seasonal eligibility applies to
+        each pose; local reports influence selection without claiming a backyard visit.</p>
         <div class="gallery">"""
             + "".join(cards)
-            + """</div>
-        <footer>Artwork curated and restored by
-        <a href="https://github.com/arnegiacomo/fugleramme">Fugleramme contributors</a>.
-        Classic cutouts and our adapted compositions:
-        <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
-        Adaptations include resizing, seasonal/weather composition, labels, and panel dithering.
-        Original plate sources are linked above; <a href="/credits.json">full credits</a>.<br>
-        Regional detections from <a href="https://app.birdweather.com/">BirdWeather</a>;
-        optional regional reports from <a href="https://ebird.org/">eBird, Cornell Lab</a>.
-        These do not establish visits to an individual garden. Forecasts:
-        <a href="https://open-meteo.com/">Open-Meteo</a>,
+            + """</div><footer>Sources include
+        <a href="https://github.com/arnegiacomo/fugleramme">Fugleramme</a>,
+        <a href="https://github.com/adamoberley/HABirdDashboard">HABirdDashboard</a>,
+        <a href="https://github.com/Belkins/belkins-birdnet">Belkins</a>,
+        <a href="https://github.com/wr/featherframe">Featherframe's historical collection</a>,
+        <a href="https://github.com/veteranbv/inky-bird-frame">Inky Bird Frame</a> and the
+        shared art used by <a href="https://github.com/simenf/birdframe">BirdFrame</a>.
+        Each asset retains its own license: CC BY-SA 4.0, CC BY-NC-SA 4.0, MIT or public domain.
+        Belkins images and compositions using them are for noncommercial use.
+        Incompatible ShareAlike assets are never combined into one frame image.
+        Adaptations resize, compose, label and dither unchanged masters;
+        <a href="/credits.json">full provenance and credits</a>.<br>
+        Regional detections: <a href="https://app.birdweather.com/">BirdWeather</a>;
+        optional regional reports: <a href="https://ebird.org/">eBird, Cornell Lab</a>.
+        Forecasts: <a href="https://open-meteo.com/">Open-Meteo</a>,
         <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
-        The artwork is a daily outlook, not a live weather report.</footer></main></html>"""
+        The artwork is a dated daily outlook.</footer></main></html>"""
         )
 
     @app.get("/")

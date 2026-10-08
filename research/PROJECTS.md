@@ -4,10 +4,9 @@
 
 https://github.com/aitjcize/esp32-photoframe is the firmware base. Our fork is
 https://github.com/lstepnio/einkartifact-firmware, branch `einkartifact-poc`, pinned
-to v2.19.0 (`186ebaf3b470305824d238c2d2dabf2c5bc59a7a`). The E1002 already runs this
-version. URL polling, bearer authentication, ETag caching, server configuration
-headers, scheduled wake, and deep sleep provide the needed protocol without
-custom firmware changes. The submodule retains upstream licensing.
+to v2.19.0 (`186ebaf3b470305824d238c2d2dabf2c5bc59a7a`). The firmware lock records the installed fork. URL polling, bearer authentication, ETag caching, server configuration
+headers, scheduled wake, and deep sleep provide the needed protocol with
+small device-specific recovery and button changes. The submodule retains upstream licensing.
 
 ## Fugleramme
 
@@ -36,11 +35,14 @@ Useful ideas adopted independently:
   not individual birds or a backyard census.
 
 Its collage packing, dual poses, station-specific selection, and eBird fallback
-are useful future options. We defer them: a single bird reads better on this
-800×480 panel, and regional data needs no microphone installation. Its larger
+are useful future options. Our panel supports a maximum of two distinct birds, and regional data needs no microphone installation. Its larger
 Pi-driven display and frequent updates do not match our battery-first goal.
 Generated poses would require anatomical review before joining our catalog.
 
-No Avian Visitors code or artwork was copied. The examined repository's root
-license is CC BY-NC-SA 4.0; copying it would introduce obligations beyond our
-own MIT service and the curated collection's CC BY-SA artwork.
+No Avian Visitors code was copied in the initial implementation. The expanded
+library now includes selected shared artwork from the separately pinned
+HABirdDashboard and Belkins collections, with per-asset provenance. The examined repository's root
+license is CC BY-NC-SA 4.0; its assets retain their own declared terms.
+
+See [RELATED_PROJECTS.md](RELATED_PROJECTS.md) for the five additional projects,
+the 73-image catalogue and proposed features.

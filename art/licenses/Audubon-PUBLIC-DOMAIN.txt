@@ -1,0 +1,6 @@
+The Birds of America, Havell edition (1827-1838), by John James Audubon: public domain.
+Source: https://github.com/wr/historical-bird-plates and https://github.com/wr/featherframe/blob/0e06ea0333b3091018f70b01ec417f00dd31bef3/THIRD_PARTY.md
+Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing.
+Cleaned release crops by William Riley. Metadata crosswalk: CC0-1.0.
+Public Domain Mark: https://creativecommons.org/publicdomain/mark/1.0/
+Retain the plate-specific artist/engraver credit in catalog.json.

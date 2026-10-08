@@ -4,13 +4,14 @@ A Denver-area bird-art gift built around the reTerminal E1002.
 
 A sleeping ESP32 PhotoFrame client retrieves one prepared image each night from
 https://eink.majjix.com. One Python Docker service on `one.majjix.com` combines
-curated Fugleramme bird illustrations, regional BirdWeather detections and optional eBird observations, seasonal
+curated historical and existing illustrated bird art, regional BirdWeather detections and optional eBird observations, seasonal
 motifs and understated Open-Meteo forecast cues. No paid subscription, microphone,
 Raspberry Pi or online image generation is required for this POC.
 
 ## Implementation
 
-- Eight species, eleven curated poses; source links and CC BY-SA credits retained.
+- 32 species, 73 rotation images and three web-only field studies; original masters,
+  source credits and per-asset provenance retained.
 - 800×480 Spectra6 conversion through pinned `epaper-image-convert`, producing
   validated EPDGZ files. Rendering happens before the frame fetches.
 - Preparation at 02:30 and frame wake at 03:15 America/Denver, including DST.
@@ -30,8 +31,8 @@ Raspberry Pi or online image generation is required for this POC.
 The firmware fork is https://github.com/lstepnio/einkartifact-firmware, pinned to
 upstream v2.19.0 with a small clear-screen recovery patch. It invalidates the
 image cache marker when the panel is cleared and avoids a duplicate Spectra
-refresh. The attached E1002 runs `dev-a514a2c`; its restored bird picture was
-physically confirmed. Battery sleep and endurance need separate validation.
+refresh. The firmware lock pins `dev-04c423f`, with the E1002 physical clear button
+disabled. The owner confirmed that pressing that button retains the picture. Battery sleep and endurance need separate validation.
 See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
 
 ## Local development
@@ -71,8 +72,8 @@ See [RUNBOOK.md](RUNBOOK.md) for owner operations and restore instructions,
 [PLAN.md](PLAN.md) for architecture, cost and power tradeoffs, and
 [research/PROJECTS.md](research/PROJECTS.md) for upstream reuse decisions.
 
-Original service code is MIT licensed. Curated artwork and new compositions are
-CC BY-SA 4.0; fonts are OFL licensed. Artwork provenance is in
+Original service code is MIT licensed. Artwork retains its per-asset MIT,
+CC BY-SA, CC BY-NC-SA or public-domain provenance; fonts are OFL licensed. Artwork provenance is in
 [art/FUGLERAMME-ATTRIBUTION.md](art/FUGLERAMME-ATTRIBUTION.md) and
 [art/catalog.json](art/catalog.json). Unreviewed generated experiments are kept
 separately and excluded from runtime and deployment.
@@ -84,7 +85,9 @@ with acoustic detections. The key and observer/checklist details are not stored
 in snapshots, artwork manifests, Git or application backups. Enable it per site
 in management; the example keeps it disabled for local setup. BirdWeather and
 eBird share the configured center and locality radius, defaulting to 25 km.
-Observations outside that circle are filtered before selection. The eight
-curated species are Denver residents; this POC varies seasonal surroundings
-rather than claiming a complete migratory bird catalogue. Additional species
-require reviewed, licensed art and locality/season metadata.
+Observations outside that circle are filtered before selection. The expanded
+catalogue includes Denver-area residents and seasonal birds, with eligibility
+windows attached to the art, including breeding-plumage restrictions. It does
+not claim to be a complete bird catalogue. See
+[research/RELATED_PROJECTS.md](research/RELATED_PROJECTS.md) for the five-project
+review, incorporated artwork, validation and prioritized feature ideas.

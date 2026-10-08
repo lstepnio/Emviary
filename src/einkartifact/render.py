@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from .store import stable_json
 
-RENDER_VERSION = 3
+RENDER_VERSION = 4
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -70,16 +70,45 @@ def choose_art(artworks, local_date, inputs, recent_species, seed):
 
 
 def choose_artworks(artworks, local_date, inputs, recent_species, seed, policy):
-    first = choose_art(artworks, local_date, inputs, recent_species, seed)
     capacity = min(policy.get("max_birds", 2), max(1, policy["panel"]["width"] // 360))
-    alternatives = [a for a in artworks if a["scientific_name"] != first["scientific_name"]]
-    if capacity < 2 or not alternatives or random.Random(seed + ":layout").random() < 0.35:
+    candidates = [a for a in artworks if a.get("depicted_birds", 1) <= capacity]
+    first = choose_art(candidates, local_date, inputs, recent_species, seed)
+    alternatives = [
+        a
+        for a in candidates
+        if a["scientific_name"] != first["scientific_name"]
+        and a.get("kind", "cutout") == "cutout"
+        and a.get("depicted_birds", 1) == 1
+        and compatible_licenses([first, a])
+    ]
+    if (
+        capacity < 2
+        or first.get("kind", "cutout") != "cutout"
+        or first.get("depicted_birds", 1) > 1
+        or not alternatives
+        or random.Random(seed + ":layout").random() < 0.35
+    ):
         return [first]
     try:
         second = choose_art(alternatives, local_date, inputs, recent_species, seed + ":second")
     except ValueError:
         return [first]
     return [first, second]
+
+
+def compatible_licenses(artworks):
+    licenses = {a["license"] for a in artworks}
+    return not {"CC-BY-SA-4.0", "CC-BY-NC-SA-4.0"} <= licenses
+
+
+def composition_license(artworks):
+    if not compatible_licenses(artworks):
+        raise ValueError("Incompatible ShareAlike licenses in one composition")
+    licenses = {a["license"] for a in artworks}
+    for license_name in ("CC-BY-NC-SA-4.0", "CC-BY-SA-4.0"):
+        if license_name in licenses:
+            return license_name
+    return "MIT"  # Our composition; original public-domain art stays public domain.
 
 
 def _font(art_dir, size, italic=False):
@@ -180,10 +209,18 @@ def compose(art_dir, artwork, plan, output):
             draw_weather_mark(draw, values, 617, 39)
             draw.text((746, 39), label, font=_font(art_dir, 12), fill="#333333", anchor="ra")
     birds = plan.get("artworks", [artwork])
-    if not 1 <= len(birds) <= min(2, policy.get("max_birds", 2)):
+    count = sum(a.get("depicted_birds", 1) for a in birds)
+    if not 1 <= count <= min(2, policy.get("max_birds", 2)):
         raise ValueError("The panel supports at most two birds")
+    if any(a.get("kind", "cutout") != "cutout" for a in birds) and len(birds) != 1:
+        raise ValueError("Historical plates require their own composition")
+    if any(not a["approved"] or a.get("kind") == "field_study" for a in birds):
+        raise ValueError("Reference artwork cannot be sent to the panel")
+    composition_license(birds)
     centers = [400] if len(birds) == 1 else [222, 578]
     limits = (572, 313) if len(birds) == 1 else (302, 285)
+    if birds[0].get("kind") == "plate":
+        limits = (660, 313)
     for item, center in zip(birds, centers, strict=True):
         with Image.open(art_dir / item["asset"]) as original:
             bird = original.convert("RGBA")

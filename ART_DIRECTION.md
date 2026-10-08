@@ -69,3 +69,17 @@ Neutral text, weather marks and thin rules are packed as black/white in bands
 outside the bird cells. Borders and the label separator use neutral ink rather
 than pale tan that breaks into colored dots. Colored plumage remains subject to
 six-color conversion; neutral-graphics correction never touches bird cells.
+
+## Expanded library (renderer version 4)
+
+The catalogue includes historical cutouts, selected existing generated cutouts,
+and historical full-art crops. Source masters remain unchanged. Historical
+plates appear alone and retain every depicted bird; the capacity check counts
+birds in the source, not just catalogue entries. Text-heavy field-study plates
+are web references and cannot be selected or composed for this panel.
+
+Approval means accepted for backend rotation after visual screening; it does
+not certify ornithological accuracy or physical display quality. Those limits
+are recorded per asset. Bright breeding plumage can have narrower eligibility
+than the species itself. Regional provider weighting never overrides the
+seasonal and owner species filters. See research/RELATED_PROJECTS.md.

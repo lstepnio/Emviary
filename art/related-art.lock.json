@@ -1,318 +1,40 @@
 {
-  "license": "mixed",
-  "upstream": "https://github.com/arnegiacomo/fugleramme",
-  "upstream_revision": "62202503ddd059875367046d472d564840cd9cc6",
-  "curation": "Reviewed Denver-area subset of historical art and existing generated illustrations; reference-only field studies are excluded from rotation",
-  "adaptations": "Masters unchanged; rendered outputs resize, compose, label and dither. Historical plates appear alone; reference plates remain web-only.",
+  "schema_version": 1,
+  "reviewed_date": "2026-10-08",
+  "source_collections": [
+    {
+      "project": "https://github.com/adamoberley/HABirdDashboard",
+      "revision": "c52f4584134d437f57f6bddf0f3252f99b2c3cae",
+      "notice": "licenses/HABirdDashboard-MIT.txt"
+    },
+    {
+      "project": "https://github.com/Belkins/belkins-birdnet",
+      "revision": "790c1557228b86fcc2d38853e96b7129a1c874f3",
+      "notice": "licenses/Belkins-CC-BY-NC-SA-4.0.txt"
+    },
+    {
+      "project": "https://github.com/veteranbv/inky-bird-frame",
+      "revision": "15eefcc2cdf1538a61f3653bd4cc8720641ede6b",
+      "notice": "licenses/Inky-MIT.txt"
+    },
+    {
+      "project": "https://github.com/wr/featherframe",
+      "revision": "0e06ea0333b3091018f70b01ec417f00dd31bef3",
+      "notice": "licenses/Audubon-PUBLIC-DOMAIN.txt"
+    },
+    {
+      "project": "https://github.com/simenf/birdframe",
+      "revision": "de9c32e4ab4743f6313549821a15f6caa3fd8127",
+      "notice": null
+    },
+    {
+      "project": "https://github.com/wr/historical-bird-plates",
+      "revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a",
+      "notice": "licenses/historical-metadata-CC0.txt",
+      "image_release": "havell-v2"
+    }
+  ],
   "artworks": [
-    {
-      "id": "poecile-atricapillus",
-      "scientific_name": "Poecile atricapillus",
-      "common_name": "Black-capped Chickadee",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/poecile-atricapillus.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "d6a208b63a4d13184fd6a0d679e992da0d939e00e4f35122553db01ce4c3eb1a",
-      "source": "hines",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Poecile_atricapillaFJ03P05CA.JPG",
-      "upstream_asset": "assets/artwork/classic/birds/poecile-atricapillus.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "poecile-atricapillus-2",
-      "scientific_name": "Poecile atricapillus",
-      "common_name": "Black-capped Chickadee",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/poecile-atricapillus-2.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "0f2edc7c3e2397328b4ae1d5f0b4596f3540e59250bf2552598c1d08bede1490",
-      "source": "hines",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Poecile_atricapillaFJ03P05CA.JPG",
-      "upstream_asset": "assets/artwork/classic/birds/poecile-atricapillus-2.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "cyanocitta-cristata",
-      "scientific_name": "Cyanocitta cristata",
-      "common_name": "Blue Jay",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/cyanocitta-cristata.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "6a633c353f1e1a85d818043c07cdced979a2d0a92487495a27861abf7419b91f",
-      "source": "audubon",
-      "source_url": "https://media.audubon.org/boa_illustration/plate-102-blue-jay.jpg",
-      "upstream_asset": "assets/artwork/classic/birds/cyanocitta-cristata.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "corvus-brachyrhynchos",
-      "scientific_name": "Corvus brachyrhynchos",
-      "common_name": "American Crow",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/corvus-brachyrhynchos.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "a209d8b9ecfc1eca04028ddb7c576e1e886c656aa195161d850685a9280a203b",
-      "source": "audubon",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Common_American_Crow._Male._(Black_Walnut.)_(NYPL_b13559627-108485).tiff",
-      "upstream_asset": "assets/artwork/classic/birds/corvus-brachyrhynchos.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "haemorhous-mexicanus-2",
-      "scientific_name": "Haemorhous mexicanus",
-      "common_name": "House Finch",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/haemorhous-mexicanus-2.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "9375b28170772594443489bd96e33ff69a6e70cadf9fc91286cd146dc3511100",
-      "source": "cassin",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America_(Plate_13)_(6306532410).jpg",
-      "upstream_asset": "assets/artwork/classic/birds/haemorhous-mexicanus-2.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "haemorhous-mexicanus-3",
-      "scientific_name": "Haemorhous mexicanus",
-      "common_name": "House Finch",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/haemorhous-mexicanus-3.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "422c6da0eb8797eef081cf2fff28d15736321336668912fa7552231ad70c3c22",
-      "source": "cassin",
-      "source_url": "https://commons.wikimedia.org/wiki/File:Illustrations_of_the_birds_of_California,_Texas,_Oregon,_British_and_Russian_America_(Plate_13)_(6306532410).jpg",
-      "upstream_asset": "assets/artwork/classic/birds/haemorhous-mexicanus-3.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "pica-hudsonia",
-      "scientific_name": "Pica hudsonia",
-      "common_name": "Black-billed Magpie",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/pica-hudsonia.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "387ae19a12636801da14ed20cf445a57c53c1efa9bba77d023a514db652df6f6",
-      "source": "audubon",
-      "source_url": "https://media.audubon.org/boa_illustration/plate-357-american-magpie.jpg",
-      "upstream_asset": "assets/artwork/classic/birds/pica-hudsonia.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "pica-hudsonia-2",
-      "scientific_name": "Pica hudsonia",
-      "common_name": "Black-billed Magpie",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/pica-hudsonia-2.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "cfc9630e9fd6ee1fcc201354061680238104cb10df092b6e64f61d1b3869e0c4",
-      "source": "audubon",
-      "source_url": "https://media.audubon.org/boa_illustration/plate-357-american-magpie.jpg",
-      "upstream_asset": "assets/artwork/classic/birds/pica-hudsonia-2.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "turdus-migratorius",
-      "scientific_name": "Turdus migratorius",
-      "common_name": "American Robin",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/turdus-migratorius.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "6d4ab4ea3aa9e35672d8491e2a91289d8754be87931249f93a897d354395463f",
-      "source": "gould",
-      "source_url": "https://commons.wikimedia.org/wiki/File:GouldBirdsEuropeIIMigratory_Ouzel.jpg",
-      "upstream_asset": "assets/artwork/classic/birds/turdus-migratorius.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "sitta-canadensis",
-      "scientific_name": "Sitta canadensis",
-      "common_name": "Red-breasted Nuthatch",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/sitta-canadensis.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "90d94fe22998324905245901332b6357a0473060f42a24fea2c1f8de7a970b34",
-      "source": "audubon",
-      "source_url": "https://www.audubon.org/art/birds-of-america/red-breasted-nuthatch",
-      "upstream_asset": "assets/artwork/classic/birds/sitta-canadensis.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
-    {
-      "id": "dryobates-pubescens",
-      "scientific_name": "Dryobates pubescens",
-      "common_name": "Downy Woodpecker",
-      "months": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "asset": "masters/dryobates-pubescens.webp",
-      "approved": true,
-      "review_status": "Upstream curated; physical panel review pending",
-      "asset_sha256": "1016850266ef81519f96793edc4f54c08352510c6b8b06ccb510d4a4f754ab90",
-      "source": "audubon",
-      "source_url": "https://media.audubon.org/boa_illustration/plate-112-downy-woodpecker.jpg",
-      "upstream_asset": "assets/artwork/classic/birds/dryobates-pubescens.webp",
-      "license": "CC-BY-SA-4.0",
-      "credit": "Original plate source linked; cutout/restoration by Fugleramme contributors"
-    },
     {
       "id": "habird-spinus-tristis",
       "common_name": "American Goldfinch",
@@ -2896,37 +2618,373 @@
       ]
     }
   ],
-  "source_collections": [
+  "downloads": [
     {
-      "project": "https://github.com/adamoberley/HABirdDashboard",
-      "revision": "c52f4584134d437f57f6bddf0f3252f99b2c3cae",
-      "notice": "licenses/HABirdDashboard-MIT.txt"
+      "asset": "masters/habird-spinus-tristis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/spinus-tristis.png",
+      "sha256": "6d4c336c2f111d129918c7431b293bef8f3b5278f3fbe7b6fbb6759130251c6d"
     },
     {
-      "project": "https://github.com/Belkins/belkins-birdnet",
-      "revision": "790c1557228b86fcc2d38853e96b7129a1c874f3",
-      "notice": "licenses/Belkins-CC-BY-NC-SA-4.0.txt"
+      "asset": "masters/habird-spinus-tristis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/spinus-tristis-2.png",
+      "sha256": "f6797188dd69ae152162c7c8d99d60cd8daa2392051adca372037697c9884ed2"
     },
     {
-      "project": "https://github.com/veteranbv/inky-bird-frame",
-      "revision": "15eefcc2cdf1538a61f3653bd4cc8720641ede6b",
-      "notice": "licenses/Inky-MIT.txt"
+      "asset": "masters/habird-zenaida-macroura.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/zenaida-macroura.png",
+      "sha256": "35f3b0c8908eb4ef92dab1574d569dd1eb133a31663c68819aa08a48ac8e2074"
     },
     {
-      "project": "https://github.com/wr/featherframe",
-      "revision": "0e06ea0333b3091018f70b01ec417f00dd31bef3",
-      "notice": "licenses/Audubon-PUBLIC-DOMAIN.txt"
+      "asset": "masters/habird-zenaida-macroura-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/zenaida-macroura-2.png",
+      "sha256": "0e1bdba5fba3c3963780382f3658026edfab07dc4667e89fc5091805b7363859"
     },
     {
-      "project": "https://github.com/simenf/birdframe",
-      "revision": "de9c32e4ab4743f6313549821a15f6caa3fd8127",
-      "notice": null
+      "asset": "masters/habird-streptopelia-decaocto.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/streptopelia-decaocto.png",
+      "sha256": "ef5788142a9d78ba197a3c8a5e07e4436269fe815cea2cebbad2962074b763a3"
     },
     {
-      "project": "https://github.com/wr/historical-bird-plates",
-      "revision": "23e8c4b6dd5ac1d7ba3e304e244c76006963b38a",
-      "notice": "licenses/historical-metadata-CC0.txt",
-      "image_release": "havell-v2"
+      "asset": "masters/habird-streptopelia-decaocto-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/streptopelia-decaocto-2.png",
+      "sha256": "c79cd54902badb5fc4e8742fe84f469a39ab473050ad841f6082141b88fabe3d"
+    },
+    {
+      "asset": "masters/habird-melospiza-melodia.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/melospiza-melodia.png",
+      "sha256": "4908164e2eb91439622d46877ad90d8db4bb06740bbe366a8795e5da6a593d39"
+    },
+    {
+      "asset": "masters/habird-melospiza-melodia-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/melospiza-melodia-2.png",
+      "sha256": "cca76bcf259c64e1acc0e95a708f1875abd1605f765e0d44263acb11c4c14eb8"
+    },
+    {
+      "asset": "masters/habird-junco-hyemalis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/junco-hyemalis.png",
+      "sha256": "5671d8a53940d0d57e97a300fa255d18957931298556a5066b82d0091b55c6f5"
+    },
+    {
+      "asset": "masters/habird-junco-hyemalis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/junco-hyemalis-2.png",
+      "sha256": "966f733e4e47371ff1a9734e55441baced3c64fd59b6b278b505e685a4985e18"
+    },
+    {
+      "asset": "masters/habird-sitta-carolinensis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sitta-carolinensis.png",
+      "sha256": "38706465cb19f7c17d43f1c013302a8b7f27a89ff1d4c57d85198aeef7ddea68"
+    },
+    {
+      "asset": "masters/habird-sitta-carolinensis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sitta-carolinensis-2.png",
+      "sha256": "1dc71d1742f20057ac5a2689f389ff4944e6c3ebdcf5bc3f1b098f96557b7dc9"
+    },
+    {
+      "asset": "masters/habird-buteo-jamaicensis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/buteo-jamaicensis.png",
+      "sha256": "586342b0052b16375f4f159bbcd18d70e46a20ebc0c5ac6db2afa84b7d20b4bf"
+    },
+    {
+      "asset": "masters/habird-buteo-jamaicensis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/buteo-jamaicensis-2.png",
+      "sha256": "bd82f5b9576c6456668cbe6bd606905b972123163ce077b90758c9dcf734196a"
+    },
+    {
+      "asset": "masters/habird-bubo-virginianus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/bubo-virginianus.png",
+      "sha256": "c5ee83fc9dc0c36a3001b13b34e499600ec8e6991a78851befae645a1aab319c"
+    },
+    {
+      "asset": "masters/habird-bubo-virginianus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/bubo-virginianus-2.png",
+      "sha256": "6c10112a58ba948d997dbb5d60ec873547c54abbb27b45c60e81feca0951d9b7"
+    },
+    {
+      "asset": "masters/habird-falco-sparverius.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/falco-sparverius.png",
+      "sha256": "93f0452c1f72c20fbb96c5fb457721967d2f57d286f9f97e00542f56cea1c335"
+    },
+    {
+      "asset": "masters/habird-falco-sparverius-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/falco-sparverius-2.png",
+      "sha256": "daa586a89bb141867f7ade4073f8204af82e583c040c43c9a8a108ca1da922dd"
+    },
+    {
+      "asset": "masters/habird-branta-canadensis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/branta-canadensis.png",
+      "sha256": "43e0f10ab2083d0e0bd58514c22e4bd0f91c8dd7765290b038092a3602ae72b3"
+    },
+    {
+      "asset": "masters/habird-branta-canadensis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/branta-canadensis-2.png",
+      "sha256": "a17513ddb8f4114d2f686a352cd9f46c91cd3988074c864a8566417051337f37"
+    },
+    {
+      "asset": "masters/habird-anas-platyrhynchos.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/anas-platyrhynchos.png",
+      "sha256": "9cbdb76f4e9a49d92f0c5729d643214b5eb4fe4f2562202c115008e1c4990852"
+    },
+    {
+      "asset": "masters/habird-anas-platyrhynchos-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/anas-platyrhynchos-2.png",
+      "sha256": "cbabee304c3ee2161745c0843360b07ae3707d24fb9d889c7cd2217330d269d7"
+    },
+    {
+      "asset": "masters/habird-agelaius-phoeniceus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/agelaius-phoeniceus.png",
+      "sha256": "82db113ffb444a21defbdf01e1db3eb6d3a4bf26be0a24c8cdfeac0f54319812"
+    },
+    {
+      "asset": "masters/habird-agelaius-phoeniceus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/agelaius-phoeniceus-2.png",
+      "sha256": "e1bc165c6c081237d7ba4df7ce744ddb3f074a68eedc30d59d0f7d6435b3ec7e"
+    },
+    {
+      "asset": "masters/habird-megaceryle-alcyon.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/megaceryle-alcyon.png",
+      "sha256": "30f5edebaba7bffda0df68149dc3d463e388af0abe6c34882358fcf936e058d9"
+    },
+    {
+      "asset": "masters/habird-megaceryle-alcyon-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/megaceryle-alcyon-2.png",
+      "sha256": "e547f1cfeae33772526c44f79feb95521fece325930e01b5bf48b381446928b7"
+    },
+    {
+      "asset": "masters/habird-bombycilla-cedrorum.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/bombycilla-cedrorum.png",
+      "sha256": "f52f25039f4622686e19d66009cb3307570978b7b0f001c2f11deee57a4578e9"
+    },
+    {
+      "asset": "masters/habird-bombycilla-cedrorum-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/bombycilla-cedrorum-2.png",
+      "sha256": "c8069937f766537307ed15c8fb7216a8ec6351596b28a757333eb2cd847b5a19"
+    },
+    {
+      "asset": "masters/habird-corvus-corax.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/corvus-corax.png",
+      "sha256": "35d235b1091f66a4dd6f5c29c32721205e76d471c0a194446ef7f7931eeaf6ff"
+    },
+    {
+      "asset": "masters/habird-corvus-corax-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/corvus-corax-2.png",
+      "sha256": "2da3952cb8977820b87e968f817171803dfef705f4f884ea83da85ef72137ada"
+    },
+    {
+      "asset": "masters/habird-selasphorus-platycercus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/selasphorus-platycercus.png",
+      "sha256": "4272bb047267dce83271a5a270160fab383097d1ed80d1e9b73d5fe888746dc8"
+    },
+    {
+      "asset": "masters/habird-selasphorus-platycercus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/selasphorus-platycercus-2.png",
+      "sha256": "07226c4a532fa5f3e765e65733f8dd3f057e925b566ddcdbdb77be2f9320a1e0"
+    },
+    {
+      "asset": "masters/habird-cathartes-aura.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/cathartes-aura.png",
+      "sha256": "7fa664c0cdff14a7ddd3d29cc0bd8ff6df58105dcdf7f9fa95f6650ccb05299d"
+    },
+    {
+      "asset": "masters/habird-cathartes-aura-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/cathartes-aura-2.png",
+      "sha256": "342c5d86f5f5bc9d89ee94c8570bb7b695390b4f5de232046306f76dd499bacd"
+    },
+    {
+      "asset": "masters/habird-hirundo-rustica.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/hirundo-rustica.png",
+      "sha256": "b5d3031681a8aae8856ccb601fb3e5dd73872145e73b159d21f9bea8e28fa15d"
+    },
+    {
+      "asset": "masters/habird-hirundo-rustica-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/hirundo-rustica-2.png",
+      "sha256": "f98f3a81f42bc5d030967c5111286030531166f23bccaeca3e36c971a1ac1a6e"
+    },
+    {
+      "asset": "masters/habird-sialia-currucoides.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sialia-currucoides.png",
+      "sha256": "5182dd9e9b0aadae741719211a012a1ae4c21e835ed25bf98c5c98e92b859692"
+    },
+    {
+      "asset": "masters/habird-sialia-currucoides-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sialia-currucoides-2.png",
+      "sha256": "e290fa51f799dd3d882c0a8026e5179d50b56c655a814d4ba00c11a8fd0060e1"
+    },
+    {
+      "asset": "masters/habird-pipilo-maculatus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/pipilo-maculatus.png",
+      "sha256": "c88433a6b799788d58c42f8fbc19c197854115612b4d89b37cfc11c72230fc89"
+    },
+    {
+      "asset": "masters/habird-pipilo-maculatus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/pipilo-maculatus-2.png",
+      "sha256": "ec256c24c79ba02ad627fc0bc861b304b9f29c94ebae5bde4757f343ef2fc448"
+    },
+    {
+      "asset": "masters/habird-poecile-atricapillus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/poecile-atricapillus.png",
+      "sha256": "c19e7e44ece461ea0b901637dcd30bbfe864021e97add7aec120af35e092c2dc"
+    },
+    {
+      "asset": "masters/habird-poecile-atricapillus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/poecile-atricapillus-2.png",
+      "sha256": "0cdb3ee351fe9444efaa6934fe1051cedb70097ad26b6220af22d9802121431f"
+    },
+    {
+      "asset": "masters/habird-cyanocitta-cristata.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/cyanocitta-cristata.png",
+      "sha256": "8f7611466f22e1e4306eb5656a84ef591316f3497107cd139479ee1445c3efd0"
+    },
+    {
+      "asset": "masters/habird-cyanocitta-cristata-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/cyanocitta-cristata-2.png",
+      "sha256": "ac42344d04cde1fd51779ad19d31aab9937625828f25e3191c704b4da7a4ad41"
+    },
+    {
+      "asset": "masters/habird-corvus-brachyrhynchos.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/corvus-brachyrhynchos.png",
+      "sha256": "ffe3a1586e011d52175b7e4e285bcf64187722217090216f9dd3a4fc4faa9e46"
+    },
+    {
+      "asset": "masters/habird-corvus-brachyrhynchos-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/corvus-brachyrhynchos-2.png",
+      "sha256": "556b9c33f863a0de29f49f293fba1058ebd95c78b216b3d17c1225f29233ef9c"
+    },
+    {
+      "asset": "masters/habird-haemorhous-mexicanus.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/haemorhous-mexicanus.png",
+      "sha256": "e96c57bf4588fff6a90029c2e05ee10c957bf2e7dc4038c97b180bb6b8f968c1"
+    },
+    {
+      "asset": "masters/habird-haemorhous-mexicanus-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/haemorhous-mexicanus-2.png",
+      "sha256": "3a8f07f7edde5c3426ca6c099b144abed00c30c9e6389c272f594e37756d6f48"
+    },
+    {
+      "asset": "masters/habird-pica-hudsonia.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/pica-hudsonia.png",
+      "sha256": "e0465f0806112ed5b7abc511499423a8e339b45dd8f23c66bb1f9e7690c54941"
+    },
+    {
+      "asset": "masters/habird-pica-hudsonia-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/pica-hudsonia-2.png",
+      "sha256": "809e62c2afd29279be5c1bf8eb9b56b76c35b0cf70d61983a1ec32eb8f4092a6"
+    },
+    {
+      "asset": "masters/habird-turdus-migratorius.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/turdus-migratorius.png",
+      "sha256": "069235e107c1cada5b1d214dee77700678e197838998b414aef57ed988242a70"
+    },
+    {
+      "asset": "masters/habird-turdus-migratorius-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/turdus-migratorius-2.png",
+      "sha256": "6f74873189c27be422a2f363138181aae113cf316f45cd74c309daed7c12c095"
+    },
+    {
+      "asset": "masters/habird-sitta-canadensis.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sitta-canadensis.png",
+      "sha256": "ffb7f2d00788afa07f10027b9ef5c8fcde19109cbfea93dd250d4034f2101c5e"
+    },
+    {
+      "asset": "masters/habird-sitta-canadensis-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/sitta-canadensis-2.png",
+      "sha256": "9870e1314545b85298446f17c51015db11568c05c2cafa9ec47282ec3abb1815"
+    },
+    {
+      "asset": "masters/habird-dryobates-pubescens.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/dryobates-pubescens.png",
+      "sha256": "efd19e09e12bf477e46afe5d889f62adf3d0ba003d1b5f94bcde7717317ff11f"
+    },
+    {
+      "asset": "masters/habird-dryobates-pubescens-2.png",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/avian/assets/illustrations/dryobates-pubescens-2.png",
+      "sha256": "ed2b6ad8131053b82f94f05d654e1211f0f3e474e218c5684528df4d47df0d92"
+    },
+    {
+      "asset": "masters/belkins-passer-domesticus.png",
+      "url": "https://raw.githubusercontent.com/Belkins/belkins-birdnet/790c1557228b86fcc2d38853e96b7129a1c874f3/avian/assets/illustrations/passer-domesticus.png",
+      "sha256": "715edb1824d2f0fd5d9d9725b682902f965e2c54e2845741b721737a24aa3a17"
+    },
+    {
+      "asset": "masters/belkins-passer-domesticus-2.png",
+      "url": "https://raw.githubusercontent.com/Belkins/belkins-birdnet/790c1557228b86fcc2d38853e96b7129a1c874f3/avian/assets/illustrations/passer-domesticus-2.png",
+      "sha256": "e93e563101bc9c0e4c72b7551d3916afa79a13eebbc1c2802eda83afd11e1d11"
+    },
+    {
+      "asset": "masters/belkins-troglodytes-aedon.png",
+      "url": "https://raw.githubusercontent.com/Belkins/belkins-birdnet/790c1557228b86fcc2d38853e96b7129a1c874f3/avian/assets/illustrations/troglodytes-aedon.png",
+      "sha256": "60db6c2fbcb11df5e129e59a0cfd109df5d61b6b995a4df41b1295d279c6de98"
+    },
+    {
+      "asset": "masters/belkins-troglodytes-aedon-2.png",
+      "url": "https://raw.githubusercontent.com/Belkins/belkins-birdnet/790c1557228b86fcc2d38853e96b7129a1c874f3/avian/assets/illustrations/troglodytes-aedon-2.png",
+      "sha256": "288daf31b1738690fa4ae0371b2b71e9c58a50d149e20c286f5e75d105314b81"
+    },
+    {
+      "asset": "masters/audubon-havell-001.jpg",
+      "url": "https://github.com/wr/historical-bird-plates/releases/download/havell-v2/crop-001.jpg",
+      "sha256": "ccf9de2fce145abb78fc68cb830c0d9263dd1f157280a7ee3cebd62a14f51829"
+    },
+    {
+      "asset": "masters/audubon-havell-031.jpg",
+      "url": "https://github.com/wr/historical-bird-plates/releases/download/havell-v2/crop-031.jpg",
+      "sha256": "7580fde39bc2fe4ad17d9e535a56dffc15d550eca8979c1a36751bc3e3c349ff"
+    },
+    {
+      "asset": "references/inky-house-finch.png",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/199840-house-finch/portrait.png",
+      "sha256": "70e73bb1478525bd21fe445d27cdb5ed26736ad066f64c2d5ecc7e459becaf98"
+    },
+    {
+      "asset": "provenance/inky-house-finch-manifest.json",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/199840-house-finch/manifest.json",
+      "sha256": "6f83a92684ae7e0f8a85945121bde68754e44c6a61d0b55cd27ac660c199db99"
+    },
+    {
+      "asset": "references/inky-mourning-dove.png",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/3454-mourning-dove/portrait.png",
+      "sha256": "1970af50670f3f78a1a91e82ab926f13b49b98d2d274f9d66cd8a09e2ef06764"
+    },
+    {
+      "asset": "provenance/inky-mourning-dove-manifest.json",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/3454-mourning-dove/manifest.json",
+      "sha256": "fec8f80342f2ed86f3078893f0108933fbd57bb3b5dde67995c4e6ed55199328"
+    },
+    {
+      "asset": "references/inky-common-raven.png",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/8010-common-raven/portrait.png",
+      "sha256": "1a3f04e31dcf18e7698474168a2f86b27e45203a0023ce8fc3b96abf45d1888b"
+    },
+    {
+      "asset": "provenance/inky-common-raven-manifest.json",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/catalog/species/8010-common-raven/manifest.json",
+      "sha256": "793f574b2fe9c0b63b8b6f09bccce17853e64b863415f6d558bff1918b1219cd"
+    },
+    {
+      "asset": "licenses/HABirdDashboard-MIT.txt",
+      "url": "https://raw.githubusercontent.com/adamoberley/HABirdDashboard/c52f4584134d437f57f6bddf0f3252f99b2c3cae/LICENSE",
+      "sha256": "208c455eaac1097f5a38165cd93f9d114754c6cb7658661d579bb0202e6bf7b7"
+    },
+    {
+      "asset": "licenses/Belkins-CC-BY-NC-SA-4.0.txt",
+      "url": "https://raw.githubusercontent.com/Belkins/belkins-birdnet/790c1557228b86fcc2d38853e96b7129a1c874f3/LICENSE",
+      "sha256": "badd4e95e76fcbe064ed82483808afd3ce83042ea607366f6d937a77573d3a23"
+    },
+    {
+      "asset": "licenses/Inky-MIT.txt",
+      "url": "https://raw.githubusercontent.com/veteranbv/inky-bird-frame/15eefcc2cdf1538a61f3653bd4cc8720641ede6b/LICENSE",
+      "sha256": "36a4e9ff7b9a28279fe4f01f7b38fea38239c4b66e12195e03657baa033347aa"
+    },
+    {
+      "asset": "licenses/historical-metadata-CC0.txt",
+      "url": "https://raw.githubusercontent.com/wr/historical-bird-plates/23e8c4b6dd5ac1d7ba3e304e244c76006963b38a/LICENSE",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
     }
-  ]
+  ],
+  "local_notices": {
+    "licenses/Audubon-PUBLIC-DOMAIN.txt": "The Birds of America, Havell edition (1827-1838), by John James Audubon: public domain.\nSource: https://github.com/wr/historical-bird-plates and https://github.com/wr/featherframe/blob/0e06ea0333b3091018f70b01ec417f00dd31bef3/THIRD_PARTY.md\nCourtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing.\nCleaned release crops by William Riley. Metadata crosswalk: CC0-1.0.\nPublic Domain Mark: https://creativecommons.org/publicdomain/mark/1.0/\nRetain the plate-specific artist/engraver credit in catalog.json.\n"
+  },
+  "catalog_metadata": {
+    "curation": "Reviewed Denver-area subset of historical art and existing generated illustrations; reference-only field studies are excluded from rotation",
+    "adaptations": "Masters unchanged; rendered outputs resize, compose, label and dither. Historical plates appear alone; reference plates remain web-only."
+  }
 }
