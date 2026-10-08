@@ -53,3 +53,7 @@ artwork refresh happens before an update reboot.
 The frame automatically updated from GitHub v0.3.0 to v0.3.1 and refreshed
 through the canonical domain; the owner confirmed the physical picture was
 visible and stable. Both local hostnames resolved to the physical frame.
+
+Final hardware verification: the frame automatically installed GitHub v0.3.3,
+verified the full release digest, rebooted into v0.3.3, and confirmed no newer
+update was offered. Serial logs confirmed both mDNS hostnames registered.
