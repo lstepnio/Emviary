@@ -55,17 +55,17 @@ def test_owner_auth_csrf_and_persistent_settings(service, frame, tmp_path, monke
     policy = json.loads(service.store.frame(frame[0])["policy"])
     assert policy["firmware_rotate_cron"] == ["10 4 *"] and policy["max_birds"] == 1
     assert policy["show_forecast_temperatures"] is False
-    assert policy["show_location_date"] is False
+    assert policy["show_location_name"] is False
     assert (
         client.post(
             url,
-            data={**data, "forecast_temperatures": "on", "location_date": "on"},
+            data={**data, "forecast_temperatures": "on", "location_name": "on"},
             follow_redirects=False,
         ).status_code
         == 303
     )
     assert json.loads(service.store.frame(frame[0])["policy"])["show_forecast_temperatures"] is True
-    assert json.loads(service.store.frame(frame[0])["policy"])["show_location_date"] is True
+    assert json.loads(service.store.frame(frame[0])["policy"])["show_location_name"] is True
     config = service.settings.config.model_dump()
     config["public_frame_id"] = frame[0]
     config["sites"][0]["locality_radius_km"] = 12

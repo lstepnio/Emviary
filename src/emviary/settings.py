@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 ART_LICENSES = {"CC-BY-SA-4.0", "CC-BY-NC-SA-4.0", "MIT", "Public-Domain"}
 
@@ -160,7 +160,9 @@ class FramePolicy(Model):
     art_mode: Literal["approved_library"] = "approved_library"
     repeat_penalty_days: int = Field(default=7, ge=0, le=90)
     show_species_name: bool = True
-    show_location_date: bool = False
+    show_location_name: bool = Field(
+        default=False, validation_alias=AliasChoices("show_location_name", "show_location_date")
+    )
     show_dated_weather_text: bool = False
     show_forecast_temperatures: bool = True
     weather_cues: bool = True

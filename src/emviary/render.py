@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 12
+RENDER_VERSION = 13
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -22,7 +22,7 @@ def profile_hash(policy, catalog):
         for k in (
             "panel",
             "show_species_name",
-            "show_location_date",
+            "show_location_name",
             "show_dated_weather_text",
             "weather_cues",
             "show_forecast_temperatures",
@@ -468,10 +468,10 @@ def compose(art_dir, artwork, plan, output):
                     font=font,
                     anchor="mm",
                 )
-    if policy.get("show_location_date", False):
+    if policy.get("show_location_name", False):
         draw.text(
             (24, 20),
-            f"{plan.get('location_label', 'DENVER')}  /  {date}",
+            plan.get("location_label", "COLORADO"),
             font=_font(art_dir, 12),
             fill="#333333",
         )

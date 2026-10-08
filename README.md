@@ -108,7 +108,7 @@ The frame displays common bird names only. Scientific names remain in the web li
 
 ### Display header
 
-Location and date are hidden by default for both existing and new frames. Enable **Show location / date** in frame management to include them in the upper-left corner. This only changes the artwork; locality selection, forecast date validation and the nightly wake schedule continue to use the configured location and date.
+Enable **Show location name** in frame management to include the area name (currently Colorado) in the upper-left corner, without a date. This option defaults to off for new frames; it is enabled for Emily’s frame. Legacy location/date settings remain readable and now control the name only. This only changes the artwork; locality selection, forecast date validation and the nightly wake schedule continue to use the configured location and date.
 
 ### Daily weather on the artwork
 

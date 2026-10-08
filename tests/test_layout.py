@@ -148,15 +148,16 @@ def test_seasonal_motifs_leave_a_white_gap_inside_the_border(service, tmp_path):
                     assert image.getpixel((x, y))[:3] == (255, 255, 255)
 
 
-def test_location_date_header_defaults_hidden_and_can_be_enabled(service, tmp_path):
+def test_location_name_header_omits_date_and_can_be_enabled(service, tmp_path, monkeypatch):
     from PIL import ImageChops
 
     policy = service.settings.config.frame_defaults.model_dump()
-    assert policy["show_location_date"] is False
+    assert policy["show_location_name"] is False
     # Existing saved policies receive the same default when loaded.
     from emviary.settings import FramePolicy
 
-    assert FramePolicy.model_validate({"site_id": "denver-gift"}).show_location_date is False
+    assert FramePolicy.model_validate({"site_id": "denver-gift"}).show_location_name is False
+    assert FramePolicy.model_validate({"show_location_date": True}).show_location_name is True
     artwork = next(
         a
         for a in service.settings.artworks
@@ -170,13 +171,25 @@ def test_location_date_header_defaults_hidden_and_can_be_enabled(service, tmp_pa
         policy=policy,
         artworks=[artwork],
     )
+    from PIL import ImageDraw
+
+    text_calls = []
+    original_text = ImageDraw.ImageDraw.text
+
+    def record_text(self, xy, text, *args, **kwargs):
+        text_calls.append(text)
+        return original_text(self, xy, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", record_text)
     hidden = tmp_path / "hidden.png"
     visible = tmp_path / "visible.png"
     render.compose(service.settings.art_dir, artwork, plan, hidden)
     first_hash = render.profile_hash(policy, [])
-    policy["show_location_date"] = True
+    policy["show_location_name"] = True
     assert render.profile_hash(policy, []) != first_hash
     render.compose(service.settings.art_dir, artwork, plan, visible)
+    assert "COLORADO" in text_calls
+    assert not any("2026-10-08" in text for text in text_calls)
     with Image.open(hidden) as first, Image.open(visible) as second:
         assert len(first.crop((24, 16, 350, 45)).getcolors()) == 1
         changed = ImageChops.difference(first, second).getbbox()
