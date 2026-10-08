@@ -117,3 +117,7 @@ research notes enter Git. Their art fits existing service logic without a new
 firmware or backend code release. Public library entries retain source links
 and notices. Research previews establish digital fit; pigment appearance and
 long-term stability still require the physical frame.
+
+## Follow-up sources suggested by the owner
+
+The individual review of Audubon, Library of Congress, Unsplash, Magnific and Vecteezy is recorded in [USER_ART_SOURCES_2026-10.md](USER_ART_SOURCES_2026-10.md). Two complete two-bird scenes entered rotation and one three-bird portrait plate remains reference only.

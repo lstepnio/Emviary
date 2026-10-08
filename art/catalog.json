@@ -6123,6 +6123,111 @@
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Species tagged by USFWS, visually checked bird count and field marks; whole scene inspected through packed 800x480 conversion; physical panel review pending",
       "plumage_note": "Complete unchanged painted scene, shown alone. Background scenery is source artwork, not a claim about current weather."
+    },
+    {
+      "id": "pope-loc-anas-platyrhynchos",
+      "common_name": "Mallard",
+      "scientific_name": "Anas platyrhynchos",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "license": "Public-Domain",
+      "license_file": "licenses/LOC-HISTORICAL-ART.txt",
+      "license_url": "https://www.loc.gov/item/2018663013/",
+      "generated": false,
+      "source": "Alexander Pope Jr. / Library of Congress",
+      "asset": "masters/pope-loc-anas-platyrhynchos.jpg",
+      "asset_sha256": "c68c2fdebf956d6dbed15accdc2630a418ba47df58df47d1b34031f9c90fc635",
+      "approved": true,
+      "kind": "plate",
+      "depicted_birds": 2,
+      "composition_max_birds": 2,
+      "style": "historical-scene",
+      "pose": "swimming",
+      "source_url": "https://www.loc.gov/item/2018663013/",
+      "download_url": "https://tile.loc.gov/storage-services/service/pnp/ds/12900/12960v.jpg",
+      "credit": "Alexander Pope Jr., 1878 / Library of Congress",
+      "locality_basis": "Colorado statewide waterfowl; year-round curated eligibility, not a backyard detection",
+      "review_status": "Species identity, visible bird count and complete source composition checked; packed six-color 800x480 preview reviewed; physical panel review pending",
+      "plumage_note": "Unchanged complete source plate; embedded landscape and vegetation are historical artwork, not current conditions."
+    },
+    {
+      "id": "audubon-direct-002",
+      "common_name": "Yellow-billed Cuckoo",
+      "scientific_name": "Coccyzus americanus",
+      "months": [
+        6,
+        7,
+        8
+      ],
+      "license": "Public-Domain",
+      "license_file": "licenses/Audubon-DIRECT-PUBLIC-DOMAIN.txt",
+      "license_url": "https://www.audubon.org/art/birds-of-america/yellow-billed-cuckoo",
+      "generated": false,
+      "source": "John James Audubon / William Home Lizars",
+      "asset": "masters/audubon-direct-002.jpg",
+      "asset_sha256": "316a635ad9e81a96fba9acff01b179bbe61ec6d45dec30cf54a46448ce17b37f",
+      "approved": true,
+      "kind": "plate",
+      "depicted_birds": 2,
+      "composition_max_birds": 2,
+      "style": "historical-scene",
+      "pose": "feeding",
+      "source_url": "https://www.audubon.org/art/birds-of-america/yellow-billed-cuckoo",
+      "download_url": "https://media.audubon.org/boa_illustration/plate-2-yellow-billed-cuckoo.jpg?width=1600&quality=85&fit=scale",
+      "credit": "Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing",
+      "locality_basis": "Rare Colorado riparian summer visitor; USFWS Colorado office survey guidance; not a claim of nearby occurrence",
+      "review_status": "Species identity, visible bird count and complete source composition checked; packed six-color 800x480 preview reviewed; physical panel review pending",
+      "plumage_note": "Unchanged complete source plate; embedded landscape and vegetation are historical artwork, not current conditions."
+    },
+    {
+      "id": "audubon-direct-077-study",
+      "common_name": "Belted Kingfisher",
+      "scientific_name": "Megaceryle alcyon",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "license": "Public-Domain",
+      "license_file": "licenses/Audubon-DIRECT-PUBLIC-DOMAIN.txt",
+      "license_url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher",
+      "generated": false,
+      "source": "John James Audubon / Robert Havell",
+      "asset": "masters/audubon-direct-077-study.jpg",
+      "asset_sha256": "e98317d8b25b324252af1613ad65dfb217ccd69532eb9d87f9cd2d24831c6dd8",
+      "approved": false,
+      "kind": "field_study",
+      "depicted_birds": 3,
+      "composition_max_birds": 3,
+      "style": "historical-scene",
+      "pose": "flying-and-perched",
+      "source_url": "https://www.audubon.org/art/birds-of-america/belted-kingfisher",
+      "download_url": "https://media.audubon.org/boa_illustration/plate-77-belted-kingfisher.jpg?width=1600&quality=85&fit=scale",
+      "credit": "Courtesy of the John James Audubon Center at Mill Grove, Montgomery County Audubon Collection, and Zebra Publishing",
+      "locality_basis": "Colorado statewide water-associated resident; historical scene, not a backyard detection",
+      "review_status": "Web-only reference: three birds fit the count cap, but the tall whole plate reduces individual birds and field marks too much at 800x480; no cropped or rearranged derivative approved.",
+      "plumage_note": "Unchanged complete source plate; embedded landscape and vegetation are historical artwork, not current conditions."
     }
   ],
   "source_collections": [
@@ -6171,6 +6276,14 @@
     {
       "project": "https://www.fws.gov/media",
       "notice": "licenses/USFWS-Fuertes-PUBLIC-DOMAIN.txt"
+    },
+    {
+      "project": "https://www.audubon.org/art/birds-of-america",
+      "notice": "licenses/Audubon-DIRECT-PUBLIC-DOMAIN.txt"
+    },
+    {
+      "project": "https://www.loc.gov/free-to-use/birds/",
+      "notice": "licenses/LOC-HISTORICAL-ART.txt"
     }
   ]
 }
