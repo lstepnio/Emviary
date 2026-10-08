@@ -176,3 +176,22 @@ def test_review_remove_and_exclude_artwork(service, frame, tmp_path, monkeypatch
     )
     assert artwork not in service.store.excluded_artworks()
     assert "species renders" in client.get("/manage/artwork").text
+
+
+def test_management_exposes_battery_history_and_charge_alert(service, frame, tmp_path, monkeypatch):
+    service.store.telemetry(
+        frame[0],
+        15,
+        "test",
+        "",
+        "",
+        battery_voltage=3.5,
+        battery_charging=False,
+        usb_connected=False,
+    )
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    response = client.get("/manage")
+    assert "Charge soon" in response.text and "/manage/battery" in response.text
+    assert client.get("/manage/battery").status_code == 200
+    anonymous = TestClient(create_app(service, schedule=False))
+    assert anonymous.get("/manage/battery").status_code == 401

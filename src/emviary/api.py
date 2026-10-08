@@ -166,6 +166,18 @@ def create_app(service=None, schedule=True):
         battery = int(battery) if battery.isdecimal() and len(battery) <= 3 else None
         if battery is not None and not 0 <= battery <= 100:
             battery = None
+        try:
+            voltage = float(request.headers.get("x-battery-voltage", ""))
+            voltage = voltage / 1000 if 1000 <= voltage <= 6000 else None
+        except ValueError:
+            voltage = None
+
+        def optional_bool(name):
+            value = request.headers.get(name, "").lower()
+            return {"1": True, "0": False, "true": True, "false": False}.get(value)
+
+        charging = optional_bool("x-battery-charging")
+        usb_connected = optional_bool("x-usb-connected")
         firmware = request.headers.get("x-firmware-version")
         if firmware:
             firmware = firmware[:80]
@@ -179,6 +191,9 @@ def create_app(service=None, schedule=True):
                 firmware,
                 client_tag,
                 tag,
+                voltage,
+                charging,
+                usb_connected,
             )
             if firmware
             else None

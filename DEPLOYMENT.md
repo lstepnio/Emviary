@@ -293,3 +293,9 @@ Firmware v0.5.0 remaps the E1002 white buttons: left previous, right next, inclu
 Authenticated `/manage/images` provides history review and removal from navigation, with the current delivered image protected. `/manage/artwork` excludes or restores source art, including replacement of an affected prepared buffer. Persistent per-species successful render counters are seeded from retained history and survive removal and cleanup. Already expired history is not recoverable for initial statistics. A species appearing more than once in a composition counts once.
 
 SQLite migration adds the refill queue, history visibility, artwork exclusions and render counters. Back up before deployment; restoring the previous database and image together is the rollback path. Rendering failures retain existing cache bytes. Backend and firmware checks are independent of physical button/display validation.
+
+## Occasion art and battery release 0.7.0
+
+Renderer 15 supports a separate event-art manifest/assets in `/data/event-art`; these files must be restored with the database. Backups now retain every visible history image’s frame bytes and preview. US holiday and meteorological-season presets import without duplicating existing entries and start disabled for curation. Event images are owner-only before rendering and do not enter normal bird selection.
+
+Battery history persists one sample per frame per 15-minute bucket, with one-year retention. Only known battery-powered discharge samples qualify for conservative predictions. `/manage/battery` and dashboard warnings provide web-only alerts. The firmware sends millivolts and charging/USB flags without Wi-Fi secrets. Firmware v0.6.0 CI uses supported IDF 6; host tests passed, and physical battery endurance remains to be measured. The first prior/next firmware v0.5.0 passed the user’s physical white-button check.

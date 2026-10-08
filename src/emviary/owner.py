@@ -8,6 +8,8 @@ import os
 import secrets
 import time
 from datetime import UTC, datetime, timedelta
+from email import policy as email_policy
+from email.parser import BytesParser
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -16,7 +18,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from starlette.background import BackgroundTask
 
 from .api import config_payload
+from .battery import battery_summary, install_battery_routes
 from .branding import BRAND_MARK, ICON_LINK
+from .event_art import MAX_UPLOAD, import_presets
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
@@ -165,6 +169,8 @@ def attach_owner(app, service):
             raise HTTPException(401, "Sign in through /manage/login")
         return value
 
+    install_battery_routes(app, service, require, escape, page)
+
     async def checked_form(request):
         value = require(request)
         data = await form(request, service.settings.config.public_base_url)
@@ -270,7 +276,8 @@ def attach_owner(app, service):
             + 'rel="noopener noreferrer">Legacy fallback</a>'
             + " (on the frame’s Wi-Fi, while awake).</p>"
             + '<p><a href="/manage/images">Review image history</a> · '
-            + '<a href="/manage/artwork">Manage artwork rotation</a></p>'
+            + '<a href="/manage/artwork">Manage artwork rotation</a> · '
+            + '<a href="/manage/battery">Battery history and charging</a></p>'
         )
         statuses = {row["id"]: row for row in service.status()}
         for frame in service.store.frames():
@@ -290,6 +297,14 @@ def attach_owner(app, service):
                 + ". Battery: "
                 + escape(status["battery"] if status["battery"] is not None else "Unknown")
                 + "%.</p>"
+            )
+            battery = battery_summary(service, frame["id"])
+            if battery["alert"]:
+                body += '<p role="alert"><strong>' + escape(battery["alert"]) + "</strong></p>"
+            body += (
+                '<p><a href="/manage/battery">Battery history and charging estimate</a> · '
+                + escape(battery["status"])
+                + "</p>"
             )
             body += (
                 '<form method="post" action="/manage/frames/'
@@ -439,9 +454,34 @@ def attach_owner(app, service):
             )
             body += '<details><summary>Special days</summary><p class="quiet">'
             body += (
-                "A single bird, occasion artwork and your greeting replace the usual layout "
+                "Your chosen occasion art and greeting replace the usual layout "
                 "on the matching Denver date. The first matching enabled entry wins. "
                 "Annual February 29 entries appear only in leap years.</p>"
+            )
+            body += (
+                '<p><a href="/manage/event-art">Manage occasion art</a></p>'
+                '<form method="post" action="/manage/frames/'
+                + identifier
+                + '/special-days/import">'
+                + hidden(csrf)
+                + '<label>Add a collection<br><select name="group">'
+                '<option value="holidays">US holidays and celebrations</option>'
+                '<option value="seasons">Meteorological seasons</option></select></label>'
+                + field(
+                    "year",
+                    "Calendar year",
+                    datetime.now().year,
+                    "number",
+                    'min="2020" max="2100" required',
+                )
+                + '<p class="quiet">Existing entries are kept. '
+                "Fixed holidays and seasons repeat yearly. "
+                "Movable holidays apply to the chosen year. Seasons start March 1, June 1, "
+                "September 1 and December 1 (meteorological seasons). Edit dates and turn "
+                "yearly repeat off for a chosen year's local equinox or solstice. "
+                "New entries start disabled. Review dates and choose artwork, then enable "
+                "the events you want below.</p>"
+                "<button>Add collection</button></form>"
             )
             for event in [*policy["special_days"], None]:
                 day = event or {
@@ -451,7 +491,7 @@ def attach_owner(app, service):
                     "message": "",
                     "annual": True,
                     "enabled": True,
-                    "theme": "birthday",
+                    "theme": "celebration",
                     "artwork_id": None,
                 }
                 body += (
@@ -489,7 +529,7 @@ def attach_owner(app, service):
                         + label
                         + "</option>"
                     )
-                body += '</select></label><label>Featured bird art<br><select name="artwork_id">'
+                body += '</select></label><label>Featured artwork<br><select name="artwork_id">'
                 body += '<option value="">Choose from the seasonal library</option>'
                 counters = {}
                 for art in sorted(
@@ -514,6 +554,17 @@ def attach_owner(app, service):
                         + escape(label)
                         + "</option>"
                     )
+                for art in service.event_art.entries():
+                    if art["approved"]:
+                        body += (
+                            '<option value="'
+                            + escape(art["id"])
+                            + '" '
+                            + ("selected" if day["artwork_id"] == art["id"] else "")
+                            + ">"
+                            + escape("Occasion art / " + art["common_name"])
+                            + "</option>"
+                        )
                 body += "</select></label></div>"
                 body += checkbox("annual", "Repeat every year", day["annual"])
                 body += checkbox("enabled", "Enabled", day["enabled"])
@@ -988,6 +1039,146 @@ def attach_owner(app, service):
         service.store.set_policy(identifier, validated)
         return redirect()
 
+    @app.get("/manage/event-art")
+    def event_art_collection(request: Request):
+        csrf = require(request)["csrf"]
+        body = (
+            "<p>Upload art for holidays, seasons and other special days. "
+            "These images stay out of the everyday bird rotation. Review each image "
+            "before choosing it on a special day.</p>"
+            '<form method="post" action="/manage/event-art/upload" '
+            'enctype="multipart/form-data">'
+            + hidden(csrf)
+            + field("title", "Artwork title", "", extra='maxlength="80" required')
+            + field("attribution", "Creator or source", "", extra='maxlength="300" required')
+            + "<label>Image (PNG, JPEG or WebP, up to 10 MB)<br>"
+            '<input type="file" name="image" accept="image/png,image/jpeg,image/webp" '
+            'required></label><p class="quiet">Images are saved as still PNG files '
+            "and reviewed before use.</p><button>Upload for review</button>"
+            "</form>"
+        )
+        for art in service.event_art.entries():
+            body += (
+                "<section><h2>" + escape(art["common_name"]) + "</h2>"
+                '<img class="preview" src="/manage/event-art/'
+                + escape(art["id"])
+                + '/image" alt="'
+                + escape(art["common_name"])
+                + '"><p>'
+                + escape(art["source"])
+                + "</p><p>"
+                + ("Approved for special days" if art["approved"] else "Awaiting review")
+                + '</p><form method="post" action="/manage/event-art/'
+                + escape(art["id"])
+                + '">'
+                + hidden(csrf)
+                + '<button name="action" value="approve">Approve</button> '
+                '<button name="action" value="unapprove">Return to review</button> '
+                '<button name="action" value="remove">Remove</button></form></section>'
+            )
+        return page("Occasion art", body + '<p><a href="/manage">Return to frame settings</a></p>')
+
+    @app.get("/manage/event-art/{artwork_id}/image")
+    def event_art_image(artwork_id: str, request: Request):
+        require(request)
+        entry = next((a for a in service.event_art.entries() if a["id"] == artwork_id), None)
+        if not entry:
+            raise HTTPException(404, "Unknown occasion art")
+        return FileResponse(
+            service.event_art.path(entry),
+            media_type="image/png",
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.post("/manage/event-art/upload")
+    async def upload_event_art(request: Request):
+        session_value = require(request)
+        if request.headers.get("origin") not in (None, service.settings.config.public_base_url):
+            raise HTTPException(403, "Untrusted form origin")
+        content_type = request.headers.get("content-type", "")
+        if not content_type.startswith("multipart/form-data;") or len(content_type) > 300:
+            raise HTTPException(415, "Use the artwork upload form")
+        raw = bytearray()
+        async for chunk in request.stream():
+            raw.extend(chunk)
+            if len(raw) > MAX_UPLOAD + 16384:
+                raise HTTPException(413, "Upload is too large")
+        message = BytesParser(policy=email_policy.default).parsebytes(
+            ("Content-Type: " + content_type + "\r\nMIME-Version: 1.0\r\n\r\n").encode()
+            + bytes(raw)
+        )
+        if not message.is_multipart():
+            raise HTTPException(400, "Invalid upload")
+        data = {}
+        for part in message.iter_parts():
+            name = part.get_param("name", header="content-disposition")
+            if name not in {"csrf", "title", "attribution", "image"} or name in data:
+                raise HTTPException(400, "Invalid upload fields")
+            payload = part.get_payload(decode=True) or b""
+            if name == "image":
+                data[name] = payload
+            else:
+                if len(payload) > 1200:
+                    raise HTTPException(400, "Upload field is too long")
+                try:
+                    data[name] = payload.decode("utf-8")
+                except UnicodeDecodeError:
+                    raise HTTPException(400, "Use UTF-8 text") from None
+        if not hmac.compare_digest(data.get("csrf", ""), session_value["csrf"]):
+            raise HTTPException(403, "Invalid form token")
+        try:
+            with preparation_lock(service.settings.data_dir):
+                service.event_art.upload(
+                    data.get("image", b""), data.get("title", ""), data.get("attribution", "")
+                )
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from None
+        except RuntimeError:
+            raise HTTPException(409, "Preparation is busy; try again shortly") from None
+        return RedirectResponse("/manage/event-art", status_code=303)
+
+    @app.post("/manage/event-art/{artwork_id}")
+    async def review_event_art(artwork_id: str, request: Request):
+        data = await checked_form(request)
+        try:
+            with preparation_lock(service.settings.data_dir):
+                if data.get("action") in {"remove", "unapprove"}:
+                    # Require detaching first so a saved event never silently loses its artwork.
+                    if any(
+                        any(
+                            d.artwork_id == artwork_id
+                            for d in FramePolicy.model_validate_json(f["policy"]).special_days
+                        )
+                        for f in service.store.frames()
+                    ):
+                        raise ValueError("Choose another artwork on its special days first")
+                if data.get("action") == "remove":
+                    service.event_art.remove(artwork_id)
+                elif data.get("action") in {"approve", "unapprove"}:
+                    service.event_art.review(artwork_id, data["action"] == "approve")
+                else:
+                    raise ValueError("Unknown artwork action")
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from None
+        except RuntimeError:
+            raise HTTPException(409, "Preparation is busy; try again shortly") from None
+        return RedirectResponse("/manage/event-art", status_code=303)
+
+    @app.post("/manage/frames/{identifier}/special-days/import")
+    async def import_special_days(identifier: str, request: Request):
+        data = await checked_form(request)
+        policy = FramePolicy.model_validate_json(
+            service.store.frame(identifier)["policy"]
+        ).model_dump()
+        try:
+            policy["special_days"] = import_presets(
+                policy["special_days"], data.get("group"), int(data.get("year", ""))
+            )
+            service.store.set_policy(identifier, FramePolicy.model_validate(policy))
+        except ValueError as error:
+            raise HTTPException(400, "Invalid collection: " + str(error)) from None
+        return redirect()
+
     @app.post("/manage/frames/{identifier}/special-days")
     async def save_special_day(identifier: str, request: Request):
         data = await checked_form(request)
@@ -1014,14 +1205,22 @@ def attach_owner(app, service):
                 art = next(
                     (a for a in service.settings.artworks if a["id"] == day.artwork_id), None
                 )
+                art = next(
+                    (a for a in service.event_art.entries() if a["id"] == day.artwork_id), art
+                )
                 if (
                     not art
                     or not art["approved"]
-                    or art.get("depicted_birds", 1) != 1
-                    or int(day.date[5:7]) not in art["months"]
+                    or (
+                        not art.get("event_only")
+                        and (
+                            art.get("depicted_birds", 1) != 1
+                            or int(day.date[5:7]) not in art["months"]
+                        )
+                    )
                 ):
                     raise ValueError(
-                        "Choose bird art eligible in that month, or seasonal selection"
+                        "Choose approved occasion art, eligible bird art, or seasonal selection"
                     )
             if data.get("id"):
                 policy["special_days"] = [

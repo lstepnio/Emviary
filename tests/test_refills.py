@@ -146,3 +146,13 @@ def test_counts_are_per_successful_species_render_and_survive_removal(service, f
         db.execute("UPDATE images SET hidden=1 WHERE id=?", (first["id"],))
     restarted = Service(service.settings, providers=service.providers, converter=service.converter)
     assert restarted.store.bird_counts() == service.store.bird_counts()
+
+
+def test_backup_preserves_navigable_image_history(service, frame, tmp_path):
+    first = service.prepare(frame[0])
+    second = service.prepare(frame[0], force=True)
+    backup = tmp_path / "history-backup"
+    service.backup(backup)
+    for image in [first, second]:
+        assert (backup / "active-cache" / service.cache_path(image["path"]).name).is_file()
+        assert (backup / "active-cache" / service.cache_path(image["preview_path"]).name).is_file()

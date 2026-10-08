@@ -3,7 +3,7 @@ import json
 import secrets
 import sqlite3
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 
 def utcnow() -> str:
@@ -95,7 +95,20 @@ class Store:
                     scientific_name TEXT PRIMARY KEY, common_name TEXT NOT NULL,
                     renders INTEGER NOT NULL
                 );
-                PRAGMA user_version=2;
+                CREATE TABLE IF NOT EXISTS battery_samples (
+                    id INTEGER PRIMARY KEY,
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    recorded_at TEXT NOT NULL,
+                    bucket INTEGER NOT NULL,
+                    percent INTEGER NOT NULL CHECK(percent BETWEEN 0 AND 100),
+                    voltage REAL,
+                    charging INTEGER,
+                    usb_connected INTEGER,
+                    UNIQUE(frame_id, bucket)
+                );
+                CREATE INDEX IF NOT EXISTS battery_samples_frame_time
+                    ON battery_samples(frame_id, recorded_at);
+                PRAGMA user_version=3;
             """)
 
         with self.connect() as db:
@@ -108,7 +121,9 @@ class Store:
     @staticmethod
     def count_render(db, plan):
         species = {
-            a["scientific_name"]: a["common_name"] for a in plan.get("artworks", [plan["artwork"]])
+            a["scientific_name"]: a["common_name"]
+            for a in plan.get("artworks", [plan["artwork"]])
+            if a.get("scientific_name") and not a.get("event_only")
         }
         for scientific, common in species.items():
             db.execute(
@@ -223,14 +238,59 @@ class Store:
                 ).fetchone()
         return dict(row) if row else None
 
-    def telemetry(self, frame_id, battery, firmware, client_etag, served_etag):
+    def telemetry(
+        self,
+        frame_id,
+        battery,
+        firmware,
+        client_etag,
+        served_etag,
+        battery_voltage=None,
+        battery_charging=None,
+        usb_connected=None,
+    ):
+        now = datetime.now(UTC)
+        battery = battery if type(battery) is int and 0 <= battery <= 100 else None
         with self.connect() as db:
             db.execute(
                 """UPDATE frames SET last_contact=?,battery=COALESCE(?,battery),
                    firmware=COALESCE(?,firmware),last_client_etag=?,last_served_etag=?
                    WHERE id=?""",
-                (utcnow(), battery, firmware, client_etag, served_etag, frame_id),
+                (now.isoformat(), battery, firmware, client_etag, served_etag, frame_id),
             )
+            if battery is not None:
+                # One sample per quarter hour prevents button navigation from weighting trends.
+                db.execute(
+                    """INSERT INTO battery_samples
+                       (frame_id,recorded_at,bucket,percent,voltage,charging,usb_connected)
+                       VALUES(?,?,?,?,?,?,?) ON CONFLICT(frame_id,bucket) DO UPDATE SET
+                       recorded_at=excluded.recorded_at,percent=excluded.percent,
+                       voltage=excluded.voltage,charging=excluded.charging,
+                       usb_connected=excluded.usb_connected""",
+                    (
+                        frame_id,
+                        now.isoformat(),
+                        int(now.timestamp()) // 900,
+                        battery,
+                        battery_voltage,
+                        battery_charging,
+                        usb_connected,
+                    ),
+                )
+                db.execute(
+                    "DELETE FROM battery_samples WHERE recorded_at<?",
+                    ((now - timedelta(days=365)).isoformat(),),
+                )
+
+    def battery_samples(self, frame_id):
+        with self.connect() as db:
+            return [
+                dict(row)
+                for row in db.execute(
+                    "SELECT * FROM battery_samples WHERE frame_id=? ORDER BY recorded_at,id",
+                    (frame_id,),
+                )
+            ]
 
     def request_refill(self, frame_id, image_id):
         with self.connect() as db:

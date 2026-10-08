@@ -11,6 +11,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import render
+from .event_art import EventArt
 from .providers import Providers
 from .settings import Config, FramePolicy, Settings
 from .store import Store, stable_json, utcnow
@@ -35,6 +36,7 @@ class Service:
     def __init__(self, settings=None, providers=None, converter=None):
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
+        self.event_art = EventArt(self.settings.data_dir)
         with self.store.connect() as db:
             override = db.execute("SELECT value FROM config_overrides WHERE id=1").fetchone()
         if override:
@@ -91,7 +93,10 @@ class Service:
                 )
             ]
         recent = [
-            a["scientific_name"] for m in manifests for a in m.get("artworks", [m["artwork"]])
+            a["scientific_name"]
+            for m in manifests
+            for a in m.get("artworks", [m["artwork"]])
+            if not a.get("event_only")
         ]
         seed = hashlib.sha256(
             f"{frame['id']}:{local_date}:{revision}:{profile}".encode()
@@ -114,6 +119,14 @@ class Service:
                     and a.get("depicted_birds", 1) == 1
                 ),
                 None,
+            )
+            requested = next(
+                (
+                    a
+                    for a in self.event_art.entries()
+                    if a["id"] == occasion["artwork_id"] and a["approved"]
+                ),
+                requested,
             )
             artworks = [
                 requested
@@ -181,6 +194,14 @@ class Service:
             and a.get("depicted_birds", 1) == 1
         ]
         requested = next((a for a in candidates if a["id"] == occasion["artwork_id"]), None)
+        requested = next(
+            (
+                a
+                for a in self.event_art.entries()
+                if a["id"] == occasion["artwork_id"] and a["approved"]
+            ),
+            requested,
+        )
         if not requested and policy["allowed_species"]:
             candidates = [
                 a for a in candidates if a["scientific_name"] in policy["allowed_species"]
@@ -202,7 +223,7 @@ class Service:
                 root / "panel.epdgz",
                 root / "preview.jpg",
             )
-            render.compose(self.settings.art_dir, artwork, plan, master)
+            render.compose(self.settings.art_dir, artwork, plan, master, self.event_art.root)
             self.converter(
                 master, packed, preview, policy, self.settings.config.render.timeout_seconds
             )
@@ -225,6 +246,7 @@ class Service:
                 profile
                 + stable_json(site.model_dump())
                 + stable_json(sorted(self.store.excluded_artworks()))
+                + stable_json(self.event_art.entries())
             ).encode()
         ).hexdigest()
         with self.store.connect() as db:
@@ -279,7 +301,9 @@ class Service:
                     tmp / "image.epdgz",
                     tmp / "preview.jpg",
                 )
-                render.compose(self.settings.art_dir, plan["artwork"], plan, master)
+                render.compose(
+                    self.settings.art_dir, plan["artwork"], plan, master, self.event_art.root
+                )
                 self.converter(
                     master,
                     packed,
@@ -342,9 +366,29 @@ class Service:
                 )
             raise
 
-    def image_delivered(self, frame_id, image_id, battery, firmware, client_tag, tag):
+    def image_delivered(
+        self,
+        frame_id,
+        image_id,
+        battery,
+        firmware,
+        client_tag,
+        tag,
+        battery_voltage=None,
+        battery_charging=None,
+        usb_connected=None,
+    ):
         # Called after the HTTP body is sent; preview visits never consume the buffer.
-        self.store.telemetry(frame_id, battery, firmware, client_tag, tag)
+        self.store.telemetry(
+            frame_id,
+            battery,
+            firmware,
+            client_tag,
+            tag,
+            battery_voltage,
+            battery_charging,
+            usb_connected,
+        )
         self.store.request_refill(frame_id, image_id)
         self.refill_pending(frame_id=frame_id)
 
@@ -481,15 +525,21 @@ class Service:
                 destination.close()
         (output / "site.json").write_text(self.settings.config.model_dump_json(indent=2))
         shutil.copytree(self.settings.art_dir, output / "art", dirs_exist_ok=True)
-        # Cache images are rebuildable but the active last-good image is useful for recovery.
+        shutil.copytree(self.event_art.root, output / "event-art", dirs_exist_ok=True)
+        # Preserve the navigable collection, not only the active/delivered pair.
         cache = output / "active-cache"
         cache.mkdir(exist_ok=True)
+        with self.store.connect() as db:
+            images = db.execute("SELECT * FROM images WHERE hidden=0").fetchall()
+        paths = {name for image in images for name in (image["path"], image["preview_path"])}
         for frame in self.store.frames():
-            for image in (self.store.active_image(frame), self.delivered_image(frame)):
-                if not image:
-                    continue
-                for name in (image["path"], image["preview_path"]):
-                    shutil.copy2(self.cache_path(name), cache / Path(name).name)
+            delivered = self.delivered_image(frame)
+            if delivered:
+                paths.update((delivered["path"], delivered["preview_path"]))
+        for name in paths:
+            source = self.cache_path(name)
+            if source.is_file():
+                shutil.copy2(source, cache / Path(name).name)
         (output / "COMPLETE").write_text(utcnow())
         return str(output)
 

@@ -177,7 +177,7 @@ class FramePolicy(Model):
         pattern=r"^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
     )
     max_birds: Literal[1, 2, 3] = 3
-    special_days: list[SpecialDay] = Field(default_factory=list, max_length=32)
+    special_days: list[SpecialDay] = Field(default_factory=list, max_length=128)
     allowed_species: list[str] = Field(default_factory=list, max_length=64)
     seasonal_themes: bool = True
     processing_preset: Literal["balanced", "dynamic", "vivid", "soft"] = "balanced"

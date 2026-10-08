@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 14
+RENDER_VERSION = 15
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -224,6 +224,8 @@ def composition_license(artworks):
     if not compatible_licenses(artworks):
         raise ValueError("Incompatible ShareAlike licenses in one composition")
     licenses = {a["license"] for a in artworks}
+    if "Owner-Provided" in licenses:
+        return "Owner-Provided"
     for license_name in ("CC-BY-NC-SA-4.0", "CC-BY-SA-4.0"):
         if license_name in licenses:
             return license_name
@@ -353,7 +355,7 @@ def draw_occasion_art(draw, theme):
             draw.arc((x, 93, x + 12, 105), 240, 540, fill=ink, width=2)
 
 
-def compose(art_dir, artwork, plan, output):
+def compose(art_dir, artwork, plan, output, event_art_dir=None):
     date = plan["local_date"]
     season = season_for(int(date[5:7]))
     canvas = Image.new("RGBA", (800, 480), "#ffffff")
@@ -403,14 +405,17 @@ def compose(art_dir, artwork, plan, output):
             draw_weather_mark(draw, values, round(776 - draw.textlength(text, font=font) - 22), 25)
     birds = plan.get("artworks", [artwork])
     count = sum(a.get("depicted_birds", 1) for a in birds)
-    if not 1 <= count <= min(3, policy.get("max_birds", 3)):
+    event_image = len(birds) == 1 and birds[0].get("event_only")
+    if event_image and (not occasion or not event_art_dir):
+        raise ValueError("Event art requires a selected special day")
+    if not event_image and not 1 <= count <= min(3, policy.get("max_birds", 3)):
         raise ValueError("The panel supports at most three birds")
     if any(a.get("kind", "cutout") != "cutout" for a in birds) and len(birds) != 1:
         raise ValueError("Historical plates require their own composition")
     if any(not a["approved"] or a.get("kind") == "field_study" for a in birds):
         raise ValueError("Reference artwork cannot be sent to the panel")
     composition_license(birds)
-    if occasion and (len(birds) != 1 or count != 1):
+    if occasion and not event_image and (len(birds) != 1 or count != 1):
         raise ValueError("Special-day greetings use one bird")
     layout_name = plan.get("layout", {}).get(
         "name", "solo" if len(birds) == 1 else "pair" if len(birds) == 2 else "trio"
@@ -418,11 +423,21 @@ def compose(art_dir, artwork, plan, output):
     cells, captions = composition_cells(layout_name, len(birds))
     if occasion:
         cells, captions = composition_cells("occasion", 1)
-        draw_occasion_art(draw, occasion["theme"])
+        if not event_image:
+            draw_occasion_art(draw, occasion["theme"])
     for item, cell, caption in zip(birds, cells, captions, strict=True):
         left, top, right, bottom = cell
         center, width = caption
-        with Image.open(art_dir / item["asset"]) as original:
+        asset_root = Path(event_art_dir) if item.get("event_only") else art_dir
+        asset_path = (asset_root / item["asset"]).resolve()
+        if not asset_path.is_relative_to(asset_root.resolve()):
+            raise ValueError("Artwork path is outside its library")
+        if (
+            item.get("event_only")
+            and hashlib.sha256(asset_path.read_bytes()).hexdigest() != item["asset_sha256"]
+        ):
+            raise ValueError("Event artwork does not match its reviewed image")
+        with Image.open(asset_path) as original:
             bird = original.convert("RGBA")
             box = bird.getchannel("A").getbbox()
             if not box:
@@ -434,7 +449,7 @@ def compose(art_dir, artwork, plan, output):
             y = top + (bottom - top - bird.height) // 2
             canvas.alpha_composite(bird, (x, y))
         draw = ImageDraw.Draw(canvas)
-        if policy["show_species_name"]:
+        if policy["show_species_name"] and not item.get("event_only"):
             font, lines = fitted_lines(
                 art_dir,
                 draw,

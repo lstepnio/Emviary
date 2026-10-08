@@ -23,7 +23,7 @@ The public root mirrors the selected frame's last delivered image. This is based
 on firmware fetch telemetry, not direct panel sensing. Choose the public frame
 in management or hide it. The source-art library is at `/library`.
 
-The local-controls link opens http://photoframe.local. It works on the frame's
+The local-controls link opens http://emviary.local, with http://photoframe.local as a fallback. It works on the frame's
 local network while the device is awake; it does not wake the sleeping device.
 
 Expand **Special days** on a frame to add, edit, disable or remove an occasion.
@@ -116,8 +116,10 @@ host-local backups still need an independent host backup to survive disk loss.
 
 For restore, stop only this service. Preserve the current data directory, restore
 the backup SQLite as `/docker/appdata/emviary/data/emviary.sqlite3`,
-copy `active-cache/*` into `data/cache/`, and restore `site.json` and `art/` to
-those bind mounts. Remove old WAL/SHM files only from the restored directory,
+copy `active-cache/*` into `data/cache/`, copy backup `event-art/` into
+`data/event-art/`, and restore `site.json` and `art/` to those bind mounts.
+The cache backup now includes retained navigable images, and the SQLite backup
+includes render counts, event schedules, refill jobs and battery history. Remove old WAL/SHM files only from the restored directory,
 with the service stopped. Maintain UID/GID 1000. Start the service and verify
 health, status, authenticated image retrieval and a device refresh. The restored
 hashes recognize existing device tokens; lost owner plaintext files require
@@ -224,3 +226,39 @@ The recovery download uses the webapp's `{"config": {...}}` format and omits
 Wi-Fi fields so it cannot replace the network just used to recover. The legacy
 flat provisioning download remains unchanged. Both are authenticated and sent
 with `Cache-Control: no-store`; the embedded frame token must be kept private.
+
+## Holiday and season artwork
+
+Use **Add a collection** under a frame’s Special days to import US holidays or
+meteorological seasons. New presets start disabled. Existing customized events
+are preserved, and repeated imports do not duplicate them. Fixed-date events
+repeat annually; movable holidays apply to the selected year. Import next year
+when needed. Meteorological seasons start March 1, June 1, September 1 and
+December 1. Edit dates and disable annual repeat for an exact local equinox or
+solstice in a chosen year.
+
+Open `/manage/event-art` to upload PNG, JPEG or WebP art with a title and creator
+or source. Review and approve the art before selecting it for an event. Occasion
+art can be a landscape, abstract design, photograph or other nonbird image and
+never joins ordinary bird rotation. Assign the image, greeting and date, then
+enable the event. Preview it before use. Artwork selected by an event must be
+unassigned before it can be removed or returned to review.
+
+## Battery history and charging alerts
+
+Open `/manage/battery` for percentage history, voltage, charging/USB state and
+conservative estimates of days until 20%. Owner management shows a charge alert
+at 20% or an estimated crossing within seven days. Alerts stay in management;
+no email or webhook is configured. Firmware v0.6.0 supplies power-state headers.
+Older readings remain visible but are excluded from estimates when their power
+source is unknown. Percentage is derived from battery voltage and can fluctuate.
+
+Samples are deduplicated within 15-minute buckets and kept for one year. A
+forecast requires at least five daily readings spanning seven days and a
+five-point drop in one discharge cycle. Charging or a significant upward jump
+starts a new cycle. Stale, flat or noisy readings suppress estimates. Battery
+life is not yet established; use a complete battery-powered cycle to assess it.
+
+Firmware v0.6.0 uses internal LittleFS and disables SD albums and SD `wifi.txt`
+provisioning in this Emviary E1002 profile. Green-button web recovery, config
+imports, Wi-Fi networks, image downloads, OTA and the 03:15 schedule remain.
