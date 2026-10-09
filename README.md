@@ -195,3 +195,5 @@ preserves failed forms with focused feedback, and distinguishes queued, delivere
 and saved previews. Web galleries use bounded cached thumbnails; frame rendering
 continues to use original masters. See [UX_REVIEW.md](UX_REVIEW.md) for findings,
 acceptance checks, measurements and remaining validation limits.
+
+Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).

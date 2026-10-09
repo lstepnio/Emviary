@@ -8,10 +8,25 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 
+class SavedNetwork(BaseModel):
+    model_config = ConfigDict(extra="ignore", strict=True)
+
+    ssid: str = Field(min_length=1, max_length=32)
+    password_set: bool
+
+    @field_validator("ssid")
+    @classmethod
+    def valid_ssid(cls, value):
+        if len(value.encode("utf-8")) > 32 or any(ord(c) < 32 or ord(c) == 127 for c in value):
+            raise ValueError("Invalid network name")
+        return value
+
+
 class DeviceMetrics(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
     ssid: str | None = Field(default=None, max_length=32)
+    wifi_networks: list[SavedNetwork] | None = Field(default=None, max_length=5)
     rssi_dbm: int | None = Field(default=None, ge=-127, le=0)
     channel: int | None = Field(default=None, ge=1, le=14)
     local_ip: str | None = Field(default=None, max_length=15)
@@ -36,6 +51,13 @@ class DeviceMetrics(BaseModel):
     def printable_network(cls, value):
         if value is not None and any(ord(c) < 32 or ord(c) == 127 for c in value):
             raise ValueError("Control characters are not a network name")
+        return value
+
+    @field_validator("wifi_networks")
+    @classmethod
+    def unique_networks(cls, value):
+        if value is not None and len({n.ssid for n in value}) != len(value):
+            raise ValueError("Duplicate network names")
         return value
 
     @field_validator("local_ip")
@@ -130,3 +152,45 @@ def diagnostics_section(store, frame_id, escape):
         ]
         body += "<tr>" + "".join("<td>" + escape(v) + "</td>" for v in values) + "</tr>"
     return body + "</table></div></details></section>"
+
+
+def saved_networks_section(store, frame_id, policy, escape):
+    """Device-confirmed inventory is distinct from additive cloud-staged changes."""
+    from .ui import local_time
+
+    body = "<h3>Saved on the frame</h3>"
+    for row in reversed(store.device_samples(frame_id)):
+        metrics = json.loads(row["metrics"])
+        if "wifi_networks" not in metrics:
+            continue
+        networks = metrics["wifi_networks"]
+        body += (
+            '<p class="quiet">'
+            + str(len(networks))
+            + " of 5 networks saved. Last reported: "
+            + escape(local_time(row["recorded_at"]))
+            + ". The list updates on each artwork fetch, including unchanged images.</p>"
+            '<div class="table-wrap"><table><tr><th>Network</th><th>Security</th>'
+            "<th>Status at last report</th></tr>"
+        )
+        for network in networks:
+            status = "Connected" if network["ssid"] == metrics.get("ssid") else "Saved"
+            if network["ssid"] in policy.get("wifi_forget_ssids", []):
+                status += " · Removal pending"
+            body += (
+                "<tr>"
+                + "".join(
+                    "<td>" + escape(value) + "</td>"
+                    for value in (
+                        network["ssid"],
+                        "Password saved" if network["password_set"] else "Open network",
+                        status,
+                    )
+                )
+                + "</tr>"
+            )
+        return body + "</table></div>"
+    return body + (
+        '<p class="empty-state">The frame has not reported its saved network list yet. '
+        "Firmware v0.7.6 or later reports all networks on its next artwork fetch.</p>"
+    )

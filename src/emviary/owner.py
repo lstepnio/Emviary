@@ -21,6 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
+from .diagnostics import saved_networks_section
 from .event_art import MAX_UPLOAD, import_presets
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
@@ -627,6 +628,13 @@ def attach_owner(app, service):
                     "to existing device networks, preserving its staging connection. The frame "
                     "holds five networks in total. Removal applies only to networks saved here. "
                     "Passwords are stored privately and never shown.</p>"
+                )
+                body += saved_networks_section(service.store, frame["id"], policy, escape)
+                body += (
+                    '<h3>Cloud-managed networks</h3><p class="quiet">These profiles are sent '
+                    "on each artwork fetch. Compare with the reported list above to confirm "
+                    "they reached the frame. Device-only profiles can be edited on "
+                    '<a href="http://emviary.local">emviary.local</a> while awake.</p>'
                 )
                 if policy["wifi_networks"] is None:
                     body += (

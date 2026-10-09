@@ -80,3 +80,90 @@ def test_history_is_bounded_per_frame_and_ui_escapes_network_names(service, fram
     assert all(
         datetime.fromisoformat(row["recorded_at"]) > now - timedelta(days=90) for row in rows
     )
+
+
+def test_saved_network_inventory_bounds_and_secret_isolation():
+    networks = [{"ssid": "😀" * 8, "password_set": True, "password": "secret"}]
+    value = parse_metrics(json.dumps({"wifi_networks": networks}))
+    assert value == {"wifi_networks": [{"ssid": "😀" * 8, "password_set": True}]}
+    for invalid in (
+        networks * 2,
+        [{"ssid": str(i), "password_set": False} for i in range(6)],
+        [{"ssid": "😀" * 9, "password_set": False}],
+        [{"ssid": "bad\n", "password_set": False}],
+        [{"ssid": "", "password_set": False}],
+        [{"ssid": "Home", "password_set": "true"}],
+    ):
+        assert parse_metrics(json.dumps({"wifi_networks": invalid})) is None
+    # Five maximum-byte Unicode names and full metrics fit the wire budget.
+    metrics = {
+        "wifi_networks": [{"ssid": "😀" * 7 + str(i), "password_set": True} for i in range(5)],
+        "ssid": "😀" * 7 + "0",
+        "rssi_dbm": -60,
+        "local_ip": "192.168.100.100",
+        "connect_ms": 3600000,
+        "disconnects": 2147483647,
+        "disconnect_reason": 255,
+        "uptime_ms": 9007199254740991,
+        "boot_count": 4294967295,
+        "wake_cause": 16,
+        "reset_reason": 32,
+        "free_heap": 67108864,
+        "min_free_heap": 67108864,
+        "previous_result": "unchanged",
+        "previous_total_ms": 3600000,
+        "previous_download_ms": 3600000,
+        "previous_bytes": 33554432,
+        "previous_http_status": 599,
+        "previous_attempts": 3,
+        "channel": 14,
+    }
+    header = "b64:" + base64.b64encode(json.dumps(metrics).encode()).decode()
+    assert len(header) <= 2048 and parse_metrics(header) == metrics
+
+
+def test_owner_shows_device_only_networks_and_distinguishes_pending_changes(
+    service, frame, tmp_path, monkeypatch
+):
+    from test_owner import sign_in
+
+    frame_id, token = frame
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    service.prepare(frame_id)
+    monkeypatch.setattr(service, "refill_pending", lambda **kwargs: None)
+    metrics = {
+        "ssid": "<Home>",
+        "wifi_networks": [
+            {"ssid": "<Home>", "password_set": True, "password": "never-store"},
+            {"ssid": "Guest", "password_set": False},
+        ],
+    }
+    headers = {
+        "Authorization": "Bearer " + token,
+        "X-Frame-Metrics": json.dumps(metrics),
+        "X-Firmware-Version": "v0.7.6",
+    }
+    response = client.get("/v1/image", headers=headers)
+    assert response.status_code == 200
+    headers["If-None-Match"] = response.headers["etag"]
+    assert client.get("/v1/image", headers=headers).status_code == 304
+    assert len(service.store.device_samples(frame_id)) == 2
+    assert "never-store" not in service.store.device_samples(frame_id)[-1]["metrics"]
+    client.post(
+        "/manage/frames/test-frame/wifi",
+        data={
+            "csrf": csrf,
+            "ssid": "Destination",
+            "password": "private-destination",
+            "action": "save",
+        },
+    )
+    html = client.get("/manage/settings").text
+    assert "2 of 5 networks saved" in html and "&lt;Home&gt;" in html
+    assert "Connected" in html and "Open network" in html and "Destination" in html
+    assert "Last reported:" in html and "Cloud-managed networks" in html
+    assert "never-store" not in html and "private-destination" not in html
+    assert "<Home>" not in html
+    for path in ("/", "/library", "/credits.json"):
+        public = client.get(path).text
+        assert "&lt;Home&gt;" not in public and "Destination" not in public

@@ -3,15 +3,25 @@
 Current controls: [cloud Settings](https://emviary.majjix.com/manage/settings)
 shows Saved Wi-Fi networks directly, with a Wi-Fi networks shortcut on each
 frame's overview. The local page at `http://emviary.local` also has Add network
-and Save networks while the frame is awake. Firmware v0.7.5 retains the five-profile
+and Save networks while the frame is awake. Firmware v0.7.6 retains the five-profile
 store, write-only passwords and network fallback. The device had one saved
 network before the firmware audit; multiple-profile capacity was not removed.
 
-Cloud settings show networks staged through the service. They do not enumerate
-all device-only profiles. Existing device profiles remain when cloud networks
-are added. Local settings show and replace the complete saved list; blank
-existing passwords retain their saved values. Wi-Fi password fields use
-`autocomplete="new-password"` to discourage account-password autofill.
+Application 0.9.2 and firmware v0.7.6 show the complete saved list in both UIs,
+including profiles created directly on the device. The frame reports only SSIDs
+and password-presence flags over the existing authenticated image request; no
+additional polling or wake is introduced. The owner page shows the last reported
+inventory, connected network at that report and a timestamp. Cloud-managed
+profiles remain a separate section so pending changes are not mistaken for
+confirmed device state. Local saves reach the cloud on the next artwork fetch;
+Refresh picture synchronizes the list while the frame is awake.
+
+Existing device profiles remain when cloud networks are added. Local settings
+show and replace the complete saved list; blank existing passwords retain their
+saved values. Password fields use `autocomplete="new-password"` to discourage
+account-password autofill. Inventory is limited to five unique, valid SSIDs and
+private owner views. New firmware is required before device-only profiles can
+appear in cloud inventory.
 
 Application 0.4.0 adds authenticated, CSRF-protected cloud Wi-Fi management.
 Firmware 0.4.0 adds ordered saved profiles; the 0.4.1 follow-up moves scan records
