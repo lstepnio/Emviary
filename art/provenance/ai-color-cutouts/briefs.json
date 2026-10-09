@@ -1,0 +1,1153 @@
+[
+  {
+    "scientific_name": "Recurvirostra americana",
+    "common_name": "American Avocet",
+    "brief": "Adult in nonbreeding plumage standing in side profile facing left. Very slender upward-curved black bill, pale gray head and neck, black-and-white wings, white belly, extremely long pale blue-gray legs. No pink body or straight bill.",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Avocet/id"
+  },
+  {
+    "scientific_name": "Fulica americana",
+    "common_name": "American Coot",
+    "brief": "Adult standing side-on facing right. Charcoal-black plump body, darker head, WHITE short stout bill and small white frontal shield, red eye, olive-green legs with individually lobed toes, not duck webbing.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Coot/id"
+  },
+  {
+    "scientific_name": "Corvus brachyrhynchos",
+    "common_name": "American Crow",
+    "brief": "Adult side view facing left, standing on a short twig. All-black body, black straight stout bill, black eye, smooth throat, relatively compact tail with rounded fan profile. Few restrained dark-blue sheen accents; no raven shaggy throat or huge bill.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Crow/id"
+  },
+  {
+    "scientific_name": "Cinclus mexicanus",
+    "common_name": "American Dipper",
+    "brief": "Adult standing on a small plain rock facing right. Compact round body, slate-gray plumage, browner head, short tail, dark eye, slender dark bill and sturdy legs. No bright plumage, crest or long tail.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Dipper/id"
+  },
+  {
+    "scientific_name": "Spinus tristis",
+    "common_name": "American Goldfinch",
+    "brief": "Adult male breeding plumage, upright perched facing left. Bright yellow body, small BLACK forehead cap, black folded wings with clear white bars, black tail edged white, small conical orange bill. No red face or yellow head crown crest.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Goldfinch/id"
+  },
+  {
+    "scientific_name": "Falco sparverius",
+    "common_name": "American Kestrel",
+    "brief": "Adult male perched three-quarter facing right. Slate-blue head and folded wings, rust-red back and tail, pale warm buff breast with restrained black spotting, two black vertical cheek slashes on white face, short hooked bill and yellow feet. Natural small slender falcon.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Kestrel/id"
+  },
+  {
+    "scientific_name": "Turdus migratorius",
+    "common_name": "American Robin",
+    "brief": "Adult three-quarter profile facing left, perched on a short twig. Dark gray-brown upperparts, blackish head, warm brick-red breast and belly, white lower belly, yellow bill, broken white eye ring. No crest, wing bars or all-red head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_Robin/id"
+  },
+  {
+    "scientific_name": "Pelecanus erythrorhynchos",
+    "common_name": "American White Pelican",
+    "brief": "Adult nonbreeding American White Pelican standing facing right with wings fully folded. Huge pure white body and WHITE folded wing, smooth white crown with no crest; black flight feathers are hidden under the white folded wing. Very long orange-yellow bill with visible throat pouch and orange webbed feet. Short legs. No black stripe on folded wing, no bill horn, no brown body.",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/American_White_Pelican/id"
+  },
+  {
+    "scientific_name": "Haliaeetus leucocephalus",
+    "common_name": "Bald Eagle",
+    "brief": "Mature adult perched side view facing left. White head and white tail, dark brown body and wings, large hooked yellow bill and yellow talons, pale eye. No white belly, no golden crown, no crest.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Bald_Eagle/id"
+  },
+  {
+    "scientific_name": "Hirundo rustica",
+    "common_name": "Barn Swallow",
+    "brief": "Adult perched facing right on a very short twig. Glossy deep-blue upperparts, rusty forehead and throat, warm cinnamon-buff underparts, long deeply forked tail with slender outer streamers. Tiny dark bill; no crest or white wing bars.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Barn_Swallow/id"
+  },
+  {
+    "scientific_name": "Megaceryle alcyon",
+    "common_name": "Belted Kingfisher",
+    "brief": "Adult male perched side view facing left. Large shaggy blue-gray crest, heavy long straight dark bill, slate-blue head and upperparts, white throat and belly with ONE broad blue breast band. No rust-colored belly band, no yellow head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Belted_Kingfisher/id"
+  },
+  {
+    "scientific_name": "Pica hudsonia",
+    "common_name": "Black-billed Magpie",
+    "brief": "Adult full side profile facing right, perched on short twig. Black head, breast and back; WHITE belly and broad white shoulder patches; long iridescent blue-green wings and very long tapering tail. Black bill and feet, no crest.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Black-billed_Magpie/id"
+  },
+  {
+    "scientific_name": "Poecile atricapillus",
+    "common_name": "Black-capped Chickadee",
+    "brief": "Adult Black-capped Chickadee, side view facing right, perched alertly on a short twig. Black cap and black bib, large clean white cheeks, gray back and wings with understated pale edges, cream-white belly and modest buff flanks. Small slender black bill; long gray tail. No white eyebrow or crest.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Black-capped_Chickadee/id"
+  },
+  {
+    "scientific_name": "Nycticorax nycticorax",
+    "common_name": "Black-crowned Night-Heron",
+    "brief": "Adult standing compactly with neck tucked facing left. Black crown and back, pale gray wings and underparts, red eye, stout dark pointed bill and yellowish legs. Compact stocky heron, no long extended neck or crown crest.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Black-crowned_Night-Heron/id"
+  },
+  {
+    "scientific_name": "Cyanocitta cristata",
+    "common_name": "Blue Jay",
+    "brief": "Adult side profile facing right, alert crest raised, short twig. Blue crest, back, folded wings and tail with black barring and white patches; white-gray face and underparts, narrow black necklace extending around face. Dark bill, no all-black head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Blue_Jay/id"
+  },
+  {
+    "scientific_name": "Selasphorus platycercus",
+    "common_name": "Broad-tailed Hummingbird",
+    "brief": "Adult male Broad-tailed Hummingbird perched facing left on a tiny short twig. Iridescent GREEN crown, back and tail, rose-red throat patch, WHITE chest and central belly with muted green flanks, slender straight black bill. Rounded dark green-black tail extending beyond folded wing, NOT orange or rust tail. Tiny natural feet. No swallow-like forked tail.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Broad-tailed_Hummingbird/id"
+  },
+  {
+    "scientific_name": "Certhia americana",
+    "common_name": "Brown Creeper",
+    "brief": "Adult climbing a short vertical bark segment facing upward/right. Mottled brown back with a few large pale markings, white belly, long slender downward-curved bill, long stiff pointed tail braced against bark. No striped nuthatch face or straight conical bill.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Brown_Creeper/id"
+  },
+  {
+    "scientific_name": "Branta canadensis",
+    "common_name": "Canada Goose",
+    "brief": "Adult standing facing left. Long black neck and black head with a broad WHITE chinstrap, brown-gray back and wings, pale breast and belly, black bill and black webbed feet. No orange bill or white head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Canada_Goose/id"
+  },
+  {
+    "scientific_name": "Catherpes mexicanus",
+    "common_name": "Canyon Wren",
+    "brief": "Adult facing right on small plain rock. Rust-brown back and belly, sharply WHITE throat and upper breast, long slender slightly downcurved bill, short tail with black barring. No black throat or plump sparrow bill.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Canyon_Wren/id"
+  },
+  {
+    "scientific_name": "Bombycilla cedrorum",
+    "common_name": "Cedar Waxwing",
+    "brief": "Adult elegant three-quarter perched facing left. Smooth warm tan head and breast, prominent crest, black eye mask bordered subtly white, soft yellow belly, gray wings with tiny but clear red wax tips, yellow terminal tail band. No red crown or blue body.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Cedar_Waxwing/id"
+  },
+  {
+    "scientific_name": "Nucifraga columbiana",
+    "common_name": "Clark's Nutcracker",
+    "brief": "Adult side profile facing right on short twig. Pale gray head and body, BLACK wings with large clear WHITE wing patch, black central tail and white outer tail feathers, long straight pointed black bill. No crest, no blue plumage or crow-black belly.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Clarks_Nutcracker/id"
+  },
+  {
+    "scientific_name": "Corvus corax",
+    "common_name": "Common Raven",
+    "brief": "Adult Common Raven, side profile facing right, upright with head slightly lifted on a short stout twig. Entirely black plumage, large heavy gently curved black bill, shaggy throat feathers, broad powerful body and wedge-shaped long tail. Show sheen using few subtle dark-blue accents, not white panels. No pale eyes or colored plumage.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Common_Raven/id"
+  },
+  {
+    "scientific_name": "Junco hyemalis",
+    "common_name": "Dark-eyed Junco",
+    "brief": "Adult Oregon-type male common in Colorado winter, side profile facing left on short twig. Black hood, brown back, warm buff sides and white belly, pale pink small conical bill, dark tail with white outer feathers. No crest or white wing bars.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Dark-eyed_Junco/id"
+  },
+  {
+    "scientific_name": "Dryobates pubescens",
+    "common_name": "Downy Woodpecker",
+    "brief": "Adult male clinging to short vertical bark facing right. Black-and-white checkered wings, white stripe down back, white face with black stripes, small red patch only on rear crown, short straight bill noticeably shorter than head. Stiff tail; no entirely red head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Downy_Woodpecker/id"
+  },
+  {
+    "scientific_name": "Streptopelia decaocto",
+    "common_name": "Eurasian Collared-Dove",
+    "brief": "Adult standing on short twig facing left. Pale sandy-gray body, narrow BLACK half-collar at back of neck, darker primary feathers, long square-ended tail with white corners, red-dark eye, slender dark bill. No blue body or large pigeon neck patch.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Eurasian_Collared-Dove/id"
+  },
+  {
+    "scientific_name": "Buteo regalis",
+    "common_name": "Ferruginous Hawk",
+    "brief": "Adult light morph perched facing right. Broad large hawk, pale whitish head, rusty shoulders and back, white belly with sparse rust marks, rust-feathered legs, hooked dark/yellow-based bill, yellow feet. No red tail or black eagle body.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Ferruginous_Hawk/id"
+  },
+  {
+    "scientific_name": "Aquila chrysaetos",
+    "common_name": "Golden Eagle",
+    "brief": "Adult perched facing left. Large dark-brown eagle with golden-ochre nape, powerful hooked dark bill with yellow cere, feathered legs and yellow talons. Adult has no white head, white tail or large white wing patches.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Golden_Eagle/id"
+  },
+  {
+    "scientific_name": "Ardea herodias",
+    "common_name": "Great Blue Heron",
+    "brief": "Adult standing in elegant side profile facing right. Tall blue-gray body, long S-curved neck, white face with black eyebrow/occipital plume, long yellow pointed bill, very long dark legs. Pale neck with a few clear dark streaks, no pink body.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Great_Blue_Heron/id"
+  },
+  {
+    "scientific_name": "Bubo virginianus",
+    "common_name": "Great Horned Owl",
+    "brief": "Adult perched three-quarter facing left. Large broad owl, two prominent EAR TUFTS, yellow eyes, warm brown facial disk edged dark, white throat patch and brown-black broad barred body. Natural hooked bill and sturdy talons; no human expression.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Great_Horned_Owl/id"
+  },
+  {
+    "scientific_name": "Dryobates villosus",
+    "common_name": "Hairy Woodpecker",
+    "brief": "Adult male clinging to short vertical bark facing left. Black-and-white wings, white stripe down back, white face with black stripes, small red patch on rear crown, long straight bill almost as long as head. More substantial than Downy; no red whole head. IMPORTANT diagnostic distinction from Downy Woodpecker: outer tail feathers are solid WHITE, with NO black spots on these white outer feathers. Long bill approximately the length of the head.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Hairy_Woodpecker/id"
+  },
+  {
+    "scientific_name": "Haemorhous mexicanus",
+    "common_name": "House Finch",
+    "brief": "Adult male perched facing right. Red forehead, breast and rump, brown streaked back and wings, pale belly with clear broad brown streaks, short thick gray conical bill. No entirely red body or purple wing panels.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/House_Finch/id"
+  },
+  {
+    "scientific_name": "Passer domesticus",
+    "common_name": "House Sparrow",
+    "brief": "Adult male perched facing left. Gray crown, chestnut nape, white cheek, black bib and dark bill; warm brown and black striped back, gray-white belly. No yellow breast, blue wings or all-black crown.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/House_Sparrow/id"
+  },
+  {
+    "scientific_name": "Calamospiza melanocorys",
+    "common_name": "Lark Bunting",
+    "brief": "Adult male breeding plumage perched facing right. Black body and head, broad WHITE wing patch clearly visible on folded wing, short stout blue-gray conical bill, dark eye. No yellow belly or blue body; natural compact sparrow proportions.",
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Lark_Bunting/id"
+  },
+  {
+    "scientific_name": "Passerina amoena",
+    "common_name": "Lazuli Bunting",
+    "brief": "Adult male perched three-quarter facing left. Bright blue head and upperparts, rusty-orange upper breast, WHITE belly and clear white wing bars, short dark conical bill. No red head, blue belly or crest.",
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Lazuli_Bunting/id"
+  },
+  {
+    "scientific_name": "Anas platyrhynchos",
+    "common_name": "Mallard",
+    "brief": "Adult drake standing side-on facing right. Green head, narrow white neck ring, chestnut breast, pale gray body, dark curled tail feathers, blue speculum edged white on folded wing, yellow bill and orange webbed feet. No crest or all-green body.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Mallard/id"
+  },
+  {
+    "scientific_name": "Sialia currucoides",
+    "common_name": "Mountain Bluebird",
+    "brief": "Adult male Mountain Bluebird, three-quarter standing perched facing left, chest visible. Sky-blue head, back and breast, deeper plain blue folded wings and tail, pale lower belly and white undertail. Small slender dark bill, dark eye. NO orange or rusty breast, NO white wing bars, NO crest.",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Mountain_Bluebird/id"
+  },
+  {
+    "scientific_name": "Poecile gambeli",
+    "common_name": "Mountain Chickadee",
+    "brief": "Adult perched facing right. Black cap and bib, distinctive clean WHITE EYEBROW above eye separating black cap from dark eye stripe, white cheek, gray back and folded wings, pale gray-white belly. Tiny dark bill; no rusty flanks or crest.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Mountain_Chickadee/id"
+  },
+  {
+    "scientific_name": "Zenaida macroura",
+    "common_name": "Mourning Dove",
+    "brief": "Adult side-on perched facing left. Warm gray-tan body, small head, black spots on folded wings, long tapering pointed tail with white outer edges, slender black bill and rosy feet. No black neck collar or large white wing patch.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Mourning_Dove/id"
+  },
+  {
+    "scientific_name": "Troglodytes aedon",
+    "common_name": "Northern House Wren",
+    "brief": "Adult perched facing right, short tail held cocked upward. Plain warm brown upperparts, pale gray-buff belly, subtle dark bars on folded wings and tail, small slender dark bill, subdued eye line. No bright orange body or bold white throat patch.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/House_Wren/id"
+  },
+  {
+    "scientific_name": "Aegolius acadicus",
+    "common_name": "Northern Saw-whet Owl",
+    "brief": "Adult compact owl perched three-quarter facing left. NO ear tufts. Large yellow eyes, pale round facial disk with white Y-shaped brow, brown back with pale spots, white belly with broad warm-brown streaks, tiny dark bill. No horned-owl tufts.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Northern_Saw-whet_Owl/id"
+  },
+  {
+    "scientific_name": "Pandion haliaetus",
+    "common_name": "Osprey",
+    "brief": "Adult perched facing right. White head with strong dark eye stripe, white underside, dark-brown upperparts, yellow eye and hooked dark bill, long talons. Narrow crown streaks, no golden eagle head or black belly.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Osprey/id"
+  },
+  {
+    "scientific_name": "Spinus pinus",
+    "common_name": "Pine Siskin",
+    "brief": "Adult perched facing left. Small brown/gray heavily streaked finch, pale belly with broad dark streaks, clear YELLOW edges on folded wing and tail, slim pointed finch bill. No red cap, plain yellow body or big goldfinch black crown.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Pine_Siskin/id"
+  },
+  {
+    "scientific_name": "Falco mexicanus",
+    "common_name": "Prairie Falcon",
+    "brief": "Adult perched facing right. Warm sandy-brown upperparts, pale streaked belly, narrow dark moustache mark, dark eye, short hooked bill and yellow feet. No blue-gray kestrel wing panels, no red tail; athletic large falcon proportions.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Prairie_Falcon/id"
+  },
+  {
+    "scientific_name": "Sitta pygmaea",
+    "common_name": "Pygmy Nuthatch",
+    "brief": "Adult perched sideways on short twig facing left. Small compact bird with brown-gray cap, dark eye stripe, blue-gray back, pale cream underparts, short pointed bill and short tail. No bright orange breast or black crown.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Pygmy_Nuthatch/id"
+  },
+  {
+    "scientific_name": "Sitta canadensis",
+    "common_name": "Red-breasted Nuthatch",
+    "brief": "Adult male clinging head-down to a short vertical twig, facing right. Blue-gray back, BLACK crown, bold white eyebrow above black eye stripe, rusty orange underparts, pointed dark bill, short tail. No white belly or long tail.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Red-breasted_Nuthatch/id"
+  },
+  {
+    "scientific_name": "Buteo jamaicensis",
+    "common_name": "Red-tailed Hawk",
+    "brief": "Adult light morph perched facing left. Brown back, pale breast with dark belly band, unmistakable broad RUST-RED tail, hooked dark bill with yellow cere, yellow feet. No uniformly black body or all-red wings.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Red-tailed_Hawk/id"
+  },
+  {
+    "scientific_name": "Agelaius phoeniceus",
+    "common_name": "Red-winged Blackbird",
+    "brief": "Adult male perched facing right. Glossy BLACK body, bright RED shoulder epaulet bordered below with YELLOW clearly visible on folded wing, pointed black bill and dark eye. No red crown or yellow belly.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Red-winged_Blackbird/id"
+  },
+  {
+    "scientific_name": "Antigone canadensis",
+    "common_name": "Sandhill Crane",
+    "brief": "Adult standing in side profile facing left. Very tall gray crane, long straight pointed dark bill, red bare crown patch, white cheek, long neck and long dark legs, drooping bustle feathers. No black-and-white stork wings or S-curved heron neck.",
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Sandhill_Crane/id"
+  },
+  {
+    "scientific_name": "Sayornis saya",
+    "common_name": "Say's Phoebe",
+    "brief": "Adult perched facing right on short twig. Gray head and upperparts, cinnamon/salmon belly and undertail, darker plain wings and black tail, slender black bill. No white wing bars or blue upperparts.",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Says_Phoebe/id"
+  },
+  {
+    "scientific_name": "Egretta thula",
+    "common_name": "Snowy Egret",
+    "brief": "Adult standing side profile facing left. Entirely WHITE body, slender BLACK bill, black legs with distinctive bright YELLOW feet, small yellow lores. Modest fine head plumes, not an enormous crest; no yellow bill or black body.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Snowy_Egret/id"
+  },
+  {
+    "scientific_name": "Melospiza melodia",
+    "common_name": "Song Sparrow",
+    "brief": "Adult perched facing right. Brown streaked back, white-gray belly with strong brown breast streaks converging into a central dark spot, brown crown stripes and malar stripes, small stout conical bill. No red face or yellow wing bars.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Song_Sparrow/id"
+  },
+  {
+    "scientific_name": "Pipilo maculatus",
+    "common_name": "Spotted Towhee",
+    "brief": "Adult male perched facing left. Black head, breast, upperparts and long tail; warm rust sides, white belly, white spots on folded wings and back, red eye and stout dark conical bill. No orange head or yellow belly.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Spotted_Towhee/id"
+  },
+  {
+    "scientific_name": "Cyanocitta stelleri",
+    "common_name": "Steller's Jay",
+    "brief": "Adult side-on perched facing right. Tall dark crest, BLACK head and upper chest, deep BLUE lower body, folded wings and long tail with dark barring; subtle pale forehead streaks for interior western form. Dark stout bill; no large white wing patches.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Stellers_Jay/id"
+  },
+  {
+    "scientific_name": "Buteo swainsoni",
+    "common_name": "Swainson's Hawk",
+    "brief": "Adult light morph perched facing left. Brown head and broad dark-brown breast bib, white lower belly, brown folded wings, banded gray-brown tail, hooked bill and yellow feet. No red tail or entirely black underparts.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Swainsons_Hawk/id"
+  },
+  {
+    "scientific_name": "Cathartes aura",
+    "common_name": "Turkey Vulture",
+    "brief": "Adult perched side-on facing right. Large dark brown-black body, small bare RED head, pale ivory hooked bill, gray legs and long broad tail. Dark folded wings with restrained silver-gray flight-feather edges. No feathered eagle head or yellow legs.",
+    "months": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Turkey_Vulture/id"
+  },
+  {
+    "scientific_name": "Sialia mexicana",
+    "common_name": "Western Bluebird",
+    "brief": "Adult male perched facing left. BLUE head, throat, upper back, wings and tail; rich RUST-ORANGE breast and sides, grayish lower belly, slender dark bill. No plain blue breast, no white wing bars or crest.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Western_Bluebird/id"
+  },
+  {
+    "scientific_name": "Sturnella neglecta",
+    "common_name": "Western Meadowlark",
+    "brief": "Adult facing right, standing on small plain rock. Brilliant yellow throat and breast with bold BLACK V-shaped breast band, brown/black streaked back, buff-and-black striped head with pale eyebrow, long sharp pointed bill. No red head or black whole body.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Western_Meadowlark/id"
+  },
+  {
+    "scientific_name": "Piranga ludoviciana",
+    "common_name": "Western Tanager",
+    "brief": "Adult male Western Tanager in breeding plumage, three-quarter view facing left on a short twig. Red-orange head, bright yellow body and yellow rump, BLACK back and folded wings, two wing bars: upper yellow and lower white. Dark tail, pale stout pointed bill. No crest; natural medium songbird proportions.",
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Western_Tanager/id"
+  },
+  {
+    "scientific_name": "Sitta carolinensis",
+    "common_name": "White-breasted Nuthatch",
+    "brief": "Adult male head-up clinging sideways to short vertical twig, facing right. BLACK cap and nape, white face and underparts, blue-gray back, dark folded wings edged pale, pointed dark bill, short tail with rusty lower undertail. No black eye stripe across white face.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/White-breasted_Nuthatch/id"
+  },
+  {
+    "scientific_name": "Zonotrichia leucophrys",
+    "common_name": "White-crowned Sparrow",
+    "brief": "Adult perched facing left. Bold alternating BLACK-and-WHITE crown stripes, plain gray face and breast, brown streaked back, pale pink/orange conical bill, no breast streaks or black bib. No red crown or yellow forehead.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/White-crowned_Sparrow/id"
+  },
+  {
+    "scientific_name": "Meleagris gallopavo",
+    "common_name": "Wild Turkey",
+    "brief": "Adult male standing side profile facing right with tail relaxed, NOT fanned. Large dark bronze-brown body, barred folded wings, long neck with bare red/blue head and red wattle, beard on chest, stout legs. No chicken comb or bright multicolor peacock tail.",
+    "months": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Wild_Turkey/id"
+  },
+  {
+    "scientific_name": "Sphyrapicus thyroideus",
+    "common_name": "Williamson's Sapsucker",
+    "brief": "Adult male clinging to short vertical bark facing left. BLACK head and upperparts, WHITE cheek stripes and large white wing patch, red throat, YELLOW belly with black breast band, pointed dark bill and stiff tail. No red crown or entirely striped female body.",
+    "months": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Williamsons_Sapsucker/id"
+  },
+  {
+    "scientific_name": "Coccyzus americanus",
+    "common_name": "Yellow-billed Cuckoo",
+    "brief": "Adult perched side profile facing right. Slender warm brown upperparts, clean WHITE underparts, curved bill yellow below and dark above, rusty wing panel, very long dark tail with large WHITE spots on underside. No crest or black mask.",
+    "months": [
+      6,
+      7,
+      8
+    ],
+    "identification_url": "https://www.allaboutbirds.org/guide/Yellow-billed_Cuckoo/id"
+  }
+]

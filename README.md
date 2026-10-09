@@ -10,7 +10,7 @@ Raspberry Pi or online image generation is required for this POC.
 
 ## Implementation
 
-- 62 Colorado species, 143 rotation images, three web-only field studies and two review candidates; original masters,
+- 63 Colorado species, 208 rotation images, four web-only field studies and two review candidates; original masters,
   source credits and per-asset provenance retained.
 - 800×480 Spectra6 conversion through pinned `epaper-image-convert`, producing
   validated EPDGZ files. Rendering happens before the frame fetches.
@@ -153,3 +153,7 @@ with a compact heading and space reserved for greetings only when present.
 “Preview this day & queue on frame” saves the exact converted preview in image
 history and gives it priority for the right white button. It does not enable or
 reschedule the event; the public page changes only after frame delivery.
+
+### Original AI bird variants
+
+The [original AI collection](art/provenance/ai-color-cutouts/README.md) adds one text-only variant for each of the 63 catalogue species. No existing image was supplied as a reference. Exact prompts, identification sources and asset digests are preserved. All 63 were screened in solo and three-bird 800x480 packed six-color previews using balanced processing and Stucki dithering. Existing art, owner exclusions, seasonal eligibility and occasion collections are retained. Generation is offline curation; normal operation needs no AI API calls. Physical-panel review remains pending.
