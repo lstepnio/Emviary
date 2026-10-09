@@ -3,7 +3,9 @@
 from datetime import UTC, datetime
 from statistics import median
 
-from fastapi import Request
+from fastapi import HTTPException, Request
+
+from .ui import local_time
 
 LOW_PERCENT = 20
 FORECAST_DAYS = 7
@@ -122,7 +124,8 @@ def chart(samples):
     coordinates = " ".join(f"{x_position(p):.1f},{170 - p['percent'] * 1.4:.1f}" for p in points)
     return (
         '<svg viewBox="0 0 600 205" role="img" aria-label="Battery percentage history" '
-        'style="width:100%;max-width:650px"><title>Battery percentage history</title>'
+        'style="width:100%;max-width:650px;max-height:185px"><title>Battery '
+        "percentage history</title>"
         '<text x="2" y="35">100%</text><text x="10" y="174">0%</text>'
         '<path d="M40 30V170H580" fill="none" stroke="#999"/>'
         '<path d="M40 142H580" stroke="#a66" stroke-dasharray="5 4"/>'
@@ -148,7 +151,13 @@ def install_battery_routes(app, service, require, escape, page):
             "vary with hardware; some older boards may miss a data-less USB charger. "
             "No email or external notifications are sent.</p></details>"
         )
-        for frame in service.store.frames():
+        frames = service.store.frames()
+        chosen = request.query_params.get("frame")
+        if chosen and not any(f["id"] == chosen for f in frames):
+            raise HTTPException(404, "Unknown frame")
+        if chosen:
+            body += '<p><a href="/manage/battery">View all frames</a></p>'
+        for frame in (f for f in frames if not chosen or f["id"] == chosen):
             samples = service.store.battery_samples(frame["id"])
             summary = summarize(samples)
             body += f"<section><h2>{escape(frame['id'])}</h2>"
@@ -163,7 +172,7 @@ def install_battery_routes(app, service, require, escape, page):
                 + "</strong></div></div>"
             )
             if summary["recorded_at"]:
-                body += f"<p>Last reported: {escape(summary['recorded_at'])}.</p>"
+                body += f"<p>Last reported: {escape(local_time(summary['recorded_at']))}.</p>"
             if summary["alert"]:
                 body += f'<p class="error" role="status">{escape(summary["alert"])}</p>'
             if summary["days_to_charge"] is not None:
@@ -175,15 +184,19 @@ def install_battery_routes(app, service, require, escape, page):
                 )
             else:
                 body += (
-                    "<p>No charge-date estimate available. At least five confirmed unplugged "
-                    "readings across seven days and a five-point drop are needed. "
-                    f"{escape(summary['confidence'])}.</p>"
+                    '<p class="quiet">A charging estimate will appear after enough '
+                    "unplugged history.</p>"
+                    "<details><summary>Estimate requirements</summary><p>At least five "
+                    "daily unplugged "
+                    "readings across seven days and a five-point battery drop are needed. "
+                    + escape(summary["confidence"])
+                    + ".</p></details>"
                 )
             body += chart(samples)
             body += (
                 "<details><summary>Recent battery readings (up to 60)</summary>"
                 '<div class="table-wrap"><table><caption>Battery history, newest '
-                "first; timestamps in UTC</caption>"
+                "first · Mountain time</caption>"
                 "<tr><th>Recorded</th><th>Battery</th><th>Voltage</th>"
                 "<th>Charging</th><th>USB</th></tr>"
             )
@@ -194,7 +207,7 @@ def install_battery_routes(app, service, require, escape, page):
                     return {None: "Unknown", 0: "No", 1: "Yes"}[sample[key]]
 
                 body += (
-                    f"<tr><td>{escape(sample['recorded_at'])}</td>"
+                    f"<tr><td>{escape(local_time(sample['recorded_at']))}</td>"
                     f"<td>{sample['percent']}%</td><td>{voltage}</td>"
                     f"<td>{state('charging')}</td><td>{state('usb_connected')}</td></tr>"
                 )

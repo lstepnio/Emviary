@@ -7,7 +7,7 @@ import json
 import os
 import secrets
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from email import policy as email_policy
 from email.parser import BytesParser
 from pathlib import Path
@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from starlette.background import BackgroundTask
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
@@ -125,12 +126,83 @@ async def form(request, base_url):
 def attach_owner(app, service):
     failures = {}
 
-    @app.exception_handler(HTTPException)
+    from .ui import ASSET_VERSION, CSS, JAVASCRIPT
+
+    @app.get("/assets/{version}/ui.{extension}")
+    def presentation_asset(version: str, extension: str):
+        if version != ASSET_VERSION or extension not in ("css", "js"):
+            raise HTTPException(404, "Asset unavailable")
+        return Response(
+            CSS if extension == "css" else JAVASCRIPT,
+            media_type="text/css" if extension == "css" else "text/javascript",
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    destinations = {
+        "/manage",
+        "/manage/appearance",
+        "/manage/events",
+        "/manage/settings",
+        "/manage/recovery",
+        "/manage/images",
+        "/manage/artwork",
+        "/manage/event-art",
+        "/manage/battery",
+    }
+
+    def safe_return(value):
+        parts = urlsplit(value or "/manage")
+        if parts.scheme or parts.netloc or parts.path not in destinations:
+            return "/manage"
+        return parts.path + ("?" + parts.query[:1024] if parts.query else "")
+
+    def sign_in_redirect(request):
+        target = safe_return(
+            request.url.path + ("?" + request.url.query if request.url.query else "")
+        )
+        return RedirectResponse("/manage/login?" + urlencode({"return": target}), status_code=303)
+
+    @app.exception_handler(StarletteHTTPException)
     async def management_error(request: Request, exc: HTTPException):
         if request.url.path.startswith("/manage"):
+            if (
+                exc.status_code == 401
+                and request.method == "GET"
+                and request.url.path in destinations
+                and "text/html" in request.headers.get("accept", "")
+            ):
+                return sign_in_redirect(request)
             response = page(
                 "Management request unavailable",
-                "<p>" + escape(exc.detail) + '</p><a href="/manage">Return to management</a>',
+                '<p class="notice error" data-request-error role="alert">'
+                + escape(exc.detail)
+                + '</p><div class="actions"><a class="button secondary" '
+                'href="/manage">Return to overview</a>'
+                + (
+                    '<a class="button" href="/manage/login">Sign in</a>'
+                    if exc.status_code == 401
+                    else ""
+                )
+                + "</div>",
+                active="login" if exc.status_code == 401 else "settings",
+            )
+            response.status_code = exc.status_code
+            return response
+        if "text/html" in request.headers.get("accept", "") and not request.url.path.startswith(
+            "/v1/"
+        ):
+            from .ui import page as public_page
+
+            response = public_page(
+                "Page unavailable",
+                "<section><p>"
+                + escape(exc.detail)
+                + '</p><a class="button secondary" href="/">Return to the frame</a></section>',
+                public=True,
+                active="frame",
             )
             response.status_code = exc.status_code
             return response
@@ -189,12 +261,15 @@ def attach_owner(app, service):
         return RedirectResponse(target, status_code=303)
 
     @app.get("/manage/login")
-    def login_form():
+    def login_form(request: Request):
         nonce = secrets.token_urlsafe(24)
         response = page(
             "Manage your frame",
             '<form method="post" action="/manage/login">'
             + hidden(nonce)
+            + '<input type="hidden" name="return" value="'
+            + escape(safe_return(request.query_params.get("return")))
+            + '">'
             + field(
                 "password",
                 "Owner password",
@@ -232,7 +307,11 @@ def attach_owner(app, service):
             failures[peer] = recent + [now]
             return page(
                 "Sign-in failed",
-                '<p>Incorrect password.</p><a href="/manage/login">Try again</a>',
+                '<p class="notice error" role="alert">Incorrect password.</p>'
+                '<a class="button" href="/manage/login?'
+                + escape(urlencode({"return": safe_return(data.get("return"))}))
+                + '">Try again</a>',
+                active="login",
             )
         failures.pop(peer, None)
         token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(24)
@@ -244,7 +323,7 @@ def attach_owner(app, service):
                 "INSERT INTO owner_sessions VALUES(?,?,?)",
                 (token_hash(token), csrf, (datetime.now(UTC) + timedelta(hours=8)).isoformat()),
             )
-        response = redirect()
+        response = RedirectResponse(safe_return(data.get("return")), status_code=303)
         response.set_cookie(
             COOKIE,
             token,
@@ -277,7 +356,7 @@ def attach_owner(app, service):
     def management(request: Request):
         auth = session(request)
         if not auth:
-            return RedirectResponse("/manage/login", status_code=303)
+            return sign_in_redirect(request)
         csrf = auth["csrf"]
         view = request.url.path.rsplit("/", 1)[-1]
         titles = {
@@ -287,8 +366,8 @@ def attach_owner(app, service):
             "settings": "Connections & account",
             "recovery": "Frame recovery",
         }
-        body = '<p class="quiet">Changes reach the frame on its next online wake.</p>'
-        if view in ("manage", "settings"):
+        body = ""
+        if view == "settings":
             body += (
                 '<p class="quiet"><a href="http://emviary.local" target="_blank" '
                 'rel="noopener">Open local frame controls</a> · <a '
@@ -297,7 +376,10 @@ def attach_owner(app, service):
                 "while awake.</p>"
             )
         if request.query_params.get("saved"):
-            body += '<p class="notice success" role="status">Changes saved.</p>'
+            body += (
+                '<p class="notice success" role="status">Changes saved. Frame '
+                "changes apply on its next online wake.</p>"
+            )
         frames = service.store.frames()
         chosen = request.query_params.get("frame")
         if chosen and not any(f["id"] == chosen for f in frames):
@@ -333,7 +415,11 @@ def attach_owner(app, service):
                 delivered = service.delivered_image(frame)
                 ready = service.store.active_image(frame)
                 battery = battery_summary(service, frame["id"])
-                body += '<section class="card"><h2>' + identifier + '</h2><div class="metric-grid">'
+                body += (
+                    '<section class="card"><div class="section-heading"><h2>'
+                    + identifier
+                    + '</h2></div><div class="frame-status">'
+                )
                 for label, value in (
                     ("Daily wake", policy["wake_local_time"] + " · Denver"),
                     (
@@ -352,11 +438,7 @@ def attach_owner(app, service):
                     ),
                 ):
                     body += (
-                        '<div class="metric"><span class="quiet">'
-                        + escape(label)
-                        + "</span><strong>"
-                        + escape(value)
-                        + "</strong></div>"
+                        "<span>" + escape(label) + ": <strong>" + escape(value) + "</strong></span>"
                     )
                 body += '</div><div class="current-next"><div><h3>On the frame</h3>'
                 body += (
@@ -381,9 +463,9 @@ def attach_owner(app, service):
                     else '<p class="empty-state">No picture prepared yet.</p>'
                 )
                 body += (
-                    '</div></div><p class="quiet">The public display follows the '
-                    "delivered picture. Preparing artwork does not change the "
-                    "frame.</p>"
+                    '</div></div><p class="quiet">Prepared artwork waits for the next '
+                    "wake or next-image button press. This view follows image delivery; "
+                    "it cannot confirm the physical panel.</p>"
                 )
                 if battery["alert"]:
                     body += '<p class="notice" role="alert">' + escape(battery["alert"]) + "</p>"
@@ -431,7 +513,13 @@ def attach_owner(app, service):
                         )
                         for n in (1, 2, 3)
                     )
-                    + "</select></label>"
+                    + "</select></label></div>"
+                )
+                body += (
+                    "<details><summary>Advanced color processing</summary><p "
+                    'class="quiet">Change these only when tuning the physical panel. '
+                    "Stucki is the current recommended starting point.</p><div "
+                    'class="grid">'
                 )
                 body += (
                     '<label>Panel color treatment<br><select name="preset">'
@@ -455,7 +543,7 @@ def attach_owner(app, service):
                         + "</option>"
                         for n in ("stucki", "floyd-steinberg", "burkes", "sierra")
                     )
-                    + "</select></label></div>"
+                    + "</select></label></div></details>"
                 )
                 body += (
                     '<details><summary>Firmware updates</summary><p class="quiet">'
@@ -490,7 +578,8 @@ def attach_owner(app, service):
                 )
                 body += checkbox(
                     "labels", "Common bird names", policy["show_species_name"]
-                ) + checkbox("weather", "Weather enabled", policy["weather_cues"])
+                ) + checkbox("weather", "Show weather", policy["weather_cues"])
+                body += "<div data-weather-options>"
                 body += checkbox(
                     "forecast_temperatures",
                     "High / low temperatures (°F)",
@@ -502,11 +591,16 @@ def attach_owner(app, service):
                     "Condition text (sunny, etc.)",
                     policy["show_weather_condition"],
                 )
+                body += "</div>"
                 body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
                 body += "</fieldset>"
                 body += (
                     "<details><summary>Birds to include</summary>"
                     '<input type="hidden" name="species_controls" value="1">'
+                    '<div class="actions"><button class="secondary" type="button" '
+                    'data-species-choice="all">Select all birds</button>'
+                    '<button class="secondary" type="button" '
+                    'data-species-choice="none">Clear bird selection</button></div>'
                 )
                 species = sorted(
                     {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
@@ -611,7 +705,25 @@ def attach_owner(app, service):
                     "the events you want below.</p>"
                     "<button>Add collection</button></form></details>"
                 )
-                for event in [*policy["special_days"], None]:
+                today = datetime.now(ZoneInfo("America/Denver")).date()
+
+                def occasion_date(event):
+                    value = date.fromisoformat(event["date"])
+                    if event["annual"]:
+                        for year in range(today.year, today.year + 9):
+                            try:
+                                value = value.replace(year=year)
+                            except ValueError:
+                                continue
+                            if value >= today:
+                                break
+                    return value
+
+                events = sorted(
+                    policy["special_days"],
+                    key=lambda e: (not e["enabled"], occasion_date(e) < today, occasion_date(e)),
+                )
+                for event in [None, *events]:
                     day = event or {
                         "id": "",
                         "date": "",
@@ -623,11 +735,17 @@ def attach_owner(app, service):
                         "artwork_id": None,
                     }
                     body += (
-                        '<details class="card"><summary>'
+                        '<details class="event-editor" id="event-'
+                        + escape(day["id"] or "new")
+                        + '"><summary>'
                         + escape(day["label"] if event else "Add a special day")
                         + ' <span class="quiet">'
-                        + escape(day["date"])
-                        + (" · Enabled" if day["enabled"] else " · Disabled")
+                        + (
+                            escape(occasion_date(day).strftime("%b %-d, %Y"))
+                            if event
+                            else "New event"
+                        )
+                        + ((" · Enabled" if day["enabled"] else " · Disabled") if event else "")
                         + "</span></summary>"
                     )
                     body += (
@@ -715,7 +833,7 @@ def attach_owner(app, service):
                             + identifier
                             + "/special-days/"
                             + escape(day["id"])
-                            + '/preview" target="_blank">'
+                            + '/preview">'
                             + hidden(csrf)
                             + '<button class="secondary">Preview this day &amp; '
                             "queue on frame</button>"
@@ -991,6 +1109,17 @@ def attach_owner(app, service):
             '<option value="true"' + (" selected" if removed else "") + ">Removed images</option>"
             '</select></label><button>Apply filters</button></form><div class="card-grid">'
         )
+        notices = {
+            "removed": "Image removed from navigation. You can restore it from Removed images.",
+            "restored": "Image restored to navigation.",
+        }
+        if request.query_params.get("result") in notices:
+            body = (
+                '<p class="notice success" role="status">'
+                + notices[request.query_params["result"]]
+                + "</p>"
+                + body
+            )
         for record in records[:24]:
             current = delivered.get(record["frame_id"])
             current = current and current["id"] == record["id"]
@@ -1027,6 +1156,9 @@ def attach_owner(app, service):
                     + ("/restore" if removed else "/remove")
                     + '">'
                     + hidden(auth["csrf"])
+                    + '<input type="hidden" name="return" value="'
+                    + escape(request.url.path + "?" + request.url.query)
+                    + '">'
                     + '<button class="secondary">'
                     + ("Restore to history" if removed else "Remove from history")
                     + "</button></form>"
@@ -1062,6 +1194,45 @@ def attach_owner(app, service):
         body += "</nav>"
         return page("Your images", body, active="images")
 
+    @app.get("/manage/images/{image_id}/review")
+    def queued_review(image_id: int, request: Request):
+        require(request)
+        with service.store.connect() as db:
+            image = db.execute(
+                "SELECT * FROM images WHERE id=? AND hidden=0", (image_id,)
+            ).fetchone()
+        if not image:
+            raise HTTPException(404, "This preview is no longer available")
+        frame = service.store.frame(image["frame_id"])
+        delivered = service.delivered_image(frame)
+        if frame["active_image_id"] == image_id:
+            message = (
+                "Artwork prepared and queued. It is available on the next wake "
+                "or next-image button press."
+            )
+        elif delivered and delivered["id"] == image_id:
+            message = (
+                "This artwork was last delivered to the frame. Another image may be ready next."
+            )
+        else:
+            message = "This is a saved preview. The next-image queue has moved on."
+        body = (
+            '<section class="preview-result"><p class="notice success" role="status">'
+            + escape(message)
+            + "</p>"
+            f'<img class="preview" width="800" height="480" '
+            f'src="/manage/images/{image_id}/preview" alt="Special-day '
+            f'artwork">'
+            '<p class="quiet">The calendar is unchanged. This preview does not '
+            "confirm a physical panel update.</p>"
+            '<div class="actions"><a class="button" href="/manage">View frame '
+            "&amp; next artwork</a>"
+            '<a class="button secondary" href="/manage/events?frame='
+            + escape(image["frame_id"])
+            + '">Back to special days</a></div></section>'
+        )
+        return page("Special-day preview", body, active="events")
+
     @app.get("/manage/images/{image_id}/preview")
     def history_preview(image_id: int, request: Request, removed: bool = False):
         require(request)
@@ -1077,9 +1248,18 @@ def attach_owner(app, service):
             headers={"Cache-Control": "no-store"},
         )
 
+    def history_return(data, result):
+        target = safe_return(data.get("return"))
+        parts = urlsplit(target)
+        if parts.path != "/manage/images":
+            parts = urlsplit("/manage/images")
+        values = parse_qs(parts.query)
+        params = {k: values[k][-1] for k in ("frame", "removed", "offset") if k in values}
+        return "/manage/images?" + urlencode({**params, "result": result})
+
     @app.post("/manage/images/{image_id}/remove")
     async def remove_image(image_id: int, request: Request):
-        await checked_form(request)
+        data = await checked_form(request)
         with preparation_lock(service.settings.data_dir):
             with service.store.connect() as db:
                 record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
@@ -1095,12 +1275,14 @@ def attach_owner(app, service):
             if frame["active_image_id"] == image_id:
                 service.store.request_refill(frame["id"], image_id)
         return RedirectResponse(
-            "/manage/images", status_code=303, background=BackgroundTask(service.refill_pending)
+            history_return(data, "removed"),
+            status_code=303,
+            background=BackgroundTask(service.refill_pending),
         )
 
     @app.post("/manage/images/{image_id}/restore")
     async def restore_image(image_id: int, request: Request):
-        await checked_form(request)
+        data = await checked_form(request)
         with preparation_lock(service.settings.data_dir):
             with service.store.connect() as db:
                 record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
@@ -1111,7 +1293,7 @@ def attach_owner(app, service):
                 ):
                     raise HTTPException(409, "This image has expired from storage")
                 db.execute("UPDATE images SET hidden=0 WHERE id=?", (image_id,))
-        return RedirectResponse("/manage/images", status_code=303)
+        return RedirectResponse(history_return(data, "restored"), status_code=303)
 
     @app.get("/manage/artwork")
     def artwork_management(
@@ -1211,7 +1393,7 @@ def attach_owner(app, service):
             )
             body += (
                 '<article class="card library-card"><img class="artwork-thumb" '
-                'loading="lazy" src="/art/'
+                'loading="lazy" src="/art-thumbnail/'
                 + escape(art["id"])
                 + '" alt="'
                 + escape(art["common_name"])
@@ -1352,8 +1534,14 @@ def attach_owner(app, service):
                     raise ValueError("Choose at least one species")
                 policy["allowed_species"] = selected
             validated = FramePolicy.model_validate(policy)
-        except (ValueError, KeyError):
-            raise HTTPException(400, "Invalid frame settings") from None
+        except (ValueError, KeyError) as error:
+            message = (
+                "Choose at least one bird to include."
+                if str(error) == "Choose at least one species"
+                else "Check the daily wake time, bird count and processing settings. "
+                "Nothing was saved."
+            )
+            raise HTTPException(400, message) from None
         service.store.set_policy(identifier, validated)
         return redirect(request)
 
@@ -1656,6 +1844,8 @@ def attach_owner(app, service):
             raise HTTPException(400, str(error)) from None
         except RuntimeError:
             raise HTTPException(409, "Preparation is busy; try again shortly") from None
+        if "text/html" in request.headers.get("accept", ""):
+            return RedirectResponse(f"/manage/images/{image['id']}/review", status_code=303)
         return Response(
             service.cache_path(image["preview_path"]).read_bytes(),
             media_type="image/jpeg",
@@ -1785,9 +1975,15 @@ def attach_owner(app, service):
         await checked_form(request)
         try:
             await asyncio.to_thread(service.prepare, identifier, force=True)
-        except (RuntimeError, ValueError, OSError):
-            return page(
-                "Preparation unavailable",
-                "<p>The last good image is retained.</p><a href='/manage'>Return</a>",
-            )
+        except RuntimeError:
+            raise HTTPException(
+                409,
+                "Artwork preparation is busy. The last good image is retained; try again shortly.",
+            ) from None
+        except (ValueError, OSError):
+            raise HTTPException(
+                503,
+                "Artwork could not be prepared. The last good image is retained; try "
+                "again shortly.",
+            ) from None
         return redirect(request)

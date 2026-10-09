@@ -224,12 +224,18 @@ class Service:
                    ORDER BY revision DESC LIMIT 1""",
                 (frame_id, local_date, profile),
             ).fetchone()
-            if job and not force:
-                plan = json.loads(job["plan"])
-                image = db.execute(
+            image = (
+                db.execute(
                     "SELECT * FROM images WHERE frame_id=? AND local_date=? AND revision=?",
                     (frame_id, local_date, job["revision"]),
                 ).fetchone()
+                if job and not force
+                else None
+            )
+            # A removed image must not satisfy scheduled or retried preparation.
+            # Keep its history intact and start a fresh revision instead.
+            if job and not force and not (image and image["hidden"]):
+                plan = json.loads(job["plan"])
                 if image:
                     cached = self.cache_path(image["path"])
                     if (

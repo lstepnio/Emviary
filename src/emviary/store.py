@@ -178,7 +178,11 @@ class Store:
                 f"ORDER BY id {order} LIMIT 1",
                 (frame["id"], cursor["id"]),
             ).fetchone()
-            return dict(row or cursor)
+            if row:
+                return dict(row)
+            # An older device cursor can reference artwork removed since its fetch.
+            # Preserve that navigation position, but never resend a removed image.
+            return self.active_image(frame) if cursor["hidden"] else dict(cursor)
 
     @contextmanager
     def connect(self):

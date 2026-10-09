@@ -2,10 +2,8 @@
 
 import base64
 import json
-from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Literal
-from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -74,12 +72,7 @@ def diagnostics_section(store, frame_id, escape):
             + '<p class="empty-state">Readings will appear after the frame connects.</p></section>'
         )
 
-    def reported(value):
-        return (
-            datetime.fromisoformat(value)
-            .astimezone(ZoneInfo("America/Denver"))
-            .strftime("%b %-d, %-I:%M %p %Z")
-        )
+    from .ui import local_time as reported
 
     def refresh(m):
         labels = {"success": "Updated", "unchanged": "Already current", "failed": "Failed"}

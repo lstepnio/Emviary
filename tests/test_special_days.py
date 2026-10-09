@@ -68,8 +68,7 @@ def test_special_day_overrides_layout_without_changing_schedule(service, frame):
 
 def test_owner_special_day_create_edit_delete_and_validation(service, frame, tmp_path, monkeypatch):
     client, csrf = sign_in(service, tmp_path, monkeypatch)
-    page = client.get("/manage").text
-    assert 'href="http://photoframe.local"' in page
+    assert 'href="http://photoframe.local"' in client.get("/manage/settings").text
     assert '<option value="3" selected>3</option>' in client.get("/manage/appearance").text
     url = "/manage/frames/test-frame/special-days"
     data = {

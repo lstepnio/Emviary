@@ -181,3 +181,11 @@ and are included in application backups. They remain outside public pages and
 credits. Passwords, MAC/BSSID addresses, audio, exact coordinates and raw error
 strings are not collected. Firmware older than v0.6.2 remains compatible and
 shows a waiting state until it supplies diagnostics.
+
+### Interface and reliability review
+
+The 0.9.0 refresh groups navigation by task, emphasizes current and next artwork,
+preserves failed forms with focused feedback, and distinguishes queued, delivered
+and saved previews. Web galleries use bounded cached thumbnails; frame rendering
+continues to use original masters. See [UX_REVIEW.md](UX_REVIEW.md) for findings,
+acceptance checks, measurements and remaining validation limits.

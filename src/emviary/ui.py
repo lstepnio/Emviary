@@ -1,6 +1,9 @@
 """Shared, dependency-free presentation for the frame and its owner pages."""
 
+import hashlib
 import html
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi.responses import HTMLResponse
 
@@ -13,17 +16,17 @@ NAVIGATION = (
     ("images", "/manage/images", "Your images"),
     ("artwork", "/manage/artwork", "Artwork library"),
     ("event-art", "/manage/event-art", "Special-day art"),
-    ("battery", "/manage/battery", "Battery"),
+    ("battery", "/manage/battery", "Device health"),
     ("settings", "/manage/settings", "Settings"),
     ("recovery", "/manage/recovery", "Recovery"),
 )
 
 
 CSS = """
-:root{color-scheme:light;--canvas:#f6f5f0;--surface:#fff;--ink:#23372e;
+:root{color-scheme:light;--canvas:#f5f4ef;--surface:#fff;--ink:#20362c;
 --muted:#617168;--line:#dce2da;--accent:#285c43;--soft:#edf3ed;--danger:#9d362b;
---radius:16px;--shadow:0 3px 18px #203e2a06}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--canvas);
+--radius:12px;--shadow:0 3px 18px #203e2a06}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-bottom:120px}body{margin:0;background:var(--canvas);
 color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}
 button,input,select,textarea{font:inherit}
@@ -31,8 +34,8 @@ button,a,input,select,textarea,summary{touch-action:manipulation}
 
 :focus-visible{outline:3px solid #397b58;outline-offset:4px}img{max-width:100%;height:auto}
 h1,h2,h3,p{margin-top:0}h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;
-letter-spacing:-.025em;line-height:1.2}h1{font-size:clamp(30px,3.2vw,44px);margin-bottom:12px}
-h2{font-size:26px;margin-bottom:16px}h3{font-size:16px;line-height:1.4;margin-bottom:12px}
+letter-spacing:-.025em;line-height:1.2}h1{font-size:clamp(28px,3vw,38px);margin-bottom:12px}
+h2{font-size:24px;margin-bottom:16px}h3{font-size:16px;line-height:1.4;margin-bottom:12px}
 p{margin-bottom:16px}
 ul,ol{padding-left:24px}
 small,.quiet,.help-text{font-size:13px;
@@ -49,8 +52,10 @@ border-radius:8px}
 font-family:Georgia,"Times New Roman",serif;font-size:25px;letter-spacing:-.03em;min-height:44px}
 .brand img{width:36px;height:36px;margin:0!important;border-radius:10px}
 .sidebar{position:fixed;inset:0 auto 0 0;width:230px;padding:28px 20px;display:flex;
-flex-direction:column;border-right:1px solid var(--line);background:#fbfcf8;overflow-y:auto}
-.sidebar .brand{margin:0 8px 30px}.nav-caption{text-transform:uppercase;letter-spacing:.12em;
+flex-direction:column;border-right:1px solid var(--line);background:#203c30;overflow-y:auto;
+color:#f7f6ef}
+.sidebar .brand{margin:0 8px 30px;color:#f7f6ef}
+.nav-caption{text-transform:uppercase;letter-spacing:.12em;
 font-size:10px;
 color:var(--muted);
 font-weight:700;
@@ -101,7 +106,7 @@ padding-top:60px}
 .login .site-header{justify-content:center}
 
 section,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-padding:26px;margin-bottom:24px;box-shadow:var(--shadow);min-width:0}section section,.card section{
+padding:24px;margin-bottom:20px;box-shadow:var(--shadow);min-width:0}section section,.card section{
 box-shadow:none;
 padding:20px;
 background:#fcfdfa}
@@ -134,10 +139,11 @@ font-size:13px;
 color:var(--muted)}
 .split,.current-next{display:grid;
 
-grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;align-items:start}
+grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
 .toolbar,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
 .toolbar label{flex:1 1 170px;margin:0}
-.toolbar>:first-child{margin-right:auto}.toolbar h2,.toolbar p{margin-bottom:0}
+.toolbar h2:first-child,.toolbar p:first-child{margin-right:auto}
+.toolbar h2,.toolbar p{margin-bottom:0}
 .button,button,input[type=submit]{display:inline-flex;align-items:center;justify-content:center;
 min-height:44px;padding:10px 18px;border:1px solid var(--accent);border-radius:9px;
 background:var(--accent);
@@ -166,7 +172,7 @@ margin-top:5px}
 
 input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=submit]),select,textarea{
 display:block;width:100%;max-width:100%;min-height:44px;padding:10px 12px;background:#fff;
-border:1px solid #b8c5ba;border-radius:8px;color:var(--ink);margin-top:6px}
+border:1px solid #7b8a80;border-radius:8px;color:var(--ink);margin-top:6px}
 input[type=file]{padding:8px!important;font-size:14px}input::file-selector-button{padding:6px 10px;
 border:1px solid var(--line);
 border-radius:5px;
@@ -308,15 +314,148 @@ gap:8px}
 
 .toolbar .button,.actions .button{flex:1 1 auto}.site-footer{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.sidebar :focus-visible{outline-color:#e5eee2}
+.sidebar .nav-caption{color:#c0cec3;margin-top:22px;font-size:11px}
+.sidebar .owner-nav a{color:#dce5dc}
+.sidebar .owner-nav a:hover{background:#315141;color:#fff}
+.sidebar .owner-nav a[aria-current=page]{background:#e5eee2;color:#203c30}
+.sidebar-foot a{color:#e5eee2}.sidebar-foot p{color:#c0cec3}
+.section-heading .quiet{margin-bottom:0}
+.frame-status{display:flex;gap:12px 24px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+padding-bottom:18px;margin-bottom:22px;font-size:14px;color:var(--muted)}
+.frame-status strong{font-weight:600;color:var(--ink)}
+.current-next figure img{width:100%;height:auto;display:block}
+.current-next h3{display:flex;gap:10px;align-items:center}
+.current-next .quiet{margin-top:8px}
+.card .card{box-shadow:none}
+.event-editor{padding:0;background:var(--surface);box-shadow:none}
+.event-editor>summary{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.event-editor summary .quiet{font-weight:400;text-align:right}
+.event-editor form{margin-bottom:18px}
+.event-editor summary{font-size:15px}
+.form-error{border-left:4px solid var(--danger);padding:14px 18px;background:#fff2ee;
+color:#8c2e26;border-radius:6px;margin:12px 0;scroll-margin-top:24px}
+.form-error:focus{outline:3px solid var(--danger);outline-offset:3px}
+button[aria-busy=true]{cursor:wait;opacity:.8}
+.field-help{font-weight:400;font-size:13px;color:var(--muted)}
+.preview-result{max-width:900px}
+.public .frame-preview{max-width:1040px;border-radius:14px;padding:12px;background:#fff}
+.public .public-library-invite{display:flex;align-items:center;justify-content:space-between;
+gap:20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;padding:24px 0}
+.public-library-invite h2{margin-bottom:8px}
+.mobile-header .nav-caption{margin:14px 12px 4px;grid-column:1/-1}
+.mobile-header .owner-nav{padding-bottom:4px}
+input,select,textarea{scroll-margin-top:24px;scroll-margin-bottom:120px}
+.table-wrap{max-width:100%}.table-wrap:focus-visible{outline-offset:2px}
+caption{text-align:left;color:var(--muted);padding:0 12px 12px;font-size:13px}
+@media(max-width:760px){.sticky-actions{padding:12px 0}.event-editor>summary{align-items:start}
+.current-next{gap:22px}.public .public-library-invite{align-items:start}
+.mobile-top{min-width:0}.mobile-top .brand{min-width:0}.frame-status{gap:8px 18px}}
+@media(forced-colors:active){button,.button,input,select,textarea{border:1px solid ButtonText}
+.owner-nav a[aria-current=page]{outline:2px solid Highlight}}
 """
 
 
+# A small progressive enhancement preserves native HTML forms without a framework.
+JAVASCRIPT = r"""
+(() => {
+  document.querySelectorAll('[data-weather-options]').forEach(group => {
+    const toggle = group.closest('form').querySelector('[name="weather"]');
+    if (!toggle) return;
+    const update = () => { group.hidden = !toggle.checked; };
+    toggle.addEventListener('change', update); update();
+  });
+  document.querySelectorAll('[data-species-choice]').forEach(button => {
+    button.addEventListener('click', () => {
+      button.closest('form').querySelectorAll('input[name^="species_"][type="checkbox"]')
+        .forEach(input => { input.checked = button.dataset.speciesChoice === 'all'; });
+    });
+  });
+  document.addEventListener('submit', async event => {
+    const form = event.target;
+    if (form.method.toLowerCase() !== 'post' || form.target ||
+        /\/(login|logout|password|provision)$/.test(new URL(form.action).pathname)) return;
+    event.preventDefault();
+    if (form.dataset.busy) return;
+    const submitter = event.submitter;
+    if (submitter?.classList.contains('danger') &&
+        !window.confirm('Confirm: ' + submitter.textContent.trim() + '?')) return;
+    const data = new FormData(form);
+    if (submitter?.name) data.append(submitter.name, submitter.value);
+    form.querySelector('.form-error')?.remove();
+    form.dataset.busy = 'true';
+    const original = submitter?.textContent;
+    if (submitter) {
+      submitter.disabled = true; submitter.setAttribute('aria-busy', 'true');
+      submitter.textContent = /prepare|preview/i.test(original) ? 'Preparing artwork…' : 'Saving…';
+    }
+    const announceError = message => {
+      const box = document.createElement('p'); box.className = 'form-error';
+      box.setAttribute('role', 'alert'); box.tabIndex = -1; box.textContent = message;
+      form.prepend(box); box.focus();
+    };
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST', credentials: 'same-origin', headers: {'Accept': 'text/html'},
+        body: form.enctype === 'multipart/form-data' ? data : new URLSearchParams(data)
+      });
+      if (response.status === 401 || new URL(response.url).pathname === '/manage/login') {
+        announceError('Your session has expired. Your entries are still here. ' +
+          'Sign in in another tab and check the current state before retrying.');
+        const link = document.createElement('a'); link.href = '/manage/login';
+        link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'Sign in';
+        form.querySelector('.form-error').append(' ', link); return;
+      }
+      if (!response.ok) {
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        announceError(doc.querySelector('[data-request-error]')?.textContent ||
+          'This change could not be confirmed. Your entries are still here. ' +
+          'Check the current state.');
+        return;
+      }
+      window.location.assign(response.url);
+    } catch {
+      announceError('The connection was interrupted. Your entries are still here. ' +
+        'Reconnect and review the current state before retrying.');
+    } finally {
+      delete form.dataset.busy;
+      if (submitter) {
+        submitter.disabled = false; submitter.removeAttribute('aria-busy');
+        submitter.textContent = original;
+      }
+    }
+  });
+})();
+"""
+ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
+
+
+def local_time(value):
+    """One readable timestamp convention for frame locations in this POC."""
+    if not value:
+        return "Not reported"
+    return (
+        datetime.fromisoformat(value)
+        .astimezone(ZoneInfo("America/Denver"))
+        .strftime("%b %-d, %-I:%M %p %Z")
+    )
+
+
 def _navigation(active):
-    links = []
-    for key, url, label in NAVIGATION:
-        current = ' aria-current="page"' if key == active else ""
-        links.append(f'<a href="{url}"{current}>{label}</a>')
-    return '<nav class="owner-nav" aria-label="Frame management">' + "".join(links) + "</nav>"
+    groups = (
+        ("Your frame", NAVIGATION[:3]),
+        ("Collection", NAVIGATION[3:6]),
+        ("Setup & health", NAVIGATION[6:]),
+    )
+    sections = []
+    for label, items in groups:
+        links = []
+        for key, url, text in items:
+            current = ' aria-current="page"' if key == active else ""
+            links.append(f'<a href="{url}"{current}>{text}</a>')
+        sections.append('<p class="nav-caption">' + label + "</p>" + "".join(links))
+    return '<nav class="owner-nav" aria-label="Frame management">' + "".join(sections) + "</nav>"
 
 
 def page(title, body, *, active=None, public=False, description=None):
@@ -350,14 +489,16 @@ def page(title, body, *, active=None, public=False, description=None):
         shell = (
             '<aside class="sidebar">'
             + brand
-            + '<p class="nav-caption">Your frame</p>'
+            + ""
             + navigation
             + '<div class="sidebar-foot"><a href="/">View your frame</a><p>A '
             "little nature, every day.</p></div></aside>"
             + '<header class="mobile-header"><div class="mobile-top">'
             + brand
             + '<a class="quiet" href="/">View '
-            "frame</a></div><details><summary>Manage your frame</summary>"
+            "frame</a></div><details><summary>Menu · "
+            + escape(next((label for key, _, label in NAVIGATION if key == active), "Manage"))
+            + "</summary>"
             + navigation
             + "</details></header>"
         )
@@ -380,9 +521,8 @@ def page(title, body, *, active=None, public=False, description=None):
         + escape(document_title)
         + "</title>"
         + ICON_LINK
-        + "<style>"
-        + CSS
-        + "</style></head><body>"
+        + f'<link rel="stylesheet" href="/assets/{ASSET_VERSION}/ui.css">'
+        + f'<script src="/assets/{ASSET_VERSION}/ui.js" defer></script></head><body>'
         + '<a class="skip-link" href="#main-content">Skip to content</a>'
         + shell
         + '<div class="'
@@ -398,7 +538,7 @@ def page(title, body, *, active=None, public=False, description=None):
             "X-Frame-Options": "DENY",
             "X-Content-Type-Options": "nosniff",
             "Content-Security-Policy": "default-src 'self'; img-src 'self'; "
-            "style-src 'self' 'unsafe-inline'; script-src 'none'; base-uri 'self'; "
+            "style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'self'; "
             "form-action 'self'; frame-ancestors 'none'",
         },
     )

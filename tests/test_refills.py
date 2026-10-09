@@ -156,3 +156,43 @@ def test_backup_preserves_navigable_image_history(service, frame, tmp_path):
     for image in [first, second]:
         assert (backup / "active-cache" / service.cache_path(image["path"]).name).is_file()
         assert (backup / "active-cache" / service.cache_path(image["preview_path"]).name).is_file()
+
+
+def test_removed_cached_image_is_replaced_without_restoring_it(service, frame):
+    frame_id, _ = frame
+    removed = service.prepare(frame_id)
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (removed["id"],))
+    replacement = service.prepare(frame_id)
+    assert replacement["id"] != removed["id"]
+    assert replacement["revision"] == removed["revision"] + 1
+    assert not replacement["hidden"]
+    assert service.prepare(frame_id)["id"] == replacement["id"]
+    with service.store.connect() as db:
+        assert db.execute("SELECT hidden FROM images WHERE id=?", (removed["id"],)).fetchone()[0]
+
+
+def test_stale_removed_navigation_cursor_never_resends_removed_image(service, frame):
+    from emviary.api import etag_for
+
+    frame_id, token = frame
+    removed = service.prepare(frame_id)
+    following = service.prepare(frame_id, force=True)
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (removed["id"],))
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Image-Navigation": "previous",
+        "If-None-Match": etag_for(service.store.frame(frame_id), removed),
+    }
+    response = TestClient(create_app(service, schedule=False)).get("/v1/image", headers=headers)
+    assert response.status_code == 200
+    assert response.content == service.cache_path(following["path"]).read_bytes()
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (following["id"],))
+    assert (
+        TestClient(create_app(service, schedule=False))
+        .get("/v1/image", headers=headers)
+        .status_code
+        == 503
+    )

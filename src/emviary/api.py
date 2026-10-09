@@ -235,6 +235,30 @@ def create_app(service=None, schedule=True):
             headers={"Cache-Control": "public, max-age=3600"},
         )
 
+    @app.get("/art-thumbnail/{artwork_id}")
+    def artwork_thumbnail(artwork_id: str, request: Request):
+        from .thumbnails import thumbnail
+
+        artwork = next((a for a in service.settings.artworks if a["id"] == artwork_id), None)
+        if not artwork:
+            raise HTTPException(404, "Unknown artwork")
+        path = (service.settings.art_dir / artwork["asset"]).resolve()
+        if not path.is_relative_to(service.settings.art_dir.resolve()) or not path.is_file():
+            raise HTTPException(404, "Artwork unavailable")
+        try:
+            stat = path.stat()
+            body, tag = thumbnail(str(path), stat.st_mtime_ns, stat.st_size)
+        except (OSError, ValueError):
+            raise HTTPException(503, "Artwork thumbnail unavailable") from None
+        headers = {
+            "Cache-Control": "public, max-age=3600",
+            "ETag": tag,
+            "X-Content-Type-Options": "nosniff",
+        }
+        if etag_matches(request.headers.get("if-none-match", ""), tag):
+            return Response(status_code=304, headers=headers)
+        return Response(body, media_type="image/jpeg", headers=headers)
+
     @app.get("/credits.json")
     def credits():
         return service.settings.catalog
@@ -412,7 +436,7 @@ def create_app(service=None, schedule=True):
                 medium = "AI-assisted illustration" if item.get("generated") else "Historical art"
                 details.append(
                     '<section class="variant"><a href="/art/' + identifier + '">'
-                    '<img class="artwork-thumb" loading="lazy" src="/art/'
+                    '<img class="artwork-thumb" loading="lazy" src="/art-thumbnail/'
                     + identifier
                     + '" alt="'
                     + escape(item["common_name"], quote=True)
@@ -440,7 +464,7 @@ def create_app(service=None, schedule=True):
                 '<article class="card library-card"><a href="/art/'
                 + escape(artwork["id"], quote=True)
                 + '"><img class="artwork-thumb" '
-                'loading="lazy" src="/art/'
+                'loading="lazy" src="/art-thumbnail/'
                 + escape(artwork["id"], quote=True)
                 + '" alt="'
                 + escape(artwork["common_name"], quote=True)
@@ -520,7 +544,7 @@ def create_app(service=None, schedule=True):
                 pass
         available = record and service.cache_path(record["preview_path"]).is_file()
         body = '<header class="page-header"><p class="eyebrow">On the frame</p>'
-        body += "<h1>A little bird art,<br>every morning.</h1></header>"
+        body += "<h1>A little nature, every day.</h1></header>"
         if available:
             body += (
                 '<figure class="frame-preview"><img src="/display.jpg" '
@@ -534,8 +558,8 @@ def create_app(service=None, schedule=True):
                 "<p>The frame's artwork will appear here after its first delivery.</p></section>"
             )
         body += (
-            '<section class="public-library-invite"><h2>Meet the collection.</h2>'
-            '<p class="quiet">Discover bird illustrations, their artists and their stories.</p>'
+            '<section class="public-library-invite"><div><h2>Meet the collection.</h2>'
+            '<p class="quiet">Bird illustrations, their artists and their stories.</p></div>'
             '<a class="button secondary" href="/library">Explore the artwork library</a>'
             "</section>"
         )
