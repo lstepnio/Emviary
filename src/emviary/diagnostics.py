@@ -2,8 +2,10 @@
 
 import base64
 import json
+from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Literal
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -65,83 +67,73 @@ def signal_label(value):
 
 def diagnostics_section(store, frame_id, escape):
     rows = store.device_samples(frame_id)
-    body = '<section class="card"><h3>Connectivity and device health</h3>'
+    body = '<section class="card"><h3>Connectivity and refreshes</h3>'
     if not rows:
-        return body + '<p class="empty-state">Waiting for device diagnostics.</p></section>'
+        return (
+            body
+            + '<p class="empty-state">Readings will appear after the frame connects.</p></section>'
+        )
+
+    def reported(value):
+        return (
+            datetime.fromisoformat(value)
+            .astimezone(ZoneInfo("America/Denver"))
+            .strftime("%b %-d, %-I:%M %p %Z")
+        )
+
+    def refresh(m):
+        labels = {"success": "Updated", "unchanged": "Already current", "failed": "Failed"}
+        label = labels.get(m.get("previous_result"), "Not yet reported")
+        duration = m.get("previous_total_ms")
+        return label + (f" · {duration / 1000:.1f} s" if duration is not None else "")
+
+    def connection(m):
+        return f"{m['connect_ms'] / 1000:.1f} s" if "connect_ms" in m else "Not reported"
+
     latest = json.loads(rows[-1]["metrics"])
-    wake_names = {
-        0: "Cold boot or reset",
-        1: "Scheduled",
-        2: "Green button",
-        3: "Previous button",
-        4: "Next button",
-        5: "Other GPIO",
-    }
-    result = latest.get("previous_result", "Not reported")
-    duration = latest.get("previous_total_ms")
     metrics = (
-        ("Firmware", rows[-1]["firmware"] or "Not reported"),
-        ("Wake reason", wake_names.get(latest.get("wake_cause"), "Not reported")),
-        ("Wi-Fi signal", signal_label(latest.get("rssi_dbm"))),
-        ("Network", latest.get("ssid", "Not reported")),
-        ("Local address", latest.get("local_ip", "Not reported")),
-        ("Channel", latest.get("channel", "Not reported")),
-        (
-            "Connection time",
-            f"{latest['connect_ms'] / 1000:.1f} s" if "connect_ms" in latest else "Not reported",
-        ),
-        (
-            "Previous refresh",
-            result + (f" · {duration / 1000:.1f} s" if duration is not None else ""),
-        ),
-        (
-            "Free internal memory",
-            f"{latest['free_heap'] / 1024:.0f} KiB" if "free_heap" in latest else "Not reported",
-        ),
+        ("Wi-Fi", signal_label(latest.get("rssi_dbm")), latest.get("ssid", "")),
+        ("Last completed refresh", refresh(latest), "Reported on the next connection"),
+        ("Wi-Fi connection time", connection(latest), "Time to connect to the network"),
     )
-    body += '<div class="metric-grid">'
-    for label, value in metrics:
+    body += '<div class="metric-grid device-health-grid">'
+    for label, value, detail in metrics:
         body += (
             '<div class="metric"><span class="metric-label">'
             + escape(label)
             + "</span><strong>"
-            + escape(str(value))
-            + "</strong></div>"
+            + escape(value)
+            + '</strong><p class="quiet">'
+            + escape(detail)
+            + "</p></div>"
         )
-    body += '</div><p class="quiet">Last reported: ' + escape(rows[-1]["recorded_at"]) + ". "
-    body += (
-        "Network and memory readings describe the request. Refresh results describe the "
-        "previous completed attempt and arrive on the next image request. A sleeping frame "
-        "does not send live readings. Up to 2,000 requests are retained for 90 days.</p>"
-    )
+    body += '</div><p class="quiet">Last connected: ' + escape(reported(rows[-1]["recorded_at"]))
+    if rows[-1]["firmware"]:
+        body += " · Firmware " + escape(rows[-1]["firmware"])
+    body += ". Readings update when the frame connects.</p>"
     if latest.get("rssi_dbm", 0) < -70:
-        body += '<p class="notice">Weak Wi-Fi may increase connection time and battery use.</p>'
-    if result == "failed":
-        body += '<p class="notice">The previous image attempt failed. Check the history below.</p>'
+        body += (
+            '<p class="notice">Weak Wi-Fi. Moving the frame closer to the router '
+            "may improve reliability and battery life.</p>"
+        )
+    if latest.get("previous_result") == "failed":
+        body += (
+            '<p class="notice">The last refresh failed. '
+            "Check Wi-Fi and try the next-image button.</p>"
+        )
     body += (
-        "<details><summary>Recent device readings</summary>"
-        '<div class="table-wrap"><table><caption>Newest first; timestamps in UTC</caption>'
-        "<tr><th>Received</th><th>Signal</th><th>Connect</th><th>Previous refresh</th>"
-        "<th>Network / channel</th><th>Download</th><th>HTTP / tries</th><th>Memory low</th>"
-        "<th>Wake / reset</th><th>Disconnects / reason</th></tr>"
+        "<details><summary>Recent connections</summary>"
+        '<div class="table-wrap"><table><caption>Newest first · Mountain time</caption>'
+        "<tr><th>Connected</th><th>Wi-Fi</th><th>Connection time</th>"
+        "<th>Completed refresh</th></tr>"
     )
-    for row in reversed(rows[-60:]):
+    for row in reversed(rows[-30:]):
         m = json.loads(row["metrics"])
-
-        def seconds(key):
-            return f"{m[key] / 1000:.1f} s" if key in m else "Unknown"
-
         values = [
-            row["recorded_at"],
+            reported(row["recorded_at"]),
             signal_label(m.get("rssi_dbm")),
-            seconds("connect_ms"),
-            m.get("previous_result", "Unknown") + " / " + seconds("previous_total_ms"),
-            f"{m.get('ssid', 'Unknown')} / {m.get('channel', '?')}",
-            seconds("previous_download_ms") + " / " + str(m.get("previous_bytes", "?")) + " B",
-            f"{m.get('previous_http_status', '?')} / {m.get('previous_attempts', '?')}",
-            f"{m['min_free_heap'] / 1024:.0f} KiB" if "min_free_heap" in m else "Unknown",
-            f"{m.get('wake_cause', '?')} / {m.get('reset_reason', '?')}",
-            f"{m.get('disconnects', '?')} / {m.get('disconnect_reason', '?')}",
+            connection(m),
+            refresh(m),
         ]
-        body += "<tr>" + "".join("<td>" + escape(str(v)) + "</td>" for v in values) + "</tr>"
+        body += "<tr>" + "".join("<td>" + escape(v) + "</td>" for v in values) + "</tr>"
     return body + "</table></div></details></section>"

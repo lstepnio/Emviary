@@ -160,9 +160,12 @@ The [original AI collection](art/provenance/ai-color-cutouts/README.md) adds one
 
 ### Device health diagnostics
 
-Battery & device health in management includes owner-only Wi-Fi signal, network
-name, channel, local address, connection time, disconnect count/reason, firmware,
-wake/reset cause, boot count, uptime and internal memory headroom. Firmware v0.6.2
+Battery & device health in management focuses on Wi-Fi quality and network name,
+connection time and the last completed refresh. Firmware and the last connection
+appear in a compact status line. Recent connections use Mountain time and four
+readable columns. Raw channel, local address, disconnect, wake/reset, boot count,
+uptime and memory readings remain in owner-only storage for troubleshooting,
+without technical cards or numeric codes cluttering the interface. Firmware v0.6.2
 adds a small encoded diagnostics header to existing authenticated image requests.
 No additional polling, wakeups, scans or telemetry HTTP requests are required.
 

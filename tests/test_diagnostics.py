@@ -60,7 +60,10 @@ def test_history_is_bounded_per_frame_and_ui_escapes_network_names(service, fram
     service.store.device_sample(frame_id, {"ssid": "<network>", "rssi_dbm": -75})
     html = diagnostics_section(service.store, frame_id, escape)
     assert "&lt;network&gt;" in html and "<network>" not in html
-    assert "Weak Wi-Fi" in html and "previous completed attempt" in html
+    assert "Weak Wi-Fi" in html and "Reported on the next connection" in html
+    assert "Mountain time" in html and "+00:00" not in html
+    assert "Local address" not in html and "Memory low" not in html
+    assert "Wake / reset" not in html and "Network / channel" not in html
     with service.store.connect() as db:
         now = datetime.now(UTC)
         db.execute(

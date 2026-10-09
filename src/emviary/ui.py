@@ -126,6 +126,8 @@ border-radius:var(--radius)}
 .metric-label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .metric-value,.metric strong{font-size:27px;line-height:1.25;font-weight:600;display:block}
 .metric .battery-status{font-size:18px}
+.device-health-grid .metric strong{font-size:22px}
+.device-health-grid .metric p{font-size:13px;overflow-wrap:break-word}
 .metric strong{overflow-wrap:anywhere}
 .metric p{margin:8px 0 0;
 font-size:13px;
