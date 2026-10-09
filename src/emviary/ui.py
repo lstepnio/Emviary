@@ -492,7 +492,7 @@ def page(title, body, *, active=None, public=False, description=None):
             + ""
             + navigation
             + '<div class="sidebar-foot"><a href="/">View your frame</a><p>A '
-            "little nature, every day.</p></div></aside>"
+            "little nature, every day, for Emily.</p></div></aside>"
             + '<header class="mobile-header"><div class="mobile-top">'
             + brand
             + '<a class="quiet" href="/">View '
@@ -510,7 +510,7 @@ def page(title, body, *, active=None, public=False, description=None):
     if "<h1" in body:
         heading = ""
     footer = (
-        '<footer class="site-footer"><span>Emviary &middot; A little nature, every day.</span>'
+        '<footer class="site-footer"><span>Emviary &middot; A little nature, every day, for Emily.</span>'
         + ('<a href="/manage">Manage your frame</a>' if public else '<a href="/">View frame</a>')
         + "</footer>"
     )

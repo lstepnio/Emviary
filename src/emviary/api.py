@@ -544,7 +544,7 @@ def create_app(service=None, schedule=True):
                 pass
         available = record and service.cache_path(record["preview_path"]).is_file()
         body = '<header class="page-header"><p class="eyebrow">On the frame</p>'
-        body += "<h1>A little nature, every day.</h1></header>"
+        body += "<h1>A little nature, every day, for Emily.</h1></header>"
         if available:
             body += (
                 '<figure class="frame-preview"><img src="/display.jpg" '
