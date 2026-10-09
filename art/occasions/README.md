@@ -1,7 +1,7 @@
 # Emviary occasion artwork
 
-21 nonbird illustrations cover the 28 holiday and meteorological-season entries
-configured on October 8, 2026. Matching next-year holiday entries reuse the same
+22 nonbird illustrations include 21 for the 28 holiday and meteorological-season
+entries configured on October 8, 2026, plus a reusable birthday illustration. Matching next-year holiday entries reuse the same
 illustration. These are AI-generated illustrations, not photographs or historical
 documents. OpenAI built-in image generation created each original; Emviary curated
 the subjects and reviewed both the originals and converted panel proofs.
@@ -66,3 +66,7 @@ The management preview button uses today’s real forecast and queues the exact
 converted image for testing through the next refresh or right-button press.
 The calendar date and enabled flag stay unchanged. Direct preview image URLs
 remain read-only. Daily scheduled generation continues normally after testing.
+
+The birthday illustration has no fixed age or name and can be assigned to any
+birthday event. Its generation prompt and original are included in this collection.
+Adding this asset does not create, date or enable a birthday calendar event.

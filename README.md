@@ -124,7 +124,7 @@ Management includes an authenticated image-history gallery and artwork rotation 
 
 Weather appears on one header line. Icon, condition words and high/low temperatures each have an independent management toggle, enabled by default, under the master weather control. Date-mismatched forecasts remain omitted.
 
-Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is reviewed before assignment. The [AI-generated occasion collection](art/occasions/README.md) contains 21 reviewed illustrations for the 28 configured holiday and season entries, with prompts and source hashes preserved. Birthday setup was cleared for the new collection workflow.
+Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is reviewed before assignment. The [AI-generated occasion collection](art/occasions/README.md) contains 22 reviewed illustrations for the 28 configured holiday and season entries plus a reusable birthday image, with prompts and source hashes preserved. Birthday setup was cleared for the new collection workflow.
 
 Owner-only battery history shows voltage, USB/charging state, low-battery alerts and a cautious time-to-charge estimate after enough discharge readings. Notifications currently appear only in web management. Firmware v0.6.0 removes SD startup, Home Assistant work and duplicate update checks from the E1002 cloud profile while preserving recovery, image handling and OTA. These changes have not established a battery endurance figure.
 
