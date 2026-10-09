@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 18
+RENDER_VERSION = 19
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -218,15 +218,15 @@ def _font(art_dir, size, italic=False):
 
 
 def _header_font(size=17):
-    """Bold sans-serif survives the panel's small, binary-ink header better."""
+    """Regular sans-serif keeps the header lighter with solid, readable ink."""
     candidates = (
-        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
-        Path("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/System/Library/Fonts/Supplemental/Arial.ttf"),
     )
     for path in candidates:
         if path.is_file():
             return ImageFont.truetype(str(path), size)
-    return ImageFont.truetype("DejaVuSans-Bold.ttf", size)
+    return ImageFont.truetype("DejaVuSans.ttf", size)
 
 
 def weather_label(values):
