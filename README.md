@@ -22,6 +22,9 @@ Raspberry Pi or online image generation is required for this POC.
   consistent database/art/config backups; active images survive retention.
 - Authenticated management for location, sources, bird selection, appearance,
   refresh schedule, frame provisioning and owner credentials.
+- Stage additional Wi-Fi networks in [Settings](https://emviary.majjix.com/manage/settings).
+  The frame supports five saved networks total; cloud additions preserve its
+  existing connection and apply on the next online artwork fetch.
 - Public homepage mirrors the last image delivered to the selected frame;
   owner previews show upcoming prepared art separately.
 - One to three distinct birds, default maximum three, sized for the 800×480 panel, with sparse seasonal

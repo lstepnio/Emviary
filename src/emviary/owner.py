@@ -484,6 +484,7 @@ def attach_owner(app, service):
                             ("events", "Special days"),
                             ("images", "Image history"),
                             ("battery", "Battery & device health"),
+                            ("settings", "Wi-Fi networks"),
                         )
                     )
                     + "</div>"
@@ -619,7 +620,8 @@ def attach_owner(app, service):
                 body += "</section>"
             if view == "settings":
                 body += (
-                    '<details><summary>Saved Wi-Fi networks</summary><p class="quiet">'
+                    '<section class="card" id="wifi-networks" aria-labelledby="wifi-heading">'
+                    '<h2 id="wifi-heading">Saved Wi-Fi networks</h2><p class="quiet">'
                     "Stage up to five 2.4 GHz networks before gifting. Changes reach the frame "
                     "on its next online artwork fetch. These networks take priority and are added "
                     "to existing device networks, preserving its staging connection. The frame "
@@ -643,7 +645,11 @@ def attach_owner(app, service):
                         + escape(network["ssid"])
                         + "</strong>"
                         + field(
-                            "password", "New password (blank keeps saved password)", "", "password"
+                            "password",
+                            "New password (blank keeps saved password)",
+                            "",
+                            "password",
+                            'autocomplete="new-password"',
                         )
                         + checkbox("open", "Open network, no password", not network["password"])
                         + '<p><button name="action" value="save">Update network</button> '
@@ -654,11 +660,19 @@ def attach_owner(app, service):
                     + identifier
                     + '/wifi">'
                     + hidden(csrf)
-                    + field("ssid", "Network name (SSID)", "", "text", "required")
-                    + field("password", "Network password", "", "password")
+                    + field(
+                        "ssid", "Network name (SSID)", "", "text", 'required autocomplete="off"'
+                    )
+                    + field(
+                        "password",
+                        "Network password",
+                        "",
+                        "password",
+                        'autocomplete="new-password"',
+                    )
                     + checkbox("open", "Open network, no password", False)
                     + '<p><button name="action" value="save">Add network</button></p></form>'
-                    + "</details>"
+                    + "</section>"
                 )
             if view == "manage":
                 body += (
