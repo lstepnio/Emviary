@@ -510,7 +510,8 @@ def page(title, body, *, active=None, public=False, description=None):
     if "<h1" in body:
         heading = ""
     footer = (
-        '<footer class="site-footer"><span>Emviary &middot; A little nature, every day, for Emily.</span>'
+        '<footer class="site-footer"><span>Emviary &middot; '
+        "A little nature, every day, for Emily.</span>"
         + ('<a href="/manage">Manage your frame</a>' if public else '<a href="/">View frame</a>')
         + "</footer>"
     )
