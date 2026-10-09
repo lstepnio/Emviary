@@ -108,7 +108,16 @@ class Store:
                 );
                 CREATE INDEX IF NOT EXISTS battery_samples_frame_time
                     ON battery_samples(frame_id, recorded_at);
-                PRAGMA user_version=3;
+                CREATE TABLE IF NOT EXISTS device_samples (
+                    id INTEGER PRIMARY KEY,
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    recorded_at TEXT NOT NULL,
+                    firmware TEXT,
+                    metrics TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS device_samples_frame_time
+                    ON device_samples(frame_id, recorded_at);
+                PRAGMA user_version=4;
             """)
 
         with self.connect() as db:
@@ -294,6 +303,39 @@ class Store:
                     "DELETE FROM battery_samples WHERE recorded_at<?",
                     ((now - timedelta(days=365)).isoformat(),),
                 )
+
+    def device_sample(self, frame_id, metrics, firmware=None):
+        from .diagnostics import parse_metrics
+
+        metrics = parse_metrics(stable_json(metrics)) if metrics else None
+        if not metrics:
+            return
+        now = datetime.now(UTC)
+        with self.connect() as db:
+            if not db.execute("SELECT 1 FROM frames WHERE id=?", (frame_id,)).fetchone():
+                return
+            db.execute(
+                "INSERT INTO device_samples(frame_id,recorded_at,firmware,metrics) VALUES(?,?,?,?)",
+                (frame_id, now.isoformat(), firmware, stable_json(metrics)),
+            )
+            db.execute(
+                "DELETE FROM device_samples WHERE recorded_at<?",
+                ((now - timedelta(days=90)).isoformat(),),
+            )
+            db.execute(
+                "DELETE FROM device_samples WHERE frame_id=? AND id NOT IN "
+                "(SELECT id FROM device_samples WHERE frame_id=? ORDER BY id DESC LIMIT 2000)",
+                (frame_id, frame_id),
+            )
+
+    def device_samples(self, frame_id):
+        with self.connect() as db:
+            return [
+                dict(row)
+                for row in db.execute(
+                    "SELECT * FROM device_samples WHERE frame_id=? ORDER BY id", (frame_id,)
+                )
+            ]
 
     def battery_samples(self, frame_id):
         with self.connect() as db:

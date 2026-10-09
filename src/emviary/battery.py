@@ -199,4 +199,7 @@ def install_battery_routes(app, service, require, escape, page):
                     f"<td>{state('charging')}</td><td>{state('usb_connected')}</td></tr>"
                 )
             body += "</table></div></details></section>"
-        return page("Battery and charging", body)
+            from .diagnostics import diagnostics_section
+
+            body += diagnostics_section(service.store, frame["id"], escape)
+        return page("Battery and device health", body)

@@ -82,6 +82,7 @@ def page(title, body, **kwargs):
         "Special-day artwork": "event-art",
         "Battery history": "battery",
         "Battery and charging": "battery",
+        "Battery and device health": "battery",
     }
     kwargs.setdefault("active", keys.get(title, "settings"))
     return render_page(title, body, **kwargs)
@@ -400,7 +401,7 @@ def attach_owner(app, service):
                             ("appearance", "Display settings"),
                             ("events", "Special days"),
                             ("images", "Image history"),
-                            ("battery", "Battery health"),
+                            ("battery", "Battery & device health"),
                         )
                     )
                     + "</div>"

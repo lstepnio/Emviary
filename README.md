@@ -157,3 +157,24 @@ reschedule the event; the public page changes only after frame delivery.
 ### Original AI bird variants
 
 The [original AI collection](art/provenance/ai-color-cutouts/README.md) adds one text-only variant for each of the 63 catalogue species. No existing image was supplied as a reference. Exact prompts, identification sources and asset digests are preserved. All 63 were screened in solo and three-bird 800x480 packed six-color previews using balanced processing and Stucki dithering. Existing art, owner exclusions, seasonal eligibility and occasion collections are retained. Generation is offline curation; normal operation needs no AI API calls. Physical-panel review remains pending.
+
+### Device health diagnostics
+
+Battery & device health in management includes owner-only Wi-Fi signal, network
+name, channel, local address, connection time, disconnect count/reason, firmware,
+wake/reset cause, boot count, uptime and internal memory headroom. Firmware v0.6.2
+adds a small encoded diagnostics header to existing authenticated image requests.
+No additional polling, wakeups, scans or telemetry HTTP requests are required.
+
+The refresh result, total/download duration, bytes, HTTP status and retry count
+describe the previous completed image attempt. They arrive on the following
+request, not immediately after that refresh. Failed offline attempts become
+visible when connectivity returns. These are firmware-reported outcomes, not
+independent confirmation of what is visible on the physical panel. RTC-retained
+results avoid per-refresh flash writes and clear after a cold power loss.
+
+Diagnostics retain up to 2,000 request readings per frame for 90 days in SQLite
+and are included in application backups. They remain outside public pages and
+credits. Passwords, MAC/BSSID addresses, audio, exact coordinates and raw error
+strings are not collected. Firmware older than v0.6.2 remains compatible and
+shows a waiting state until it supplies diagnostics.

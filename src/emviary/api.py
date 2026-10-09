@@ -12,6 +12,7 @@ from starlette.background import BackgroundTask
 
 from . import __version__
 from .branding import BIRD_ICON
+from .diagnostics import parse_metrics
 from .firmware_updates import FirmwareUpdates
 from .service import Service
 from .settings import FramePolicy
@@ -194,6 +195,7 @@ def create_app(service=None, schedule=True):
                 voltage,
                 charging,
                 usb_connected,
+                parse_metrics(request.headers.get("x-frame-metrics")),
             )
             if firmware
             else None

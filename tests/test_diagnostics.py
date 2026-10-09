@@ -1,0 +1,79 @@
+import base64
+import json
+from datetime import UTC, datetime, timedelta
+
+from fastapi.testclient import TestClient
+
+from emviary.api import create_app
+from emviary.diagnostics import diagnostics_section, parse_metrics
+from emviary.owner import escape
+
+
+def test_metrics_are_bounded_and_unknown_secrets_discarded():
+    assert parse_metrics("invalid") is None
+    assert parse_metrics("b64:!!") is None
+    assert parse_metrics("x" * 2049) is None
+    for value in [1, -128, "weak", True]:
+        assert parse_metrics(json.dumps({"rssi_dbm": value})) is None
+    assert parse_metrics('{"local_ip":"not-an-address"}') is None
+    value = {"ssid": "Café", "rssi_dbm": -67, "password": "not-retained", "bssid": "omitted"}
+    encoded = "b64:" + base64.b64encode(json.dumps(value).encode()).decode()
+    assert parse_metrics(encoded) == {"ssid": "Café", "rssi_dbm": -67}
+
+
+def test_image_requests_store_diagnostics_without_changing_navigation(service, frame):
+    frame_id, token = frame
+    service.prepare(frame_id)
+    client = TestClient(create_app(service, schedule=False))
+    metrics = {"rssi_dbm": -73, "previous_result": "success", "previous_total_ms": 31000}
+    response = client.get(
+        "/v1/image",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "X-Firmware-Version": "v0.6.2",
+            "X-Frame-Metrics": json.dumps(metrics),
+        },
+    )
+    assert response.status_code == 200
+    rows = service.store.device_samples(frame_id)
+    assert len(rows) == 1 and json.loads(rows[0]["metrics"]) == metrics
+    assert rows[0]["firmware"] == "v0.6.2"
+    assert client.get("/manage/battery").status_code == 401
+    assert "rssi_dbm" not in client.get("/credits.json").text
+    # Malformed metadata must never prevent an otherwise valid image delivery.
+    assert (
+        client.get(
+            "/v1/image",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "X-Firmware-Version": "v0.6.2",
+                "X-Frame-Metrics": '{"rssi_dbm":999}',
+            },
+        ).status_code
+        == 200
+    )
+    assert len(service.store.device_samples(frame_id)) == 1
+
+
+def test_history_is_bounded_per_frame_and_ui_escapes_network_names(service, frame):
+    frame_id, _ = frame
+    service.store.device_sample(frame_id, {"ssid": "<network>", "rssi_dbm": -75})
+    html = diagnostics_section(service.store, frame_id, escape)
+    assert "&lt;network&gt;" in html and "<network>" not in html
+    assert "Weak Wi-Fi" in html and "previous completed attempt" in html
+    with service.store.connect() as db:
+        now = datetime.now(UTC)
+        db.execute(
+            "INSERT INTO device_samples(frame_id,recorded_at,metrics) VALUES(?,?,?)",
+            (frame_id, (now - timedelta(days=91)).isoformat(), "{}"),
+        )
+        db.executemany(
+            "INSERT INTO device_samples(frame_id,recorded_at,metrics) VALUES(?,?,?)",
+            [(frame_id, now.isoformat(), "{}")] * 2001,
+        )
+    service.store.device_sample(frame_id, {"rssi_dbm": -55})
+    rows = service.store.device_samples(frame_id)
+    assert len(rows) == 2000
+    assert all(
+        datetime.fromisoformat(row["recorded_at"]) > now - timedelta(days=90) for row in rows
+    )

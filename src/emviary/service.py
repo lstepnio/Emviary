@@ -346,6 +346,7 @@ class Service:
         battery_voltage=None,
         battery_charging=None,
         usb_connected=None,
+        device_metrics=None,
     ):
         # Called after the HTTP body is sent; preview visits never consume the buffer.
         self.store.telemetry(
@@ -358,6 +359,7 @@ class Service:
             battery_charging,
             usb_connected,
         )
+        self.store.device_sample(frame_id, device_metrics, firmware)
         self.store.request_refill(frame_id, image_id)
         self.refill_pending(frame_id=frame_id)
 
