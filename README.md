@@ -147,3 +147,9 @@ Desktop navigation becomes a collapsible menu on mobile. Forms use visible label
 Bird compositions use a centered solo or evenly sized, symmetric pair/trio columns. Artwork choice and bird count provide variety; asymmetric lead layouts and staggered placement are no longer selected.
 
 The top-row location and weather use 17-pixel bold sans-serif type, aligned on one line with solid black strokes. Header conversion preserves binary black/white ink rather than color dithering.
+
+Special-day previews use today’s forecast and an adaptive nonbird art region,
+with a compact heading and space reserved for greetings only when present.
+“Preview this day & queue on frame” saves the exact converted preview in image
+history and gives it priority for the right white button. It does not enable or
+reschedule the event; the public page changes only after frame delivery.

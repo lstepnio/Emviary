@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 17
+RENDER_VERSION = 18
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -349,9 +349,14 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
     draw = ImageDraw.Draw(canvas)
     draw.rectangle((8, 8, 791, 471), outline="#333333", width=1)
     occasion = plan.get("special_day")
-    draw.line(
-        (20, 363 if occasion else 420, 780, 363 if occasion else 420), fill="#333333", width=1
+    birds = plan.get("artworks", [artwork])
+    event_image = len(birds) == 1 and birds[0].get("event_only")
+    divider = (
+        (382 if occasion["message"] else 420)
+        if occasion and event_image
+        else (363 if occasion else 420)
     )
+    draw.line((20, divider, 780, divider), fill="#333333", width=1)
     palettes = {
         "winter": ("#829395", "#d1d9d5"),
         "spring": ("#6f805c", "#a9b482"),
@@ -361,7 +366,7 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
     dark, light = palettes[season]
     seasonal_offset = -70 if occasion else 0
     # Marginal botanical motifs keep weather and season away from diagnostic plumage.
-    for side in (1, -1) if plan["policy"].get("seasonal_themes", True) else ():
+    for side in (1, -1) if plan["policy"].get("seasonal_themes", True) and not event_image else ():
         x = 20 if side == 1 else 780
         draw.line(
             (x, 367 + seasonal_offset, x + side * 5, 288 + seasonal_offset), fill=dark, width=2
@@ -410,6 +415,8 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
     cells, captions = composition_cells(layout_name, len(birds))
     if occasion:
         cells, captions = composition_cells("occasion", 1)
+        if event_image:
+            cells = [(24, 48, 776, divider - 8)]
         if not event_image:
             draw_occasion_art(draw, occasion["theme"])
     for item, cell, caption in zip(birds, cells, captions, strict=True):
@@ -450,12 +457,25 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
             for n, line in enumerate(lines):
                 draw.text((center, title_y + n * 21), line, fill="#111111", font=font, anchor="mm")
     if occasion:
-        font, lines = fitted_lines(art_dir, draw, occasion["label"], 660, 28, 18, 2)
+        label = (
+            occasion["label"].removesuffix(" (meteorological)")
+            if event_image
+            else occasion["label"]
+        )
+        font, lines = fitted_lines(art_dir, draw, label, 720, 24 if event_image else 28, 18, 2)
         if len(lines) == 2:
-            font, lines = fitted_lines(art_dir, draw, occasion["label"], 660, 20, 18, 2)
+            font, lines = fitted_lines(art_dir, draw, label, 720, 20, 18, 2)
         for n, line in enumerate(lines):
             draw.text(
-                (400, (378 if len(lines) == 2 else 389) + n * 22),
+                (
+                    400,
+                    (
+                        divider + (15 if len(lines) == 2 else 26)
+                        if event_image
+                        else (378 if len(lines) == 2 else 389)
+                    )
+                    + n * 22,
+                ),
                 line,
                 fill="#111111",
                 font=font,
@@ -465,7 +485,7 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
             font, lines = fitted_lines(art_dir, draw, occasion["message"], 660, 19, 14, 2)
             for n, line in enumerate(lines):
                 draw.text(
-                    (400, 422 + n * 21),
+                    (400, (440 if event_image else 422) + n * 21),
                     line,
                     fill="#333333",
                     font=font,
@@ -480,7 +500,10 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
             anchor="lm",
         )
     metadata = PngImagePlugin.PngInfo()
-    metadata.add_text("eink_neutral_bands", json.dumps([[0, 48], [328 if occasion else 420, 480]]))
+    metadata.add_text(
+        "eink_neutral_bands",
+        json.dumps([[0, 48], [divider if event_image else (328 if occasion else 420), 480]]),
+    )
     canvas.convert("RGB").save(output, format="PNG", pnginfo=metadata)
 
 

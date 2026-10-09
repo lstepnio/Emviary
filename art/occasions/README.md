@@ -18,8 +18,9 @@ by the built-in generation tool, so none is inferred or recorded.
   white or cream background and space around the main subject.
 - No birds, baked-in words, dates or watermarks. Titles and optional greetings
   remain crisp service-rendered text.
-- The renderer fits each image into its 480 × 268 special-day art region on the
-  800 × 480 E1002 canvas, preserving aspect ratio and the panel safety margin.
+- The renderer fits nonbird art into a 752 × 364 region when the greeting is
+  empty, or 752 × 326 when a greeting is present, on the 800 × 480 E1002 canvas.
+  It preserves aspect ratio and the panel safety margin.
 - The current frame's processing and dithering settings drive the pinned
   Spectra6 converter. Validation checks the exact six-color packed panel data.
   Fine printed texture remains visible; this is a stylistic choice rather than
@@ -60,3 +61,8 @@ bird render counts. No ongoing AI generation or subscription is needed.
 Review art at [Special-day art](https://emviary.majjix.com/manage/event-art), and
 control dates, greetings, enablement and private frame previews at
 [Special days](https://emviary.majjix.com/manage/events).
+
+The management preview button uses today’s real forecast and queues the exact
+converted image for testing through the next refresh or right-button press.
+The calendar date and enabled flag stay unchanged. Direct preview image URLs
+remain read-only. Daily scheduled generation continues normally after testing.

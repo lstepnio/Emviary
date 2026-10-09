@@ -710,12 +710,17 @@ def attach_owner(app, service):
                     )
                     if event:
                         body += (
-                            '<p><a href="/manage/frames/'
+                            '<form method="post" action="/manage/frames/'
                             + identifier
                             + "/special-days/"
                             + escape(day["id"])
-                            + '/preview" target="_blank" rel="noopener">'
-                            + "Preview this day</a></p>"
+                            + '/preview" target="_blank">'
+                            + hidden(csrf)
+                            + '<button class="secondary">Preview this day &amp; '
+                            "queue on frame</button>"
+                            + '<p class="muted">Uses today’s weather. Available on the next '
+                            "refresh or right-button press; the calendar stays "
+                            "unchanged.</p></form>"
                         )
                         body += (
                             '<form method="post" action="/manage/frames/'
@@ -1638,6 +1643,23 @@ def attach_owner(app, service):
         except RuntimeError:
             raise HTTPException(409, "Preparation is busy; try the preview again shortly") from None
         return Response(image, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+    @app.post("/manage/frames/{identifier}/special-days/{day_id}/preview")
+    async def queue_special_day_preview(identifier: str, day_id: str, request: Request):
+        import asyncio
+
+        await checked_form(request)
+        try:
+            image = await asyncio.to_thread(service.prepare_special_day, identifier, day_id)
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from None
+        except RuntimeError:
+            raise HTTPException(409, "Preparation is busy; try again shortly") from None
+        return Response(
+            service.cache_path(image["preview_path"]).read_bytes(),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.post("/manage/sites/{identifier}")
     async def site_settings(identifier: str, request: Request):

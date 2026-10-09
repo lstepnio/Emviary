@@ -73,7 +73,7 @@ class Service:
             raise ValueError("Cache file is outside the configured cache directory")
         return path
 
-    def _new_plan(self, frame, local_date, revision, profile, offline):
+    def _new_plan(self, frame, local_date, revision, profile, offline, special_day_id=None):
         policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
         policy.pop("wifi_networks", None)
         policy.pop("wifi_forget_ssids", None)
@@ -108,6 +108,10 @@ class Service:
                 a for a in candidates if a["scientific_name"] in policy["allowed_species"]
             ]
         occasion = render.special_day_for(policy, local_date)
+        if special_day_id is not None:
+            occasion = next((d for d in policy["special_days"] if d["id"] == special_day_id), None)
+            if occasion is None:
+                raise ValueError("Unknown special day")
         if occasion:
             requested = next(
                 (
@@ -154,6 +158,7 @@ class Service:
             "artwork": artworks[0],
             "artworks": artworks,
             "special_day": occasion,
+            "special_day_test": special_day_id is not None,
             "layout": {
                 "name": "occasion"
                 if occasion
@@ -169,53 +174,10 @@ class Service:
 
     def preview_special_day(self, frame_id, day_id):
         frame = self.store.frame(frame_id)
-        policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
-        occasion = next((d for d in policy["special_days"] if d["id"] == day_id), None)
-        if not occasion:
-            raise ValueError("Unknown special day")
         site = self.settings.config.site(frame["site_id"])
-        today = datetime.now(ZoneInfo(site.timezone)).date()
-        preview_date = date.fromisoformat(occasion["date"])
-        if occasion["annual"]:
-            month, day = preview_date.month, preview_date.day
-            for year in range(today.year, today.year + 9):
-                try:
-                    candidate = date(year, month, day)
-                except ValueError:
-                    continue
-                if candidate >= today:
-                    preview_date = candidate
-                    break
-        candidates = [
-            a
-            for a in self.settings.artworks
-            if a["approved"]
-            and preview_date.month in a["months"]
-            and a.get("depicted_birds", 1) == 1
-        ]
-        requested = next((a for a in candidates if a["id"] == occasion["artwork_id"]), None)
-        requested = next(
-            (
-                a
-                for a in self.event_art.entries()
-                if a["id"] == occasion["artwork_id"] and a["approved"]
-            ),
-            requested,
-        )
-        if not requested and policy["allowed_species"]:
-            candidates = [
-                a for a in candidates if a["scientific_name"] in policy["allowed_species"]
-            ]
-        artwork = requested or render.choose_art(
-            candidates, preview_date.isoformat(), {}, [], day_id
-        )
-        plan = {
-            "local_date": preview_date.isoformat(),
-            "inputs": {},
-            "policy": policy,
-            "artworks": [artwork],
-            "special_day": occasion,
-        }
+        today = datetime.now(ZoneInfo(site.timezone)).date().isoformat()
+        plan = self._new_plan(frame, today, 0, "preview", False, day_id)
+        artwork, policy = plan["artwork"], plan["policy"]
         with preparation_lock(self.settings.data_dir), tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
             master, packed, preview = (
@@ -230,11 +192,16 @@ class Service:
             render.validate_epdgz(packed)
             return preview.read_bytes()
 
+    def prepare_special_day(self, frame_id, day_id):
+        """Queue a test for today without enabling or rescheduling its calendar event."""
+        with preparation_lock(self.settings.data_dir):
+            return self._prepare(frame_id, None, True, False, day_id)
+
     def prepare(self, frame_id, local_date=None, force=False, offline=False):
         with preparation_lock(self.settings.data_dir):
             return self._prepare(frame_id, local_date, force, offline)
 
-    def _prepare(self, frame_id, local_date, force, offline):
+    def _prepare(self, frame_id, local_date, force, offline, special_day_id=None):
         frame = self.store.frame(frame_id)
         policy = FramePolicy.model_validate_json(frame["policy"])
         site = self.settings.config.site(frame["site_id"])
@@ -249,6 +216,8 @@ class Service:
                 + stable_json(self.event_art.entries())
             ).encode()
         ).hexdigest()
+        if special_day_id is not None:
+            profile = hashlib.sha256((profile + ":test:" + special_day_id).encode()).hexdigest()
         with self.store.connect() as db:
             job = db.execute(
                 """SELECT * FROM jobs WHERE frame_id=? AND local_date=? AND profile_hash=?
@@ -276,7 +245,7 @@ class Service:
                 revision = (row[0] or 0) + 1
                 plan = None
         if plan is None:
-            plan = self._new_plan(frame, local_date, revision, profile, offline)
+            plan = self._new_plan(frame, local_date, revision, profile, offline, special_day_id)
             with self.store.connect() as db:
                 db.execute(
                     """INSERT INTO jobs(frame_id,local_date,revision,profile_hash,plan,status)

@@ -152,6 +152,17 @@ class Store:
             ).fetchone()
             if cursor is None:
                 return self.active_image(frame)
+            active = db.execute(
+                "SELECT * FROM images WHERE id=? AND frame_id=? AND hidden=0",
+                (frame["active_image_id"], frame["id"]),
+            ).fetchone()
+            if (
+                direction == "next"
+                and active
+                and active["id"] > cursor["id"]
+                and json.loads(active["manifest"]).get("special_day_test")
+            ):
+                return dict(active)
             comparison, order = ("<", "DESC") if direction == "previous" else (">", "ASC")
             row = db.execute(
                 f"SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id{comparison}? "

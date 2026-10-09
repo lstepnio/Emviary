@@ -16,6 +16,86 @@ def image_bytes():
     return output.getvalue()
 
 
+def test_occasion_preview_queues_exact_panel_with_current_weather(
+    service, frame, tmp_path, monkeypatch
+):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    entry = service.event_art.upload(image_bytes(), "Fall", "Owner")
+    service.event_art.review(entry["id"], True)
+    policy = FramePolicy(
+        seasonal_themes=False,
+        special_days=[
+            dict(
+                id="fall",
+                date="2026-09-01",
+                label="First day of fall (meteorological)",
+                enabled=False,
+                artwork_id=entry["id"],
+            )
+        ],
+    )
+    service.store.set_policy(frame[0], policy)
+    first = service.prepare(frame[0], offline=True)
+    service.store.telemetry(frame[0], None, "test", "", first["body_hash"])
+    service.prepare(frame[0], force=True, offline=True)  # Earlier ordinary buffered image.
+    site = service.settings.config.site("denver-gift")
+    today = datetime.now(ZoneInfo(site.timezone)).date().isoformat()
+    weather = {
+        "open_meteo": {
+            "local_date": today,
+            "values": dict(
+                weather_code=0,
+                daylight_weather_code=0,
+                snowfall_sum=0,
+                precipitation_probability_max=0,
+                wind_speed_10m_max=10,
+                temperature_2m_max=25,
+                temperature_2m_min=10,
+            ),
+        }
+    }
+    monkeypatch.setattr(service.providers, "inputs", lambda *a, **kw: weather)
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    url = f"/manage/frames/{frame[0]}/special-days/fall/preview"
+    assert client.post(url, data={"csrf": "bad"}).status_code == 403
+    response = client.post(url, data={"csrf": csrf})
+    assert response.status_code == 200
+    current = service.store.frame(frame[0])
+    test_image = service.store.active_image(current)
+    plan = json.loads(test_image["manifest"])
+    assert plan["special_day_test"] and plan["local_date"] == today
+    assert plan["inputs"] == weather and plan["layout"]["bird_count"] == 0
+    assert response.content == service.cache_path(test_image["preview_path"]).read_bytes()
+    assert service.delivered_image(current)["id"] == first["id"]
+    assert (
+        service.store.navigation_image(current, "next", first["body_hash"])["id"]
+        == test_image["id"]
+    )
+    assert json.loads(current["policy"])["special_days"] == policy.model_dump()["special_days"]
+    master = service.cache_path(test_image["path"].replace(".epdgz", "-master.png"))
+    with Image.open(master) as picture:
+        assert picture.getpixel((400, 400)) == (212, 164, 106)
+        assert json.loads(picture.info["eink_neutral_bands"])[1][0] == 420
+        # Weather appears in the header, and the artwork now extends well below its old 323px limit.
+        assert picture.crop((500, 12, 777, 40)).convert("L").getextrema()[0] == 0
+    with service.store.connect() as db:
+        count = db.execute("SELECT COUNT(*) FROM images").fetchone()[0]
+    assert client.get(url).status_code == 200  # Direct GET remains a read-only preview.
+    assert service.store.active_image(service.store.frame(frame[0]))["id"] == test_image["id"]
+    with service.store.connect() as db:
+        assert count == db.execute("SELECT COUNT(*) FROM images").fetchone()[0]
+    # Empty greetings release space; two-line greetings reserve only what they need.
+    plan["special_day"]["message"] = "A warm seasonal greeting with room for another line"
+    output = tmp_path / "greeting.png"
+    render.compose(service.settings.art_dir, entry, plan, output, service.event_art.root)
+    with Image.open(output) as picture:
+        assert json.loads(picture.info["eink_neutral_bands"])[1][0] == 382
+        assert picture.getpixel((400, 370)) == (212, 164, 106)
+        assert picture.getpixel((400, 390)) == (255, 255, 255)
+
+
 def test_bulk_import_preserves_customization_and_year_specific_dates():
     holidays = import_presets([], "holidays", 2026)
     assert len(holidays) == 17
