@@ -65,3 +65,20 @@ profile 2 of 2 and reconnected in 4.7 seconds. The temporary cloud profile was
 removed through management and a real refresh; only the original saved network
 remains. Both local hostnames respond with v0.4.1. Temporary cloud test settings
 were restored to device-managed defaults.
+
+## Complete inventory verification, 2026-10-09
+
+Application 0.9.2 (`emviary:poc-033`) and E1002 firmware v0.7.6 were deployed.
+The release checksum, source revision, image size and unchanged partition table
+were checked before the installed frame upgraded successfully through GitHub OTA.
+All 119 backend tests, lint and 197 firmware host tests passed; the ESP-IDF 6.0
+board build passed. Backend tests cover nested secret exclusion, escaped SSIDs,
+five-profile wire bounds, private inventory and reporting on HTTP 200 and 304.
+
+On the physical E1002, four temporary open profiles were added alongside the
+original password-protected profile. The local recovery UI displayed all five,
+including the connected profile and password-presence flags. A real image fetch
+reported all five to the authenticated cloud settings UI. The original single
+profile and its saved password were restored; the image URL, nightly cron, frame
+token-presence flag and deep-sleep setting were unchanged. The final refresh
+reported the restored list. Automatic firmware updates remain enabled.
