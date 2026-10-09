@@ -143,3 +143,5 @@ The public home mirrors the last delivered image. Owner management uses focused 
 - **Recovery:** local addresses, setup hotspot and private configuration downloads.
 
 Desktop navigation becomes a collapsible menu on mobile. Forms use visible labels, keyboard focus and save feedback; saving retains the current section. No JavaScript framework or external asset dependency is required.
+
+Bird compositions use a centered solo or evenly sized, symmetric pair/trio columns. Artwork choice and bird count provide variety; asymmetric lead layouts and staggered placement are no longer selected.

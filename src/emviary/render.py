@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 15
+RENDER_VERSION = 16
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -151,20 +151,9 @@ def choose_layout(artworks, seed, recent_manifests=(), art_dir=None):
     count = len(artworks)
     if artworks[0].get("kind") == "plate":
         return "plate"
-    names = {
-        1: ["solo", "solo-left", "solo-right"],
-        2: ["pair", "lead-left-pair", "lead-right-pair"],
-        3: ["trio", "lead-left-trio", "lead-right-trio", "center-lead-trio"],
-    }[count]
-    # Wide wings need the full width; never crop or mirror diagnostic plumage.
-    if count == 1 and art_dir and artwork_aspect(art_dir, artworks[0]) > 1.6:
-        return "solo"
-    facing = artworks[0].get("facing")
-    if facing in ("left", "right"):
-        outward = "left" if facing == "left" else "right"
-        names = [n for n in names if n != f"solo-{outward}" and not n.startswith(f"lead-{outward}")]
-    previous = recent_manifests[0].get("layout", {}).get("name") if recent_manifests else None
-    return random.Random(seed + ":composition").choice([n for n in names if n != previous] or names)
+    # Keep birds centered in equally sized columns. Freshness comes from the
+    # artwork and bird count, rather than shifting or staggering their placement.
+    return {1: "solo", 2: "pair", 3: "trio"}[count]
 
 
 def composition_cells(name, count):
@@ -179,20 +168,6 @@ def composition_cells(name, count):
         2: [(204, 350), (596, 350)],
         3: [(140, 224), (400, 224), (660, 224)],
     }[count]
-    if name in ("solo-left", "solo-right"):
-        cells = [(52, 48, 482, 376)] if name == "solo-left" else [(318, 48, 748, 376)]
-    elif name in ("lead-left-pair", "lead-right-pair"):
-        cells = [(28, 48, 472, 376), (500, 94, 772, 340)]
-        captions = [(250, 440), (636, 272)]
-    elif name in ("lead-left-trio", "lead-right-trio"):
-        cells = [(28, 48, 356, 376), (388, 48, 568, 320), (596, 104, 776, 376)]
-        captions = [(192, 328), (478, 180), (686, 180)]
-    elif name == "center-lead-trio":
-        cells = [(278, 48, 522, 376), (28, 94, 244, 348), (556, 94, 772, 348)]
-        captions = [(400, 244), (136, 216), (664, 216)]
-    if name in ("lead-right-pair", "lead-right-trio"):
-        cells = [(800 - right, top, 800 - left, bottom) for left, top, right, bottom in cells]
-        captions = [(800 - x, width) for x, width in captions]
     if name == "plate":
         cells = [(24, 48, 776, 376)]
     if name == "occasion":

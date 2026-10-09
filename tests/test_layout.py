@@ -105,11 +105,12 @@ def test_composition_has_safe_nonoverlapping_art_and_caption_regions():
                 assert 20 <= center - width / 2 < center + width / 2 <= 780
 
 
-def test_layout_preserves_wings_and_inward_look_space(service):
+def test_layout_restores_centered_columns_and_preserves_wings(service):
     art = next(a for a in service.settings.artworks if a.get("facing") == "left")
     for seed in map(str, range(30)):
-        assert render.choose_layout([art], seed) != "solo-left"
-        assert render.choose_layout([art, art], seed) != "lead-left-pair"
+        assert render.choose_layout([art], seed) == "solo"
+        assert render.choose_layout([art, art], seed) == "pair"
+        assert render.choose_layout([art, art, art], seed) == "trio"
     wide = next(
         a
         for a in service.settings.artworks
@@ -118,7 +119,8 @@ def test_layout_preserves_wings_and_inward_look_space(service):
     )
     assert render.choose_layout([wide], "wide", art_dir=service.settings.art_dir) == "solo"
     history = [{"layout": {"name": "pair"}}]
-    assert render.choose_layout([art, art], "fresh", history) != "pair"
+    assert render.choose_layout([art, art], "fresh", history) == "pair"
+    assert render.composition_cells("lead-left-trio", 3) == render.composition_cells("trio", 3)
 
 
 def test_detail_capacity_overrides_three_bird_default(service):
