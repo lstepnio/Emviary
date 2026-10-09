@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "collection": "Emviary special-day artwork",
+  "generated_date": "2026-10-08",
+  "generation_method": "OpenAI built-in image generation",
+  "source": "AI-generated with OpenAI image generation; curated for Emviary, October 2026.",
+  "source_url": "https://github.com/lstepnio/Emviary/tree/main/art/occasions",
+  "artworks": [
+    {
+      "slug": "new-years-day",
+      "label": "New Year's Day",
+      "asset": "new-years-day.png",
+      "asset_sha256": "0d2066f6e3c5500566b5fcc467602f829b43b02b77b6066a57974d88e16d3497",
+      "representative_date": "2026-01-01",
+      "prompt": "Create one finished landscape illustration for New Year's Day for the Emviary e-ink picture frame. Subject: a fresh golden sunrise over stylized Colorado mountains, a small green pine branch and three restrained golden celebratory rays, hopeful beginning. Art direction: refined mid-century gouache and woodcut poster art, broad confident shapes, crisp dark contours, modest texture, balanced centered composition, generous white negative space. Optimize for 800x480 six-color Spectra6 display and an eventual 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue, green; avoid gray shading, faint washes, gradients, microdetails. Landscape aspect ratio about 16:9. The illustration itself fills most of the canvas with a modest white margin. No birds, animals, people, lettering, dates, numerals, words, watermarks, border, frame, device mockup, greeting card typography. Opaque pure white background.",
+      "reviewed": true
+    },
+    {
+      "slug": "valentines-day",
+      "label": "Valentine's Day",
+      "asset": "valentines-day.png",
+      "asset_sha256": "e58389c9c1d5544bb895c551e82575e9847028763be46d6c44135632cb22d712",
+      "representative_date": "2026-02-14",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A bold red paper-cut heart nestled in a graceful wreath of green leaves and small cream flowers; romantic botanical keepsake.",
+      "reviewed": true
+    },
+    {
+      "slug": "st-patricks-day",
+      "label": "St. Patrick's Day",
+      "asset": "st-patricks-day.png",
+      "asset_sha256": "91577af00212a148f9e9e56d6f244d2b825533fb37b36af7315ba9ad230f31c2",
+      "representative_date": "2026-03-17",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A lush three-leaf shamrock arrangement with a modest green ribbon and one golden coin-like circle; elegant Irish botanical celebration, no lettering or caricatures.",
+      "reviewed": true
+    },
+    {
+      "slug": "juneteenth",
+      "label": "Juneteenth",
+      "asset": "juneteenth.png",
+      "asset_sha256": "a38465e49985571e904cf32ad0d46ac053f739d9cec27668f4ac419905705c19",
+      "representative_date": "2026-06-19",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A radiant white five-point star with a larger white burst outline on a broad red-and-blue curved horizon, with a rising golden sun and understated green growth; dignified Juneteenth freedom symbolism, not a generic patriotic flag.",
+      "reviewed": true
+    },
+    {
+      "slug": "independence-day",
+      "label": "Independence Day",
+      "asset": "independence-day.png",
+      "asset_sha256": "cd28ec80bb06403af9697bce2b9f401d917d1594a6648490fedbe19232a6b4cd",
+      "representative_date": "2026-07-04",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: Three bold stylized red, blue and golden firework bursts above a quiet mountain silhouette, cream negative space, restrained American celebratory palette, no tiny sparks.",
+      "reviewed": true
+    },
+    {
+      "slug": "halloween",
+      "label": "Halloween",
+      "asset": "halloween.png",
+      "asset_sha256": "62d9ee0e385bb846a5e21ea8ec8ac43355fe55ba5fe0ba82fabf219e8b72a5a9",
+      "representative_date": "2026-10-31",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: Three charming carved pumpkins of different sizes, curved stems, a large golden moon and an autumn leaf; cozy rather than frightening, no bats, birds or lettering.",
+      "reviewed": true
+    },
+    {
+      "slug": "veterans-day",
+      "label": "Veterans Day",
+      "asset": "veterans-day.png",
+      "asset_sha256": "fb4ee7e62d951237ba97951800d2dc166f1bc22666630c22a5ce7373828fb3cc",
+      "representative_date": "2026-11-11",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A solemn red poppy wreath, blue ribbon and small clean white star medallion; dignified appreciation and remembrance, no weapons, people, military insignia or text.",
+      "reviewed": true
+    },
+    {
+      "slug": "christmas-eve",
+      "label": "Christmas Eve",
+      "asset": "christmas-eve.png",
+      "asset_sha256": "266fa51aaa501059678adbaf149e846c0544282225ad1b14364bb293a1da2821",
+      "representative_date": "2026-12-24",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A warmly illuminated lantern beside evergreen boughs and a simple red ribbon, one bright star overhead, a calm snowy evening keepsake, no birds.",
+      "reviewed": true
+    },
+    {
+      "slug": "christmas-day",
+      "label": "Christmas Day",
+      "asset": "christmas-day.png",
+      "asset_sha256": "b0753870846de89794ed78dde6c1606170ebcdd51435a59c3187b66841aa8ba7",
+      "representative_date": "2026-12-25",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A balanced decorated evergreen tree with large red and golden ornaments and a simple star, two wrapped gifts and fresh snow; festive, tasteful and uncrowded.",
+      "reviewed": true
+    },
+    {
+      "slug": "new-years-eve",
+      "label": "New Year's Eve",
+      "asset": "new-years-eve.png",
+      "asset_sha256": "c8035e8213bc9d05301f179df362ec62dbcac7df2fd53e6bb799a56d52aca5fa",
+      "representative_date": "2026-12-31",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: An elegant midnight clock face with simple hands pointing just before twelve and no numbers, framed by two broad red and gold firework bursts and a blue crescent of night; no text.",
+      "reviewed": true
+    },
+    {
+      "slug": "martin-luther-king-day",
+      "label": "Martin Luther King Jr. Day",
+      "asset": "martin-luther-king-day.png",
+      "asset_sha256": "3726376513cc852cb02256b6aed270c5160575eb30b58f9aa4a81aa7868d21a3",
+      "representative_date": "2026-01-19",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A sunlit path passing through a strong open arch toward a golden horizon, framed by green olive branches; dignified symbolism of justice, peace and shared progress, no portrait, birds, lettering or raised fists.",
+      "reviewed": true
+    },
+    {
+      "slug": "presidents-day",
+      "label": "Presidents' Day",
+      "asset": "presidents-day.png",
+      "asset_sha256": "a8e439396d9d67098130142f07abd5b53e971d6f01d1d4d6b1415e4adbdfa51a",
+      "representative_date": "2026-02-16",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A dignified architectural illustration of the White House facade with a simple green laurel branch and a small red-and-blue ribbon; clear recognizable broad shapes, no flags with tiny details, portraits or text.",
+      "reviewed": true
+    },
+    {
+      "slug": "mothers-day",
+      "label": "Mother's Day",
+      "asset": "mothers-day.png",
+      "asset_sha256": "e2aa074a8484e859c21e832ee2e9ec91af956bc547c894e5c3f1cf7c55cb25ad",
+      "representative_date": "2026-05-10",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A generous centered bouquet of tulips and peonies in red and golden yellow with green leaves in a simple cream ceramic vase; warm floral appreciation, bold petals not tiny stamens.",
+      "reviewed": true
+    },
+    {
+      "slug": "fathers-day",
+      "label": "Father's Day",
+      "asset": "fathers-day.png",
+      "asset_sha256": "39c124de4863d34e667f303fbc041f0d2399efc5977552c58593dd57329d3557",
+      "representative_date": "2026-06-21",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A quiet Colorado mountain lake, two mugs and a rolled picnic blanket on a small wooden dock; warm shared outdoor time, no people, animals, birds, slogans or stereotyped tools.",
+      "reviewed": true
+    },
+    {
+      "slug": "labor-day",
+      "label": "Labor Day",
+      "asset": "labor-day.png",
+      "asset_sha256": "3f6cf3e8e21472b108849628dfc53c28dbf6b1312af7def8102f0fb99b4ffc36",
+      "representative_date": "2026-09-07",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: An elegant still life of a golden wheat sheaf, simple carpenter's square, blue work glove and green branch, unified by a red ribbon; respectful celebration of work, craft and contribution, no lettering.",
+      "reviewed": true
+    },
+    {
+      "slug": "thanksgiving",
+      "label": "Thanksgiving",
+      "asset": "thanksgiving.png",
+      "asset_sha256": "0fc0f7cc08a743923cf6a7dce47e1f96690a286cd3bb6ed2ed61a8c2fb5dedec",
+      "representative_date": "2026-11-26",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A bountiful but simple harvest still life of one pumpkin, red apples, golden wheat and green leaves in a woven basket; cozy gratitude, absolutely no turkey or other birds.",
+      "reviewed": true
+    },
+    {
+      "slug": "memorial-day",
+      "label": "Memorial Day",
+      "asset": "memorial-day.png",
+      "asset_sha256": "798d9b29aa172392bbf833d1f8d933445063adcd45eb59a6105664714c157757",
+      "representative_date": "2026-05-25",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A quiet field of a few bold red poppies beneath a blue horizon, a small green wreath and a simple white candle; solemn remembrance, no people, weapons or birds.",
+      "reviewed": true
+    },
+    {
+      "slug": "first-day-spring",
+      "label": "First day of spring (meteorological)",
+      "asset": "first-day-spring.png",
+      "asset_sha256": "6b2afad9eb2653528778f937df805e4712880f225bef900d81dc1cf44c274e0f",
+      "representative_date": "2026-03-01",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: Fresh green shoots and red tulips emerging beside melting snow, a gentle golden sun and stylized Colorado foothills; crisp hopeful botanical spring illustration.",
+      "reviewed": true
+    },
+    {
+      "slug": "first-day-summer",
+      "label": "First day of summer (meteorological)",
+      "asset": "first-day-summer.png",
+      "asset_sha256": "e2c01adfa4a4d8063c0c71e5b19fc13a0435ae53dd4c3f4a894d70c83aededf0",
+      "representative_date": "2026-06-01",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: A radiant golden sun over a Colorado alpine meadow with large yellow wildflowers, green grass and a simple blue lake; cheerful spacious summer landscape, no animals.",
+      "reviewed": true
+    },
+    {
+      "slug": "first-day-fall",
+      "label": "First day of fall (meteorological)",
+      "asset": "first-day-fall.png",
+      "asset_sha256": "711350f7eab73deb4e3d5307b52f9985b2137a49dc64f771fece7e702280a62b",
+      "representative_date": "2026-09-01",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: Three golden aspen trees and a few broad red and yellow falling leaves beside Colorado mountains and a tiny pumpkin; rich autumn color blocks, strong trunks, generous cream sky.",
+      "reviewed": true
+    },
+    {
+      "slug": "first-day-winter",
+      "label": "First day of winter (meteorological)",
+      "asset": "first-day-winter.png",
+      "asset_sha256": "fabdab600a6c0a43a520e25aa77490b1423a87143dc839f836e39ce3bf7bbb2c",
+      "representative_date": "2026-12-01",
+      "prompt": "Create one finished landscape occasion illustration for the Emviary e-ink frame. Refined mid-century gouache and woodcut poster aesthetic, tasteful and handmade, broad confident shapes, crisp dark contours, very modest texture. Balanced CENTERED composition, generous PURE WHITE negative space and modest white safety margin. Landscape 5:3 or 16:9. Optimize for an 800x480 six-color Spectra6 display, eventually a 480x268 art window: large readable shapes, strong tonal separation, palette primarily white, black, red, yellow, blue and green. Avoid faint washes, gray shading, gradients, fine patterns and tiny details. NO birds or other animals, NO people, NO lettering, words, numerals, dates, logos or watermarks. No border, frame, device mockup or greeting-card typography. A finished illustration, not an icon. Subject: Two snow-laden green spruce trees, a quiet blue Colorado mountain silhouette and broad white snowdrifts under a small golden sun; serene winter landscape, no animals.",
+      "reviewed": true
+    }
+  ],
+  "review": {
+    "originals": "All 21 visually inspected for subject, nonbird content, text and watermarks.",
+    "panel": "All 21 actual packed six-color 800x480 previews visually inspected, renderer 17.",
+    "physical_panel": "Not yet verified for this collection."
+  }
+}
