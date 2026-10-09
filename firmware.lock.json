@@ -2,11 +2,14 @@
   "upstream": "https://github.com/aitjcize/esp32-photoframe",
   "fork": "https://github.com/lstepnio/Emviary-firmware",
   "branch": "emviary-poc",
-  "release": "v0.6.2",
-  "commit": "4c9fc939185d163c087a1b2f15d47674664cc21c",
+  "release": "v0.7.5",
+  "commit": "67e973afafa93a60c404d1b625a265ef041cdfd1",
   "board": "seeedstudio_reterminal_e1002",
-  "behavior": "E1002 left white button previous and right white button next cloud image, with both waking from deep sleep and neither clearing the panel; Emviary local hostname with PhotoFrame fallback; cloud-managed GitHub OTA with complete image digest verification; scheduled artwork refresh precedes firmware update; up to five saved Wi-Fi profiles, additive cloud destination staging, bounded visible-network selection and recovery fallback; E1002 cloud-only wake skips SD mount, HA and duplicate GitHub query, uses internal LittleFS; battery voltage/charging/USB telemetry; continuous debounced white-button scanning with one coalesced pending navigation during downloads and panel refreshes, including deep-sleep wakes; compact Wi-Fi and device diagnostics piggyback on image requests with previous completed refresh retained in RTC memory",
+  "behavior": "E1002 left white button previous and right white button next cloud image, with both waking from deep sleep and neither clearing the panel; Emviary local hostname with PhotoFrame fallback; cloud-managed GitHub OTA with complete image digest verification; scheduled artwork refresh precedes firmware update; up to five saved Wi-Fi profiles, additive cloud destination staging, bounded visible-network selection and recovery fallback; E1002 cloud-only wake skips SD mount, HA and duplicate GitHub query, uses internal LittleFS; battery voltage/charging/USB telemetry; continuous debounced white-button scanning with one coalesced pending navigation during downloads and panel refreshes, including deep-sleep wakes; compact Wi-Fi and device diagnostics piggyback on image requests with previous completed refresh retained in RTC memory; serialized image lifecycle and sleep barriers; complete bounded EPDGZ validation before paint; checked E1002 panel errors; preserved storage/configuration on failures; small recovery/provisioning pages and write-only credentials; bounded serialized OTA; lazy wake OTA worker with persisted installer-crash retry hold; skip same-boot confirmed duplicate panel sleep",
   "upstream_commit": "186ebaf3b470305824d238c2d2dabf2c5bc59a7a",
-  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37882421519",
-  "application_sha256": "3512dfdfdf6e3125646c68c0443fabf62f080f84dc2f8e8428fdb8f5ef4ea686"
+  "build_run": "https://github.com/lstepnio/Emviary-firmware/actions/runs/37892541223",
+  "application_sha256": "dea864b1771f6d70011828379730a25da5919d540d41c5a016739f1e0f19dc9f",
+  "application_size_bytes": 1560352,
+  "release_status": "prerelease",
+  "validation_report": "research/firmware-resource-audit-2026-10-08.md"
 }

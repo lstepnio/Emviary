@@ -40,6 +40,9 @@ Automatic updates, including prereleases, are enabled by default; management
 can pause updates or select a pinned version. Battery endurance still needs
 separate validation.
 See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
+The current firmware audit, candidate acceptance status, measured resource changes
+and application-only recovery instructions are in
+[the firmware resource audit](research/firmware-resource-audit-2026-10-08.md).
 
 ## Local development
 
