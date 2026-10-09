@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 16
+RENDER_VERSION = 17
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -217,6 +217,18 @@ def _font(art_dir, size, italic=False):
     return ImageFont.truetype(str(path), size)
 
 
+def _header_font(size=17):
+    """Bold sans-serif survives the panel's small, binary-ink header better."""
+    candidates = (
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        Path("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+    )
+    for path in candidates:
+        if path.is_file():
+            return ImageFont.truetype(str(path), size)
+    return ImageFont.truetype("DejaVuSans-Bold.ttf", size)
+
+
 def weather_label(values):
     code = int(values["weather_code"])
     if code in (71, 73, 75, 77, 85, 86) and values["snowfall_sum"] > 0:
@@ -242,7 +254,7 @@ def forecast_temperatures(values):
 def draw_weather_mark(draw, values, x, y):
     # Small, high-contrast ink strokes in the header, never pale filled clouds.
     label = weather_label(values)
-    ink = "#333333"
+    ink = "#000000"
     if label in ("SUNNY", "MOSTLY SUNNY", "PARTLY SUNNY"):
         draw.ellipse((x - 4, y - 4, x + 4, y + 4), outline=ink, width=2)
         for angle in range(0, 360, 45):
@@ -373,9 +385,9 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
         if policy.get("show_forecast_temperatures", True):
             parts.append(forecast_temperatures(values))
         text = " · ".join(parts)
-        font = _font(art_dir, 12)
+        font = _header_font()
         if text:
-            draw.text((776, 25), text, font=font, fill="#333333", anchor="rm")
+            draw.text((776, 25), text, font=font, fill="#000000", anchor="rm")
         if policy.get("show_weather_icon", True):
             draw_weather_mark(draw, values, round(776 - draw.textlength(text, font=font) - 22), 25)
     birds = plan.get("artworks", [artwork])
@@ -461,10 +473,11 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
                 )
     if policy.get("show_location_name", False):
         draw.text(
-            (24, 20),
+            (24, 25),
             plan.get("location_label", "COLORADO"),
-            font=_font(art_dir, 12),
-            fill="#333333",
+            font=_header_font(),
+            fill="#000000",
+            anchor="lm",
         )
     metadata = PngImagePlugin.PngInfo()
     metadata.add_text("eink_neutral_bands", json.dumps([[0, 48], [328 if occasion else 420, 480]]))

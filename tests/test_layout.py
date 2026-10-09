@@ -196,7 +196,7 @@ def test_location_name_header_omits_date_and_can_be_enabled(service, tmp_path, m
         assert len(first.crop((24, 16, 350, 45)).getcolors()) == 1
         changed = ImageChops.difference(first, second).getbbox()
         assert changed is not None
-        assert changed[0] >= 24 and changed[1] >= 20
+        assert changed[0] >= 24 and changed[1] >= 12
         assert changed[2] <= 350 and changed[3] <= 45
 
 
@@ -244,3 +244,53 @@ def test_frame_labels_use_only_common_names_and_leave_room_for_larger_art(
     cells, _ = render.composition_cells("solo", 1)
     assert cells[0][3] > 400
     assert cells[0][3] < 428
+
+
+def test_header_long_forecast_is_clear_and_does_not_overlap_location(
+    service, tmp_path, monkeypatch
+):
+    from PIL import ImageDraw
+
+    art = next(
+        a
+        for a in service.settings.artworks
+        if a["approved"] and a.get("kind", "cutout") == "cutout"
+    )
+    policy = service.settings.config.frame_defaults.model_dump()
+    policy["show_location_name"] = True
+    header_boxes = []
+    original = ImageDraw.ImageDraw.text
+
+    def capture(self, xy, text, *args, **kwargs):
+        if xy[1] == 25:
+            header_boxes.append(
+                self.textbbox(xy, text, font=kwargs["font"], anchor=kwargs.get("anchor"))
+            )
+        return original(self, xy, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture)
+    plan = dict(
+        local_date="2026-10-08",
+        location_label="COLORADO",
+        seed="header-clear",
+        policy=policy,
+        artworks=[art],
+        inputs={
+            "open_meteo": {
+                "local_date": "2026-10-08",
+                "values": {
+                    "weather_code": 1,
+                    "temperature_2m_max": 40,
+                    "temperature_2m_min": -30,
+                    "wind_speed_10m_max": 0,
+                },
+            }
+        },
+    )
+    render.compose(service.settings.art_dir, art, plan, tmp_path / "clear.png")
+    assert len(header_boxes) == 2
+    weather, location = header_boxes
+    assert location[2] + 32 < weather[0]  # Includes the weather icon and a clear gap.
+    for left, top, right, bottom in header_boxes:
+        assert 12 <= left < right <= 788 and 10 <= top < bottom <= 42
+        assert bottom - top >= 12  # Legible letter height on the physical panel.

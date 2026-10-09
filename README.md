@@ -145,3 +145,5 @@ The public home mirrors the last delivered image. Owner management uses focused 
 Desktop navigation becomes a collapsible menu on mobile. Forms use visible labels, keyboard focus and save feedback; saving retains the current section. No JavaScript framework or external asset dependency is required.
 
 Bird compositions use a centered solo or evenly sized, symmetric pair/trio columns. Artwork choice and bird count provide variety; asymmetric lead layouts and staggered placement are no longer selected.
+
+The top-row location and weather use 17-pixel bold sans-serif type, aligned on one line with solid black strokes. Header conversion preserves binary black/white ink rather than color dithering.
