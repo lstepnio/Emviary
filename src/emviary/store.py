@@ -18,6 +18,10 @@ def stable_json(value) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
+class RevisionConflict(RuntimeError):
+    """A stale editor must not overwrite newer saved settings."""
+
+
 class Store:
     def __init__(self, path):
         self.path = path
@@ -303,13 +307,25 @@ class Store:
             db.execute("UPDATE frames SET token_hash=? WHERE id=?", (token_hash(token), frame_id))
         return token
 
-    def set_policy(self, frame_id, policy):
+    def set_policy(self, frame_id, policy, expected_revision=None):
         self.frame(frame_id)
         with self.connect() as db:
-            db.execute(
-                "UPDATE frames SET policy=?,site_id=?,config_revision=config_revision+1 WHERE id=?",
-                (stable_json(policy.model_dump()), policy.site_id, frame_id),
+            changed = db.execute(
+                "UPDATE frames SET policy=?,site_id=?,config_revision=config_revision+1 "
+                "WHERE id=? AND (? IS NULL OR config_revision=?)",
+                (
+                    stable_json(policy.model_dump()),
+                    policy.site_id,
+                    frame_id,
+                    expected_revision,
+                    expected_revision,
+                ),
             )
+            if not changed.rowcount:
+                raise RevisionConflict(
+                    "These settings changed in another tab. "
+                    "Reload the saved settings before trying again."
+                )
 
     def active_image(self, frame):
         with self.connect() as db:

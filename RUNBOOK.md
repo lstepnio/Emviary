@@ -29,19 +29,16 @@ local network while the device is awake; it does not wake the sleeping device.
 Expand **Special days** on a frame to add, edit, disable or remove an occasion.
 Set the calendar date, annual recurrence or one-time occurrence, heading,
 optional greeting, artwork theme and optional featured bird illustration.
-Headings allow 40 characters and greetings 80. Selected art must be approved
-and seasonally eligible in that month. The occasion uses one bird for readable
-messaging, regardless of the normal maximum. The first enabled matching entry
-wins; annual February 29 events run only in leap years.
+Headings allow 40 characters and greetings 80. Featured bird artwork must be
+approved and seasonally eligible; special-day artwork can be nonbird art.
+Higher priority wins an overlap; equal priorities use saved order. The calendar
+shows upcoming conflicts. Annual February 29 entries appear only in leap years.
 
-**Preview this day** renders the next annual occurrence, or the exact one-time
-date, without changing the ready image or public mirror. Previews omit a
-forecast because they do not query future weather. If adding an occasion for
-today, use **Prepare a fresh composition** after saving so it is ready for the
-next wake. Otherwise nightly preparation handles it automatically. The next
-day returns to normal bird rotation. No extra wakes or firmware changes are
-needed. Personal occasion settings are available only in authenticated
-management; the greeting is visible on the public mirror once delivered.
+**Queue saved day on frame** prepares the saved event with today's weather and
+makes it available on the next online wake or right-button press. Save edits first.
+This does not enable the event or change its calendar date. The confirmation
+screen distinguishes prepared, delivered and historical artwork. The public
+mirror changes only when the frame fetches the image.
 
 The CLI below is retained for recovery and administration.
 
@@ -61,11 +58,16 @@ final check. USB operation does not validate deep sleep or battery endurance.
 
 ## Physical buttons
 
-The Emviary E1002 firmware disables the right-hand button entirely: it does
-not clear the panel or wake the sleeping frame. Green wakes Wi-Fi/local management
-and resets the awake sleep timer. Left fetches the backend's prepared image; if
-asleep, it wakes, fetches and returns to sleep. A matching ETag skips repainting.
-Left does not request a new backend art selection. Green alone does not refresh.
+Current Emviary firmware maps the left white button to **previous image** and
+the right white button to **next image**. Neither clears the panel. The most recent
+navigation request is queued during an ongoing refresh; wait for the panel to
+finish before assessing it. A white button wakes a sleeping frame, fetches the
+selected image and returns to sleep. Green wakes local management without
+requesting a new picture. Nightly refresh continues on the configured schedule.
+
+The cloud chooses images and forecasts. Historic images retain their original
+weather, and matching bytes can skip a repaint. Keep local controls available
+only while the device is awake.
 
 ## Add another E1002
 
@@ -87,7 +89,7 @@ Each frame has a separate bearer token; the database stores only its hash.
 ## Change wake time or appearance
 
 ```sh
-docker exec emviary emviary set-frame emily-e1002 --wake 03:15
+docker exec emviary emviary set-frame emily-e1002 --wake 04:15
 docker exec emviary emviary set-frame emily-e1002 --labels on --weather-cues on
 docker exec emviary emviary prepare emily-e1002
 ```
@@ -232,8 +234,8 @@ with `Cache-Control: no-store`; the embedded frame token must be kept private.
 Use **Add a collection** under a frame’s Special days to import US holidays or
 meteorological seasons. New presets start disabled. Existing customized events
 are preserved, and repeated imports do not duplicate them. Fixed-date events
-repeat annually; movable holidays apply to the selected year. Import next year
-when needed. Meteorological seasons start March 1, June 1, September 1 and
+repeat annually; movable holidays use recurring weekday rules. Existing edited
+dated entries are preserved. Review any overlap before enabling a collection. Meteorological seasons start March 1, June 1, September 1 and
 December 1. Edit dates and disable annual repeat for an exact local equinox or
 solstice in a chosen year.
 
@@ -261,11 +263,11 @@ life is not yet established; use a complete battery-powered cycle to assess it.
 
 Firmware v0.6.0 uses internal LittleFS and disables SD albums and SD `wifi.txt`
 provisioning in this Emviary E1002 profile. Green-button web recovery, config
-imports, Wi-Fi networks, image downloads, OTA and the 03:15 schedule remain.
+imports, Wi-Fi networks, image downloads, OTA and the configured nightly schedule remain.
 
 ## Daily refresh and button freshness
 
-Overview separates On the frame, Daily refresh and Next button. In Appearance,
+Overview separates Last delivered, Daily refresh and Next button. In Appearance,
 Forecast freshness defaults to 120 minutes. The server prepares the daily image
 near the configured wake, fetching weather again after the preparation deadline.
 An early next-button image never marks the daily cycle complete. Expired unused

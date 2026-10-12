@@ -3,6 +3,7 @@
 import hashlib
 import html
 from datetime import datetime
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from fastapi.responses import HTMLResponse
@@ -140,7 +141,10 @@ color:var(--muted)}
 .split,.current-next{display:grid;
 
 grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
-.refresh-slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+.refresh-slots{grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px}
+.refresh-slots .delivered-slot{grid-row:span 2}
+.prepared-slot{padding:16px;border:1px solid var(--line);border-radius:10px;background:#fafbf8}
+.frame-context{font-size:13px;color:var(--muted);margin:-10px 0 24px}
 .toolbar,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
 .toolbar label{flex:1 1 170px;margin:0}
 .toolbar h2:first-child,.toolbar p:first-child{margin-right:auto}
@@ -281,6 +285,7 @@ border-radius:10px}
 hr{border:0;border-top:1px solid var(--line);margin:24px 0}.danger-zone{border-color:#e2bbb3}
 @media(min-width:1440px){main{padding-top:54px}}
 @media(max-width:1000px){.split,.current-next{grid-template-columns:1fr}.sidebar{width:210px}
+.refresh-slots .delivered-slot{grid-row:auto}
 .owner-content{margin-left:210px}main{padding:32px 24px 48px}}
 @media(max-width:760px){.sidebar{display:none}
 .owner-content{margin-left:0}
@@ -349,6 +354,7 @@ gap:20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;padding:
 .mobile-header .owner-nav{padding-bottom:4px}
 input,select,textarea{scroll-margin-top:24px;scroll-margin-bottom:120px}
 .table-wrap{max-width:100%}.table-wrap:focus-visible{outline-offset:2px}
+@media(max-width:1000px){.sticky-actions{position:static;backdrop-filter:none}}
 caption{text-align:left;color:var(--muted);padding:0 12px 12px;font-size:13px}
 @media(max-width:760px){.sticky-actions{padding:12px 0}.event-editor>summary{align-items:start}
 .current-next{gap:22px}.public .public-library-invite{align-items:start}
@@ -371,48 +377,166 @@ JAVASCRIPT = r"""
     button.addEventListener('click', () => {
       button.closest('form').querySelectorAll('input[name^="species_"][type="checkbox"]')
         .forEach(input => { input.checked = button.dataset.speciesChoice === 'all'; });
+      button.closest('form').dispatchEvent(new Event('input', {bubbles: true}));
     });
   });
+  const updateSelection = () => {
+    const bulk = document.getElementById('artwork-bulk');
+    if (!bulk) return;
+    const choices = [...bulk.elements].filter(input => input.type === 'checkbox' &&
+      input.name.startsWith('selected_') && !input.disabled);
+    const count = choices.filter(input => input.checked).length;
+    const output = document.querySelector('[data-selection-count]');
+    if (output) output.textContent = count + ' selected on this page';
+    bulk.querySelectorAll('button[type="submit"], button:not([type])').forEach(button => {
+      button.disabled = count === 0;
+    });
+    const select = document.querySelector('[data-select-page]');
+    if (select) {
+      select.hidden = false;
+      select.textContent = count === choices.length && count > 0 ?
+        'Clear selection' : 'Select this page';
+    }
+  };
+  document.addEventListener('click', event => {
+    const button = event.target.closest('[data-select-page]');
+    if (!button) return;
+    const bulk = document.getElementById('artwork-bulk');
+    if (!bulk) return;
+    const choices = [...bulk.elements].filter(input => input.type === 'checkbox' &&
+      input.name.startsWith('selected_') && !input.disabled);
+    const selected = choices.every(input => input.checked);
+    choices.forEach(input => { input.checked = !selected; }); updateSelection();
+  });
+  document.addEventListener('change', updateSelection);
+  updateSelection();
+  document.addEventListener('input', event => {
+    if (event.target.closest('form')) {
+      document.querySelectorAll('main > .notice.success').forEach(notice => {
+        notice.hidden = true;
+      });
+    }
+    const form = event.target.closest('form[data-appearance-preview]');
+    if (!form || event.target.type === 'hidden') return;
+    form.querySelector('[name="preview_token"]').value = '';
+    form.querySelector('[data-queue-appearance]').disabled = true;
+    form.querySelector('[data-appearance-preview-result]').hidden = true;
+  });
+  const focusId = location.hash.slice(1) || new URLSearchParams(location.search).get('focus');
+  if (focusId) {
+    const target = document.getElementById(focusId);
+    const details = target?.closest('details');
+    if (details) {
+      details.open = true;
+      details.querySelector('summary')?.focus({preventScroll: true});
+      target.scrollIntoView({block: 'start'});
+    }
+  }
+  let pendingForm = null;
   document.addEventListener('submit', async event => {
     const form = event.target;
+    const action = new URL(form.getAttribute('action') || location.href, location.href);
     if (form.method.toLowerCase() !== 'post' || form.target ||
-        /\/(login|logout|password|provision)$/.test(new URL(form.action).pathname)) return;
+        /\/(login|logout|password|provision)$/.test(action.pathname)) return;
     event.preventDefault();
-    if (form.dataset.busy) return;
+    if (pendingForm) return;
     const submitter = event.submitter;
     if (submitter?.classList.contains('danger') &&
         !window.confirm('Confirm: ' + submitter.textContent.trim() + '?')) return;
     const data = new FormData(form);
     if (submitter?.name) data.append(submitter.name, submitter.value);
     form.querySelector('.form-error')?.remove();
-    form.dataset.busy = 'true';
+    form.querySelectorAll('[data-server-invalid]').forEach(input => {
+      input.removeAttribute('aria-invalid'); input.removeAttribute('data-server-invalid');
+    });
+    form.dataset.busy = 'true'; form.setAttribute('aria-busy', 'true'); pendingForm = form;
+    // Capture values first, then freeze all forms so later edits cannot disappear on redirect.
+    const locked = [...new Set([...document.forms].flatMap(item => [...item.elements]))]
+      .filter(control => !control.disabled && control.type !== 'hidden');
+    locked.forEach(control => { control.disabled = true; });
     const original = submitter?.textContent;
     if (submitter) {
       submitter.disabled = true; submitter.setAttribute('aria-busy', 'true');
       submitter.textContent = /prepare|preview/i.test(original) ? 'Preparing artwork…' : 'Saving…';
     }
-    const announceError = message => {
+    const announceError = (message, fields = []) => {
       const box = document.createElement('p'); box.className = 'form-error';
       box.setAttribute('role', 'alert'); box.tabIndex = -1; box.textContent = message;
-      form.prepend(box); box.focus();
+      form.prepend(box);
+      fields.slice(0, 20).forEach(name => {
+        const input = [...form.elements].find(control => control.name === name &&
+          control.type !== 'hidden');
+        if (!input) return;
+        input.setAttribute('aria-invalid', 'true'); input.dataset.serverInvalid = 'true';
+        const link = document.createElement('a'); link.href = '#';
+        const labelElement = input.labels?.[0] || input.closest('label');
+        const label = [...(labelElement?.childNodes || [])]
+          .filter(node => node.nodeType === Node.TEXT_NODE)
+          .map(node => node.textContent.trim()).filter(Boolean).join(' ') || name;
+        link.textContent = 'Check ' + label;
+        link.addEventListener('click', e => { e.preventDefault(); input.focus(); });
+        box.append(' ', link);
+      });
+      box.focus();
+    };
+    const sessionExpired = () => {
+      announceError('Your session has expired. Your entries are still here. ' +
+        'Sign in in another tab, then retry this change.');
+      const link = document.createElement('a'); link.href = '/manage/login';
+      link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'Sign in';
+      form.querySelector('.form-error').append(' ', link);
     };
     try {
-      const response = await fetch(form.action, {
-        method: 'POST', credentials: 'same-origin', headers: {'Accept': 'text/html'},
+      const auth = await fetch('/manage/session', {
+        credentials: 'same-origin', cache: 'no-store', headers: {'Accept': 'application/json'}
+      });
+      if (auth.status === 401) { sessionExpired(); return; }
+      if (!auth.ok) {
+        announceError('Sign-in could not be checked. Your entries are still here. Try again.');
+        return;
+      }
+      const current = await auth.json();
+      data.set('csrf', current.csrf);
+      document.querySelectorAll('form input[name="csrf"]').forEach(input => {
+        const destination = new URL(input.form.getAttribute('action') || location.href,
+          location.href);
+        if (!/\/(login|logout)$/.test(destination.pathname)) {
+          input.value = current.csrf;
+        }
+      });
+      const isPreview = submitter?.hasAttribute('data-preview-appearance');
+      const response = await fetch(isPreview ? submitter.formAction : action.href, {
+        method: 'POST', credentials: 'same-origin',
+        headers: {'Accept': isPreview ? 'application/json' : 'text/html'},
         body: form.enctype === 'multipart/form-data' ? data : new URLSearchParams(data)
       });
       if (response.status === 401 || new URL(response.url).pathname === '/manage/login') {
-        announceError('Your session has expired. Your entries are still here. ' +
-          'Sign in in another tab and check the current state before retrying.');
-        const link = document.createElement('a'); link.href = '/manage/login';
-        link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'Sign in';
-        form.querySelector('.form-error').append(' ', link); return;
+        sessionExpired(); return;
+      }
+      if (isPreview && response.headers.get('content-type')?.includes('application/json')) {
+        const result = await response.json();
+        if (!response.ok) {
+          announceError(result.message || result.detail?.message ||
+            (typeof result.detail === 'string' ? result.detail :
+              'The preview could not be prepared.'),
+            Object.keys(result.field_errors || {}));
+          return;
+        }
+        form.querySelector('[data-appearance-preview-image]').src = result.preview_url;
+        form.querySelector('[name="preview_token"]').value = result.token;
+        form.querySelector('[data-appearance-preview-result]').hidden = false;
+        form.querySelector('[data-queue-appearance]').disabled = false;
+        form.querySelector('[data-appearance-preview-result]').focus();
+        return;
       }
       if (!response.ok) {
         const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
-        announceError(doc.querySelector('[data-request-error]')?.textContent ||
+        const error = doc.querySelector('[data-request-error]');
+        let fields = [];
+        try { fields = JSON.parse(error?.dataset.errorFields || '[]'); } catch {}
+        announceError(error?.textContent ||
           'This change could not be confirmed. Your entries are still here. ' +
-          'Check the current state.');
+          'Check the current state.', Array.isArray(fields) ? fields : []);
         return;
       }
       if (form.hasAttribute('data-library-action')) {
@@ -427,7 +551,7 @@ JAVASCRIPT = r"""
         const next = doc.getElementById('artwork-library');
         const target = new URL(response.url);
         if (next && target.origin === location.origin && target.pathname === '/manage/artwork') {
-          current.replaceWith(next);
+          current.replaceWith(next); updateSelection();
           history.replaceState(null, '', target.pathname + target.search);
           const freshCards = [...next.querySelectorAll('[data-artwork-id]')];
           const anchor = keys.map(key => freshCards.find(item => item.dataset.artworkId === key))
@@ -455,7 +579,9 @@ JAVASCRIPT = r"""
       announceError('The connection was interrupted. Your entries are still here. ' +
         'Reconnect and review the current state before retrying.');
     } finally {
-      delete form.dataset.busy;
+      delete form.dataset.busy; form.removeAttribute('aria-busy'); pendingForm = null;
+      locked.forEach(control => { control.disabled = false; });
+      updateSelection();
       if (submitter) {
         submitter.disabled = false; submitter.removeAttribute('aria-busy');
         submitter.textContent = original;
@@ -478,7 +604,7 @@ def local_time(value):
     )
 
 
-def _navigation(active):
+def _navigation(active, frame=None):
     groups = (
         ("Your frame", NAVIGATION[:3]),
         ("Collection", NAVIGATION[3:6]),
@@ -488,13 +614,15 @@ def _navigation(active):
     for label, items in groups:
         links = []
         for key, url, text in items:
+            if frame:
+                url += "?" + urlencode({"frame": frame})
             current = ' aria-current="page"' if key == active else ""
             links.append(f'<a href="{url}"{current}>{text}</a>')
         sections.append('<p class="nav-caption">' + label + "</p>" + "".join(links))
     return '<nav class="owner-nav" aria-label="Frame management">' + "".join(sections) + "</nav>"
 
 
-def page(title, body, *, active=None, public=False, description=None):
+def page(title, body, *, active=None, public=False, description=None, frame=None):
     """Render trusted caller HTML inside an accessible shared page shell.
 
     Callers must escape interpolated user values in ``body``. Title and description
@@ -521,7 +649,7 @@ def page(title, body, *, active=None, public=False, description=None):
         shell = '<header class="site-header">' + brand + navigation + "</header>"
         wrapper_class = "login" if login else "public"
     else:
-        navigation = _navigation(active)
+        navigation = _navigation(active, frame)
         shell = (
             '<aside class="sidebar">'
             + brand
@@ -545,6 +673,10 @@ def page(title, body, *, active=None, public=False, description=None):
     heading += "</div>"
     if "<h1" in body:
         heading = ""
+    if frame and not public and not login:
+        heading += (
+            '<p class="frame-context">Selected frame <strong>' + escape(frame) + "</strong></p>"
+        )
     footer = (
         '<footer class="site-footer"><span>Emviary &middot; '
         "A little nature, every day, for Emily.</span>"

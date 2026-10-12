@@ -14,7 +14,7 @@ from . import render
 from .event_art import EventArt
 from .providers import Providers
 from .settings import Config, FramePolicy, Settings
-from .store import Store, stable_json, utcnow
+from .store import RevisionConflict, Store, stable_json, utcnow
 
 log = logging.getLogger(__name__)
 
@@ -97,9 +97,14 @@ class Service:
                 db.execute("DELETE FROM deleted_artworks WHERE id=?", (identifier,))
             self.refresh_artwork_library()
 
-    def save_configuration(self, value):
+    def settings_revision(self):
+        return hashlib.sha256(stable_json(self.settings.config.model_dump()).encode()).hexdigest()
+
+    def save_configuration(self, value, expected_revision=None):
         config = Config.model_validate(value)
         with preparation_lock(self.settings.data_dir):
+            if expected_revision is not None and expected_revision != self.settings_revision():
+                raise RevisionConflict("Connections changed in another tab. Reload before saving.")
             for frame in self.store.frames():
                 config.site(frame["site_id"])
             with self.store.connect() as db:
@@ -193,7 +198,10 @@ class Service:
         # An explicitly requested occasion preview takes priority until delivered.
         if (
             navigation
-            and json.loads(navigation["manifest"]).get("special_day_test")
+            and (
+                json.loads(navigation["manifest"]).get("special_day_test")
+                or json.loads(navigation["manifest"]).get("appearance_preview")
+            )
             and self.image_usable(navigation, frame, now)
         ):
             return navigation, False
@@ -348,6 +356,139 @@ class Service:
             )
             render.validate_epdgz(packed)
             return preview.read_bytes()
+
+    def preview_appearance(self, frame_id, policy):
+        """Render draft settings without saving a policy or consuming rotation."""
+        policy = FramePolicy.model_validate(policy)
+        with preparation_lock(self.settings.data_dir):
+            frame = self.store.frame(frame_id)
+            draft_frame = {**frame, "policy": policy.model_dump_json(), "site_id": policy.site_id}
+            today = (
+                self.clock()
+                .astimezone(ZoneInfo(self.settings.config.site(policy.site_id).timezone))
+                .date()
+                .isoformat()
+            )
+            profile = self.configuration_hash(draft_frame)
+            plan = self._new_plan(draft_frame, today, 0, profile, False)
+            with tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                master, packed, preview = (
+                    root / "master.png",
+                    root / "panel.epdgz",
+                    root / "preview.jpg",
+                )
+                render.compose(
+                    self.settings.art_dir, plan["artwork"], plan, master, self.event_art.root
+                )
+                self.converter(
+                    master,
+                    packed,
+                    preview,
+                    plan["policy"],
+                    self.settings.config.render.timeout_seconds,
+                )
+                digest = render.validate_epdgz(packed)
+                with render.Image.open(preview) as image:
+                    image.verify()
+                draft = {
+                    "frame_id": frame_id,
+                    "policy": policy.model_dump(),
+                    "plan": plan,
+                    "base_hash": self.configuration_hash(frame),
+                    "config_revision": frame["config_revision"],
+                    "expires": self.clock() + timedelta(minutes=30),
+                    "packed": packed.read_bytes(),
+                    "preview": preview.read_bytes(),
+                    "master": master.read_bytes(),
+                    "digest": digest,
+                }
+            drafts = getattr(self, "_appearance_previews", {})
+            drafts = {
+                key: value for key, value in drafts.items() if value["expires"] > self.clock()
+            }
+            while len(drafts) >= 5:
+                drafts.pop(next(iter(drafts)))
+            import secrets
+
+            token = secrets.token_hex(24)
+            drafts[token] = draft
+            self._appearance_previews = drafts
+            return token
+
+    def appearance_preview(self, frame_id, token):
+        draft = getattr(self, "_appearance_previews", {}).get(token)
+        if not draft or draft["frame_id"] != frame_id or draft["expires"] <= self.clock():
+            raise ValueError("This preview expired. Preview your settings again.")
+        return draft
+
+    def queue_appearance_preview(self, frame_id, token, policy):
+        """Save reviewed settings and queue the exact reviewed output atomically."""
+        policy = FramePolicy.model_validate(policy)
+        with preparation_lock(self.settings.data_dir):
+            draft = self.appearance_preview(frame_id, token)
+            frame = self.store.frame(frame_id)
+            if policy.model_dump() != draft["policy"]:
+                raise ValueError(
+                    "Settings changed after this preview. Preview them again before queuing."
+                )
+            if (
+                frame["config_revision"] != draft["config_revision"]
+                or self.configuration_hash(frame) != draft["base_hash"]
+            ):
+                raise ValueError(
+                    "Saved settings changed after this preview. Reload and preview again."
+                )
+            plan = dict(draft["plan"])
+            plan["appearance_preview"] = True
+            with self.store.connect() as db:
+                revision = db.execute(
+                    (
+                        "SELECT COALESCE(MAX(revision),0)+1 FROM images WHERE frame_id=? "
+                        "AND local_date=?"
+                    ),
+                    (frame_id, plan["local_date"]),
+                ).fetchone()[0]
+                plan["revision"] = revision
+                stem = f"{frame_id}-{plan['local_date']}-r{revision}-{draft['digest'][:16]}"
+                path, preview_path = f"cache/{stem}.epdgz", f"cache/{stem}.jpg"
+                self.cache_path(path).write_bytes(draft["packed"])
+                self.cache_path(preview_path).write_bytes(draft["preview"])
+                self.cache_path(f"cache/{stem}-master.png").write_bytes(draft["master"])
+                updated = db.execute(
+                    "UPDATE frames SET policy=?,site_id=?,config_revision=config_revision+1 "
+                    "WHERE id=? AND config_revision=?",
+                    (
+                        stable_json(policy.model_dump()),
+                        policy.site_id,
+                        frame_id,
+                        draft["config_revision"],
+                    ),
+                )
+                if not updated.rowcount:
+                    raise ValueError(
+                        "Saved settings changed after this preview. Reload and preview again."
+                    )
+                self.store.count_render(db, plan)
+                cursor = db.execute(
+                    "INSERT INTO images(frame_id,local_date,revision,profile_hash,artwork_id,path,"
+                    "preview_path,body_hash,manifest,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        frame_id,
+                        plan["local_date"],
+                        revision,
+                        plan["profile_hash"],
+                        plan["artwork"]["id"],
+                        path,
+                        preview_path,
+                        draft["digest"],
+                        stable_json(plan),
+                        self.clock().isoformat(),
+                    ),
+                )
+                self._publish_slot(db, frame_id, "navigation", cursor.lastrowid, None)
+            del self._appearance_previews[token]
+            return self.store.active_image(self.store.frame(frame_id))
 
     def prepare_special_day(self, frame_id, day_id):
         """Queue a test for today without enabling or rescheduling its calendar event."""
