@@ -104,6 +104,9 @@ commit `96851684cc79e2a3a7231e7d4d5d4dfc148a6f0a`, with a 1,561,664-byte applica
 and SHA-256 `0d4035662d24838fc8cf918a4fb0ac25b48b512750a1ae1a18fc22788011ec44`.
 The partition table matches v0.7.6. The authenticated production firmware endpoint
 offers this exact release to v0.7.6. The latest observed v0.7.6 inventory already
-contains both CenturyLink0604 and inet.majjix.com with saved passwords. Physical
-OTA installation remains pending until the frame is reachable; release availability
-alone does not establish installation or panel behavior.
+contains both CenturyLink0604 and inet.majjix.com with saved passwords. The frame subsequently installed v0.7.7 automatically over Wi-Fi on green-button
+wake. Device logs record the GitHub download and v0.7.7 reboot; the local page
+shows both retained password-protected profiles and inet.majjix.com connected.
+A normal artwork fetch reported v0.7.7 and both profiles to production cloud
+management. The nightly 03:15 cron is unchanged. The user confirmed the refreshed
+picture is visible and stable. No USB flashing was performed.
