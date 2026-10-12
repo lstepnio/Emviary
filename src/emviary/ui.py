@@ -14,7 +14,6 @@ NAVIGATION = (
     ("overview", "/manage", "Overview"),
     ("appearance", "/manage/appearance", "Appearance"),
     ("events", "/manage/events", "Special days"),
-    ("images", "/manage/images", "Your images"),
     ("artwork", "/manage/artwork", "Artwork library"),
     ("event-art", "/manage/event-art", "Special-day art"),
     ("battery", "/manage/battery", "Device health"),
@@ -31,6 +30,7 @@ CSS = """
 color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}
 button,input,select,textarea{font:inherit}
+[hidden]{display:none!important}
 button,a,input,select,textarea,summary{touch-action:manipulation}
 
 :focus-visible{outline:3px solid #397b58;outline-offset:4px}img{max-width:100%;height:auto}
@@ -354,6 +354,46 @@ gap:20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;padding:
 .mobile-header .owner-nav{padding-bottom:4px}
 input,select,textarea{scroll-margin-top:24px;scroll-margin-bottom:120px}
 .table-wrap{max-width:100%}.table-wrap:focus-visible{outline-offset:2px}
+.artwork-grid{gap:16px;align-items:start}
+.card.artwork-card{padding:14px;box-shadow:none}
+.artwork-card:has(.artwork-select input:checked){border-color:var(--accent);background:#f4f8f2}
+.artwork-card h2{font-size:20px;line-height:1.25;margin:14px 0 6px}
+.artwork-card>.pill{align-self:start;font-size:11px;padding:2px 8px;margin:6px 0}
+.artwork-card .artwork-media{border-radius:8px;overflow:hidden;background:#f5f6f0}
+.artwork-card .artwork-media a{display:block}
+.artwork-card .artwork-thumb{display:block;aspect-ratio:4/3}
+.artwork-card .artwork-heading{margin:14px 0 6px;display:flex;flex-wrap:wrap;
+align-items:center;gap:8px}
+.artwork-card .artwork-heading h2{font-size:20px;line-height:1.25;margin:0;flex:1 1 100%}
+.artwork-card .artwork-heading .pill{padding:2px 8px;font-size:11px}
+.artwork-card .artwork-meta{font-size:12px;color:var(--muted);margin:0 0 8px}
+.artwork-actions{display:flex;justify-content:space-between;align-items:center;
+gap:10px;flex-wrap:wrap}
+.artwork-actions .artwork-select{margin:0;padding:8px 0;font-size:13px;min-height:44px}
+.artwork-actions input[type=checkbox]{width:18px;height:18px;margin-right:6px}
+.artwork-card .compact-action{font-size:13px;padding:8px 10px;min-height:44px}
+.artwork-actions .compact-action{background:transparent;border:0;padding-right:0;
+padding-left:0;text-decoration:underline;text-underline-offset:3px}
+.artwork-card .artwork-options{margin:8px 0 0;background:transparent;border:0;
+border-top:1px solid var(--line);border-radius:0;font-size:13px}
+.artwork-options>summary{padding:10px 0;font-size:13px;min-height:44px}
+.artwork-options[open]>summary{margin-bottom:12px}
+.artwork-card .artwork-options> :not(summary){margin-left:0;margin-right:0}
+.artwork-card .artwork-options> :last-child{margin-bottom:0}
+.artwork-options p{margin-bottom:12px}
+.artwork-options label{font-size:13px;margin:12px 0 8px}
+.artwork-remove{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.frame-history-link{margin:22px 0 0}
+.collection-filter-options{flex:1 1 100%;margin:0}
+.collection-filter-options .fields{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+#artwork-bulk{border-top:1px solid var(--line);padding:12px 0;margin:12px 0 16px}
+#artwork-bulk .quiet{margin:0 0 6px}
+#artwork-bulk button{font-size:13px;padding:8px 12px}
+#artwork-bulk [data-selection-count]{font-size:13px;color:var(--muted)}
+.library-help{margin-top:24px}
+.variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:760px){#artwork-library .toolbar>label{flex:1 1 120px}
+#artwork-library .toolbar>label:first-child{flex-basis:100%}}
 @media(max-width:1000px){.sticky-actions{position:static;backdrop-filter:none}}
 caption{text-align:left;color:var(--muted);padding:0 12px 12px;font-size:13px}
 @media(max-width:760px){.sticky-actions{padding:12px 0}.event-editor>summary{align-items:start}
@@ -388,6 +428,8 @@ JAVASCRIPT = r"""
     const count = choices.filter(input => input.checked).length;
     const output = document.querySelector('[data-selection-count]');
     if (output) output.textContent = count + ' selected on this page';
+    const actions = bulk.querySelector('[data-selection-actions]');
+    if (actions) actions.hidden = count === 0;
     bulk.querySelectorAll('button[type="submit"], button:not([type])').forEach(button => {
       button.disabled = count === 0;
     });
@@ -543,6 +585,11 @@ JAVASCRIPT = r"""
         const current = document.getElementById('artwork-library');
         const card = form.closest('[data-artwork-id]');
         const cards = [...current.querySelectorAll('[data-artwork-id]')];
+        const expanded = cards.filter(item => item.querySelector('.artwork-options')?.open)
+          .map(item => item.dataset.artworkId);
+        const selected = form.id === 'artwork-bulk' ? [] :
+          [...current.querySelectorAll('input[form="artwork-bulk"]:checked')]
+            .map(input => input.name);
         const index = cards.indexOf(card);
         const top = (card || form).getBoundingClientRect().top;
         const keys = [card?.dataset.artworkId, cards[index + 1]?.dataset.artworkId,
@@ -551,7 +598,15 @@ JAVASCRIPT = r"""
         const next = doc.getElementById('artwork-library');
         const target = new URL(response.url);
         if (next && target.origin === location.origin && target.pathname === '/manage/artwork') {
-          current.replaceWith(next); updateSelection();
+          current.replaceWith(next);
+          next.querySelectorAll('[data-artwork-id]').forEach(item => {
+            const details = item.querySelector('.artwork-options');
+            if (details && expanded.includes(item.dataset.artworkId)) details.open = true;
+          });
+          next.querySelectorAll('input[form="artwork-bulk"]').forEach(input => {
+            input.checked = selected.includes(input.name);
+          });
+          updateSelection();
           history.replaceState(null, '', target.pathname + target.search);
           const freshCards = [...next.querySelectorAll('[data-artwork-id]')];
           const anchor = keys.map(key => freshCards.find(item => item.dataset.artworkId === key))
@@ -567,7 +622,9 @@ JAVASCRIPT = r"""
             next.querySelector('#artwork-bulk button')?.focus({preventScroll: true});
           } else if (anchor) {
             window.scrollBy({top: anchor.getBoundingClientRect().top - top, behavior: 'instant'});
-            anchor.querySelector('button')?.focus({preventScroll: true});
+            [...anchor.querySelectorAll('button,a,summary')]
+              .find(control => control.getClientRects().length && !control.disabled)
+              ?.focus({preventScroll: true});
           } else {
             next.querySelector('input[type="search"]')?.focus({preventScroll: true});
           }
@@ -607,8 +664,8 @@ def local_time(value):
 def _navigation(active, frame=None):
     groups = (
         ("Your frame", NAVIGATION[:3]),
-        ("Collection", NAVIGATION[3:6]),
-        ("Setup & health", NAVIGATION[6:]),
+        ("Collection", NAVIGATION[3:5]),
+        ("Setup & health", NAVIGATION[5:]),
     )
     sections = []
     for label, items in groups:

@@ -21,7 +21,8 @@ management can replace password hashes and provider credentials.
 
 The public root mirrors the selected frame's last delivered image. This is based
 on firmware fetch telemetry, not direct panel sensing. Choose the public frame
-in management or hide it. The source-art library is at `/library`.
+in management or hide it. The artwork gallery is at `/library`. Credits and provenance remain in the catalog
+and project documentation; they are not displayed in the app.
 
 The local-controls link opens http://emviary.local, with http://photoframe.local as a fallback. It works on the frame's
 local network while the device is awake; it does not wake the sleeping device.
@@ -239,8 +240,7 @@ dated entries are preserved. Review any overlap before enabling a collection. Me
 December 1. Edit dates and disable annual repeat for an exact local equinox or
 solstice in a chosen year.
 
-Open `/manage/event-art` to upload PNG, JPEG or WebP art with a title and creator
-or source. Review and approve the art before selecting it for an event. Occasion
+Open `/manage/event-art` to upload PNG, JPEG or WebP art with a title. Review and approve the art before selecting it for an event. Occasion
 art can be a landscape, abstract design, photograph or other nonbird image and
 never joins ordinary bird rotation. Assign the image, greeting and date, then
 enable the event. Preview it before use. Artwork selected by an event must be
@@ -314,3 +314,19 @@ validation. Run `emviary verify-backup PATH` to repeat it without touching live
 state. Existing legacy backups remain available. See [independent backup setup](tools/BACKUPS.md)
 for the private Mac copy and 06:30 daily pull; a sleeping/offline Mac delays that
 copy. Recovery displays local verification and independent-copy timestamps.
+
+## Appearance drafts and collection management
+
+In Appearance, **Preview changes** uses unsaved values without changing the frame.
+**Save settings only** stores the policy; **Save and queue preview** saves it and
+makes the exact reviewed image available on the next online fetch. Previews are
+temporary. If one expires or settings change elsewhere, reload and preview again.
+
+Artwork cards expose selection and rotation directly. Open **Manage artwork** for
+panel-review status or recoverable deletion. Extra filters and whole-library
+cleanup are secondary. **Frame history** is available from its Overview disclosure
+for reviewing or removing generated compositions and restoring retained images.
+
+If sign-in expires, keep the open form, sign in in another tab and retry. A stale
+settings form cannot overwrite newer edits: compare the saved configuration and
+reload before applying the intended change. No credentials are saved in browser storage.

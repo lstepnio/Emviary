@@ -1,7 +1,8 @@
-# Emviary 0.12.0 experience and service review
+# Emviary 0.12.1 experience and service review
 
 Reviewed October 12, 2026. Baseline: application 0.11.1, container
-`emviary:poc-040`. Candidate: application 0.12.0, `emviary:poc-041`.
+`emviary:poc-040`. Final candidate: application 0.12.1, `emviary:poc-042`.
+Application 0.12.0 was deployed and verified before the final collection simplification.
 The live frame's saved 04:15 Denver schedule, preferences, art, events,
 credentials, firmware v0.8.1 and 512 MiB memory limit are preserved.
 
@@ -27,9 +28,10 @@ the destination attribute explicitly. This was corrected before deployment.
 ## Shared structure and user flows
 
 Navigation retains the existing three groups: **Your frame** (overview,
-appearance, special days), **Collection** (images, artwork, special-day art),
+appearance, special days), **Collection** (artwork, special-day art),
 and **Setup & health** (health, settings, recovery). The selected frame is
-visible; artwork rotation remains a shared collection across frames.
+visible; artwork rotation remains a shared collection across frames. Frame history
+is secondary from an overview disclosure rather than a competing library in navigation.
 
 Native labels, selects, fieldsets, disclosures and links stay in use. Primary
 buttons complete the current task; secondary buttons review or navigate;
@@ -67,6 +69,10 @@ calendar conflicts consistently with the compositor.
   for compatibility. A conflict requires comparing current saved settings and
   reloading; automatic merging was rejected because schedules, Wi-Fi and event
   calendars should not be combined silently.
+- User-requested credit/provenance and scientific-name blocks are removed from
+  the public and owner UI. Existing catalog/source records and documentation
+  remain intact. Uploads need a title and image; generic owner-upload origin
+  metadata is supplied internally when an old API client does not supply it.
 - The existing single application worker, preparation lock, thumbnail decode
   semaphore and disk cache remain. Occasion thumbnails use the same bounded
   decoder and encoding recipe as bird thumbnails, with authentication before
@@ -82,7 +88,7 @@ State-changing browser checks used a clearly marked disposable local copy of
 the verified backup, isolated sessions, offline providers and the real image
 converter. They could not reach the physical frame or live configuration.
 
-- Full backend regression suite: **198 passed**. Ruff and JavaScript syntax
+- Full backend regression suite: **200 passed**. Ruff and JavaScript syntax
   checks pass. Existing scheduling, freshness, recurrence, authentication,
   removal/restore, backup and firmware-policy tests remain in that suite.
 - Browser success checks: draft preview, save-and-queue, save-only persistence,
@@ -126,3 +132,29 @@ health, public and authenticated pages, memory limits, exact saved policy and
 collection counts. Preserve the live 04:15 schedule and existing release/art
 metadata. Do not wake the frame for web verification or claim a new physical
 panel test. Record the final runtime commit and acceptance below after deployment.
+
+## Collection refinement after browser review
+
+The owner flagged the repetitive stack of actions on each artwork card and the
+limited value of a separate “Your images” destination. The final interface uses
+compact image cards: name, rotation state, usage count, selection and one rotation
+action. Panel review and deletion sit under **Manage artwork**. Credits, source
+links, scientific-name details and related copy are absent from both libraries.
+Public variants remain browsable as image thumbnails without a metadata dump.
+
+Extra filters collapse into **More filters**; bulk actions appear only after
+selection. Per-card saves keep other selections and expanded management controls.
+All-collection cleanup is secondary at the bottom. **Frame history** is available
+from an overview disclosure with review/removal/restore preserved. It describes
+generated compositions and avoids implying that every prepared image was displayed.
+
+At a matched 1280-pixel viewport, representative artwork cards measured roughly
+780 pixels before and 422 pixels after. A browser review save preserved an open
+management section and another selected card. The five affected collection/history
+pages pass 320-pixel reflow; 390-pixel cards also remain within the viewport.
+The final refinement keeps original artwork and frame output unchanged.
+
+Temporary viewport overrides were cleared. Browser security policy prevented
+opening Chrome’s internal zoom settings; the localhost test origin may retain
+200% native zoom and can be reset manually with Cmd+0. The live Emviary origin
+was verified at its unchanged normal zoom.

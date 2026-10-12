@@ -629,12 +629,19 @@ def attach_owner(app, service):
                         for path, label in (
                             ("appearance", "Display settings"),
                             ("events", "Special days"),
-                            ("images", "Image history"),
                             ("battery", "Battery & device health"),
                             ("settings", "Wi-Fi networks"),
                         )
                     )
                     + "</div>"
+                )
+                body += (
+                    '<details class="frame-history-link"><summary>Frame history</summary>'
+                    "<p>Review earlier compositions, remove unwanted images from button browsing, "
+                    "or restore removed images. The artwork library manages the source art.</p>"
+                    '<a class="button secondary" href="/manage/images?frame='
+                    + identifier
+                    + '">Review frame history</a></details>'
                 )
             if view == "appearance":
                 body += '<section class="card"><h2>Composition & display</h2>'
@@ -1023,7 +1030,7 @@ def attach_owner(app, service):
                         label = (
                             art["common_name"]
                             + " / "
-                            + art["source"].split(" /")[0]
+                            + art.get("style", "Illustration").replace("-", " ").title()
                             + " / variant "
                             + str(counters[art["common_name"]])
                         )
@@ -1432,7 +1439,7 @@ def attach_owner(app, service):
                 params["result"] = request.query_params["result"]
             return RedirectResponse("/manage/images?" + urlencode(params), status_code=303)
         body = (
-            '<header class="page-header"><h1>Your images</h1><p class="page-description">'
+            '<header class="page-header"><h1>Frame history</h1><p class="page-description">'
             "Revisit saved compositions. Removing an image takes it out of navigation; "
             "you can restore it until normal history cleanup expires its files.</p></header>"
             '<form class="toolbar" method="get" action="/manage/images">'
@@ -1541,7 +1548,7 @@ def attach_owner(app, service):
                 + '">Older images</a>'
             )
         body += "</nav>"
-        return page("Your images", body, active="images")
+        return page("Frame history", body, active="overview")
 
     @app.get("/manage/images/{image_id}/review")
     def queued_review(image_id: int, request: Request):
@@ -1747,12 +1754,12 @@ def attach_owner(app, service):
             "compositions. Exclusions leave the artwork already on the frame "
             "unchanged.</p></header>"
             '<section id="artwork-library" aria-label="Artwork choices">'
-            '<p class="quiet">This collection is shared by all frames.</p>'
+            ""
             '<p data-library-feedback role="status" aria-live="polite"></p>'
             '<form class="toolbar" method="get" action="/manage/artwork"><label>Search'
             '<input type="search" name="q" value="'
             + escape(q)
-            + '" placeholder="Bird, scientific name or artist"></label>'
+            + '" placeholder="Find a bird"></label>'
         )
         for name, label, options, selected in (
             (
@@ -1793,6 +1800,12 @@ def attach_owner(app, service):
                 review,
             ),
         ):
+            if name == "style":
+                body += (
+                    '<details class="collection-filter-options"'
+                    + (" open" if any((style, pose, season, review)) else "")
+                    + '><summary>More filters</summary><div class="fields">'
+                )
             body += "<label>" + label + '<select name="' + name + '">'
             for value, text in options:
                 body += (
@@ -1805,6 +1818,8 @@ def attach_owner(app, service):
                     + "</option>"
                 )
             body += "</select></label>"
+            if name == "review":
+                body += "</div></details>"
         if frame_context:
             body += '<input type="hidden" name="frame" value="' + escape(frame_context) + '">'
         body += (
@@ -1812,12 +1827,14 @@ def attach_owner(app, service):
             'href="/manage/artwork'
             + ("?" + escape(urlencode({"frame": frame_context})) if frame_context else "")
             + '">Reset</a></form>'
-            '<p class="quiet">' + str(len(works)) + " artworks match. Species render counts "
-            "include successful compositions, including images later removed from history.</p>"
+            '<p class="quiet">'
+            + str(len(works))
+            + " artworks match · Shared library. Counts cover all variants of each bird.</p>"
         )
         unused = sum(not a["approved"] or a["id"] in excluded for a in service.settings.artworks)
+        cleanup = ""
         if unused:
-            body += (
+            cleanup += (
                 "<details><summary>Manage all artwork outside rotation</summary>"
                 "<p>This affects every excluded or reference artwork in the library, "
                 "including artwork outside these filters and this page.</p>"
@@ -1830,10 +1847,6 @@ def attach_owner(app, service):
                 + str(unused)
                 + " artworks outside rotation</button></form></details>"
             )
-        body += (
-            '<p class="quiet">Delete moves artwork to Deleted artwork, where it can be restored. '
-        )
-        body += "The current frame image and rendered history are preserved.</p>"
         if status != "deleted":
             body += (
                 '<form id="artwork-bulk" method="post" data-library-action '
@@ -1843,12 +1856,11 @@ def attach_owner(app, service):
                 + '<input type="hidden" name="return" value="'
                 + escape(return_url)
                 + '">'
-                + '<p class="quiet">Select artworks on this page, then choose an action. '
-                "Selections apply only to this page.</p>"
+                + '<p class="quiet">Select to edit in bulk.</p>'
                 + '<button type="button" class="secondary" data-select-page '
                 "hidden>Select all on this page</button> "
                 '<span data-selection-count role="status" aria-live="polite">'
-                '0 artworks selected</span><div class="actions">'
+                '0 artworks selected</span><div class="actions" data-selection-actions>'
                 + '<button name="action" value="include" class="secondary">'
                 "Include selected in rotation</button> "
                 + '<button name="action" value="exclude" class="secondary">'
@@ -1856,13 +1868,9 @@ def attach_owner(app, service):
                 + '<button name="action" value="delete" class="danger">'
                 "Delete selected artworks</button></div></form>"
             )
-        body += '<p class="quiet">Panel review records your own physical-screen assessment. '
-        body += (
-            "It does not change rotation approval. "
-            "Season filters use catalog month eligibility.</p>"
-        )
-        body += '<div class="card-grid">'
+        body += '<div class="card-grid artwork-grid">'
         for art in works[(p - 1) * 24 : p * 24]:
+            art_id, name = escape(art["id"]), escape(art["common_name"])
             excluded_art = art["id"] in excluded
             label = (
                 "Deleted"
@@ -1871,52 +1879,85 @@ def attach_owner(app, service):
                 if excluded_art
                 else "In rotation"
                 if art["approved"]
-                else "Reference or review pending"
+                else "Reference"
+            )
+            thumbnail = (
+                "/manage/artwork/" + art_id + "/thumbnail"
+                if status == "deleted"
+                else "/art-thumbnail/" + art_id
             )
             body += (
-                '<article class="card library-card" data-artwork-id="'
-                + escape(art["id"])
-                + '"><img class="artwork-thumb" loading="lazy" src="'
-                + (
-                    "/manage/artwork/" + escape(art["id"]) + "/thumbnail"
-                    if status == "deleted"
-                    else "/art-thumbnail/" + escape(art["id"])
-                )
+                '<article class="card library-card artwork-card" data-artwork-id="'
+                + art_id
+                + '"><div class="artwork-media"><a href="/manage/artwork/'
+                + art_id
+                + '/image" target="_blank" rel="noopener" aria-label="Open full '
+                + name
+                + ' illustration"><img class="artwork-thumb" loading="lazy" src="'
+                + thumbnail
                 + '" alt="'
-                + escape(art["common_name"])
-                + '"><h2>'
-                + escape(art["common_name"])
-                + '</h2><p class="quiet"><i>'
-                + escape(art["scientific_name"])
-                + '</i></p><p class="pill">'
+                + name
+                + '"></a></div>'
+                '<div class="artwork-heading"><h2>'
+                + name
+                + '</h2><span class="pill'
+                + (" warning" if excluded_art else "")
+                + '">'
                 + label
-                + "</p><p>"
+                + "</span></div>"
+                '<p class="artwork-meta">'
                 + str(counts.get(art["scientific_name"], 0))
-                + " compositions featuring this species</p><details>"
-                + "<summary>Artwork details and credit</summary><p>"
-                + escape(art.get("credit", ""))
-                + '</p><p class="quiet">'
-                + escape(art["id"])
-                + '</p><a href="'
-                + escape(art["source_url"])
-                + '">Source artwork</a></details>'
+                + " compositions</p>"
             )
+            body += '<div class="artwork-actions">'
             if status != "deleted":
                 body += (
-                    '<label><input type="checkbox" form="artwork-bulk" name="selected_'
-                    + escape(art["id"])
-                    + '" value="1"> Select artwork</label>'
+                    '<label class="artwork-select"><input type="checkbox" form="artwork-bulk" '
+                    'name="selected_'
+                    + art_id
+                    + '" value="1" aria-label="Select '
+                    + name
+                    + ' artwork">Select</label>'
                 )
+            if art["approved"] and status != "deleted":
+                body += (
+                    '<form method="post" data-library-action action="/manage/artwork/'
+                    + art_id
+                    + '">'
+                    + hidden(auth["csrf"])
+                    + '<input type="hidden" name="return" value="'
+                    + escape(return_url)
+                    + '">'
+                    '<input type="hidden" name="exclude" value="'
+                    + ("0" if excluded_art else "1")
+                    + '"><button class="secondary compact-action">'
+                    + ("Restore to rotation" if excluded_art else "Exclude from rotation")
+                    + "</button></form>"
+                )
+            if status == "deleted":
+                body += (
+                    '<form method="post" data-library-action '
+                    'data-library-message=" restored to the library." '
+                    'action="/manage/artwork/'
+                    + art_id
+                    + '/restore">'
+                    + hidden(auth["csrf"])
+                    + '<input type="hidden" name="return" value="'
+                    + escape(return_url)
+                    + '">'
+                    '<button class="secondary compact-action">Restore artwork</button></form>'
+                )
+            body += '</div><details class="artwork-options"><summary>Manage artwork</summary>'
             body += (
                 '<form method="post" data-library-action '
-                'data-library-message=" panel review saved." '
-                'action="/manage/artwork/'
-                + escape(art["id"])
+                'data-library-message=" panel review saved." action="/manage/artwork/'
+                + art_id
                 + '/review">'
                 + hidden(auth["csrf"])
                 + '<input type="hidden" name="return" value="'
                 + escape(return_url)
-                + '"><label>Panel review<select name="review">'
+                + '">'
+                '<label>Panel review<select name="review">'
             )
             for value, text in review_labels.items():
                 body += (
@@ -1928,46 +1969,25 @@ def attach_owner(app, service):
                     + text
                     + "</option>"
                 )
-            body += '</select></label><button class="secondary">Save panel review</button></form>'
-            if art["approved"] and status != "deleted":
+            body += (
+                '</select></label><button class="secondary compact-action">Save panel review'
+                "</button></form>"
+            )
+            if status != "deleted":
                 body += (
-                    '<form method="post" data-library-action action="/manage/artwork/'
-                    + escape(art["id"])
-                    + '">'
+                    '<form class="artwork-remove" method="post" data-library-action '
+                    'data-library-message=" deleted from the library." '
+                    'action="/manage/artwork/'
+                    + art_id
+                    + '/delete">'
                     + hidden(auth["csrf"])
                     + '<input type="hidden" name="return" value="'
                     + escape(return_url)
                     + '">'
-                    + '<input type="hidden" name="exclude" value="'
-                    + ("0" if excluded_art else "1")
-                    + '"><button class="secondary">'
-                    + ("Restore to rotation" if excluded_art else "Exclude from rotation")
-                    + "</button></form>"
+                    '<p class="quiet">Removed artwork stays available in Deleted artwork.</p>'
+                    '<button class="danger compact-action">Delete artwork</button></form>'
                 )
-            operation = "restore" if status == "deleted" else "delete"
-            body += (
-                '<form method="post" data-library-action data-library-message="'
-                + (
-                    " restored to the library."
-                    if status == "deleted"
-                    else " deleted from the library."
-                )
-                + '" action="/manage/artwork/'
-                + escape(art["id"])
-                + "/"
-                + operation
-                + '">'
-                + hidden(auth["csrf"])
-                + '<input type="hidden" name="return" value="'
-                + escape(return_url)
-                + '">'
-                + '<button class="'
-                + ("secondary" if status == "deleted" else "danger")
-                + '">'
-                + ("Restore artwork" if status == "deleted" else "Delete artwork")
-                + "</button></form>"
-            )
-            body += "</article>"
+            body += "</details></article>"
         body += "</div>"
         if not works:
             body += (
@@ -1990,7 +2010,15 @@ def attach_owner(app, service):
                         + "</a>"
                     )
             body += '<span class="quiet">Page ' + str(p) + " of " + str(pages) + "</span></nav>"
-        body += '<p><a href="/library">Browse full artwork provenance and licenses</a></p>'
+        body += (
+            '<details class="library-help"><summary>Collection help & cleanup</summary>'
+            "<p>Delete moves artwork to Deleted artwork, where it can be restored. "
+            "The current frame image and rendered history are preserved.</p>"
+            "<p>Panel review records your own physical-screen assessment. "
+            "It does not change rotation approval. "
+            "Season filters use catalog month eligibility.</p>" + cleanup + "</details>"
+            ""
+        )
         body += "</section>"
         return page("Artwork library", body, active="artwork")
 
@@ -2133,6 +2161,19 @@ def attach_owner(app, service):
             service.settings.data_dir / "cache" / "thumbnails",
         )
         return FileResponse(target, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+    @app.get("/manage/artwork/{artwork_id}/image")
+    def owner_artwork_image(artwork_id: str, request: Request):
+        require(request)
+        artwork = next(
+            (a for a in service.settings.source_catalog["artworks"] if a["id"] == artwork_id), None
+        )
+        if not artwork:
+            raise HTTPException(404, "Artwork unavailable")
+        path = (service.settings.art_dir / artwork["asset"]).resolve()
+        if not path.is_relative_to(service.settings.art_dir) or not path.is_file():
+            raise HTTPException(404, "Artwork unavailable")
+        return FileResponse(path, headers={"Cache-Control": "private, no-cache"})
 
     @app.post("/manage/artwork/{artwork_id}")
     async def artwork_rotation(artwork_id: str, request: Request):
@@ -2422,7 +2463,6 @@ def attach_owner(app, service):
             + '">'
             + '<div class="fields">'
             + field("title", "Artwork title", "", extra='maxlength="80" required')
-            + field("attribution", "Creator or source", "", extra='maxlength="300" required')
             + '</div><label>Image<input type="file" name="image" '
             'accept="image/png,image/jpeg,image/webp" required></label><p class="quiet">'
             "PNG, JPEG or WebP, up to 10 MB. Images are saved as still PNG files. "
@@ -2459,7 +2499,7 @@ def attach_owner(app, service):
                     if d.artwork_id == art["id"]
                 ]
                 body += (
-                    '<article class="card library-card"><a href="/manage/event-art/'
+                    '<article class="card library-card artwork-card"><a href="/manage/event-art/'
                     + escape(art["id"])
                     + '/image" aria-label="Open full illustration: '
                     + escape(art["common_name"])
@@ -2469,11 +2509,14 @@ def attach_owner(app, service):
                     + escape(art["common_name"])
                     + '"></a><h2>'
                     + escape(art["common_name"])
-                    + "</h2><p>"
-                    + escape(art["source"])
-                    + '</p><p class="pill">'
+                    + '</h2><p class="pill">'
                     + ("Approved for special days" if art["approved"] else "Awaiting review")
                     + "</p>"
+                )
+                body += (
+                    '<details class="artwork-options"'
+                    + (" open" if not art["approved"] else "")
+                    + "><summary>Manage artwork</summary>"
                 )
                 if uses:
                     body += '<p class="quiet">Used by special days:</p><ul>'
@@ -2499,7 +2542,7 @@ def attach_owner(app, service):
                     "<p>Removal deletes the uploaded artwork. Choose another image on any "
                     'special days using it first.</p><button class="danger" '
                     'name="action" value="remove"' + (" disabled" if uses else "") + ">"
-                    "Permanently remove artwork</button></details></form></article>"
+                    "Permanently remove artwork</button></details></form></details></article>"
                 )
             body += "</div>"
         return page("Special-day art", body, active="event-art")
@@ -2585,7 +2628,9 @@ def attach_owner(app, service):
         try:
             with preparation_lock(service.settings.data_dir):
                 service.event_art.upload(
-                    data.get("image", b""), data.get("title", ""), data.get("attribution", "")
+                    data.get("image", b""),
+                    data.get("title", ""),
+                    data.get("attribution") or "Owner upload",
                 )
         except ValueError as error:
             raise HTTPException(400, str(error)) from None

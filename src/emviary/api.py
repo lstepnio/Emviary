@@ -374,8 +374,8 @@ def create_app(service=None, schedule=True):
         species_count = len({a["scientific_name"] for a in artworks if a["approved"]})
         body = (
             '<header class="page-header"><p class="eyebrow">The collection</p>'
-            '<h1>Artwork library</h1><p class="intro">Discover the birds, illustrations '
-            "and artists behind the frame.</p></header>"
+            '<h1>Artwork library</h1><p class="intro">Explore the bird illustrations '
+            "from the frame.</p></header>"
             '<p class="quiet">'
             + str(species_count)
             + " species · "
@@ -386,7 +386,7 @@ def create_app(service=None, schedule=True):
             '<form class="toolbar library-filters" method="get" action="/library">'
             '<label>Search<input type="search" name="q" value="'
             + escape(q, quote=True)
-            + '" placeholder="Bird, scientific name or artist"></label>'
+            + '" placeholder="Find a bird"></label>'
             + select(
                 "sort",
                 "Sort",
@@ -428,74 +428,43 @@ def create_app(service=None, schedule=True):
         for name, variants in ordered[(p - 1) * 24 : p * 24]:
             variants.sort(key=lambda a: (not a["approved"], a["id"]))
             artwork = variants[0]
-            active = sum(a["approved"] for a in variants)
-            details = []
-            for item in variants:
+            images = []
+            for number, item in enumerate(variants, start=1):
                 identifier = escape(item["id"], quote=True)
-                label = item["license"].replace("-", " ")
-                license_link = (
-                    "/art-license/" + identifier
-                    if item.get("license_file")
-                    else {
-                        "CC-BY-SA-4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
-                        "CC-BY-NC-SA-4.0": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-                    }.get(item["license"], item["source_url"])
-                )
-                license_link = escape(license_link, quote=True)
-                availability = {
-                    "rotation": "In rotation",
-                    "reference": "Web reference only",
-                    "pending": "Review pending",
-                }[artwork_status(item)]
-                medium = "AI-assisted illustration" if item.get("generated") else "Historical art"
-                details.append(
-                    '<section class="variant"><a href="/art/' + identifier + '">'
+                images.append(
+                    '<a href="/art/' + identifier + '" target="_blank" rel="noopener">'
                     '<img class="artwork-thumb" loading="lazy" src="/art-thumbnail/'
                     + identifier
                     + '" alt="'
                     + escape(item["common_name"], quote=True)
+                    + ", illustration "
+                    + str(number)
                     + '"></a>'
-                    '<p><span class="pill">' + availability + "</span> " + medium + "</p>"
-                    "<p>"
-                    + escape(item.get("style", "natural history").replace("-", " "))
-                    + (" · " + escape(item["pose"]) if item.get("pose") else "")
-                    + "</p><p>"
-                    + escape(item.get("credit", ""))
-                    + '</p><p class="quiet">'
-                    + escape(item["source"])
-                    + " · "
-                    + escape(item["review_status"])
-                    + "</p>"
-                    '<p><a href="'
-                    + escape(item["source_url"], quote=True)
-                    + '">Source artwork</a> · <a href="'
-                    + license_link
-                    + '">'
-                    + escape(label)
-                    + "</a></p></section>"
                 )
             cards.append(
-                '<article class="card library-card"><a href="/art/'
+                '<article class="card library-card artwork-card"><div class="artwork-media">'
+                '<a href="/art/'
                 + escape(artwork["id"], quote=True)
-                + '"><img class="artwork-thumb" '
+                + '" target="_blank" rel="noopener"><img class="artwork-thumb" '
                 'loading="lazy" src="/art-thumbnail/'
                 + escape(artwork["id"], quote=True)
                 + '" alt="'
                 + escape(artwork["common_name"], quote=True)
-                + '"></a><h2>'
+                + '"></a></div><div class="artwork-heading"><h2>'
                 + escape(artwork["common_name"])
-                + '</h2><p class="quiet"><i>'
-                + escape(name)
-                + "</i></p><p>"
+                + '</h2></div><p class="artwork-meta">'
                 + str(counts.get(name, 0))
-                + " renders · "
-                + str(active)
-                + (" matching rotation images" if kind or status or style else " rotation images")
-                + "</p><details><summary>Variants and credits ("
-                + str(len(variants))
-                + ")</summary>"
-                + "".join(details)
-                + "</details></article>"
+                + " generated compositions</p>"
+                + (
+                    '<details class="artwork-options"><summary>'
+                    + str(len(variants))
+                    + ' illustrations</summary><div class="variant-grid">'
+                    + "".join(images)
+                    + "</div></details>"
+                    if len(variants) > 1
+                    else ""
+                )
+                + "</article>"
             )
         body += (
             '<div class="card-grid">' + "".join(cards) + "</div>"
@@ -519,30 +488,12 @@ def create_app(service=None, schedule=True):
             body += (
                 '<span class="quiet">Page ' + str(p) + " of " + str(total_pages) + "</span></nav>"
             )
-        body += """<footer class="collection-credits"><h2>Sources and provenance</h2>
-        <p>Sources include <a href="https://github.com/arnegiacomo/fugleramme">Fugleramme</a>,
-        <a href="https://github.com/adamoberley/HABirdDashboard">HABirdDashboard</a>,
-        <a href="https://github.com/Belkins/belkins-birdnet">Belkins</a>,
-        <a href="https://github.com/wr/featherframe">Featherframe's historical collection</a>,
-        <a href="https://github.com/veteranbv/inky-bird-frame">Inky Bird Frame</a> and
-        <a href="https://github.com/simenf/birdframe">BirdFrame</a>.</p>
-        <p>Each asset retains its own license: CC BY-SA 4.0, CC BY-NC-SA 4.0, MIT or public domain.
-        Belkins images and compositions using them are for noncommercial use.
-        Incompatible ShareAlike assets are never combined into one frame image.
-        Adaptations resize, compose, label and dither unchanged masters.
-        <a href="/credits.json">Full provenance and credits</a>.</p>
-        <p>Regional detections: <a href="https://app.birdweather.com/">BirdWeather</a>;
-        optional regional reports: <a href="https://ebird.org/">eBird, Cornell Lab</a>.
-        Forecasts: <a href="https://open-meteo.com/">Open-Meteo</a>,
-        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
-        Seasonal eligibility applies to each pose; local reports influence selection without
-        claiming a backyard visit. Text-heavy field studies are web references only.</p></footer>"""
         return page(
             "Artwork library",
             body,
             active="artwork",
             public=True,
-            description="Explore Emviary bird artwork, variants, render counts and credits.",
+            description="Explore the birds and artwork from Emviary.",
         )
 
     @app.get("/")

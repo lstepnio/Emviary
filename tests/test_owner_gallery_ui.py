@@ -34,7 +34,10 @@ def test_history_remove_and_restore_are_recoverable_and_guarded(
 
 def test_artwork_management_filters_and_exclusion(service, frame, tmp_path, monkeypatch):
     client, csrf = sign_in(service, tmp_path, monkeypatch)
-    assert client.get("/manage/artwork").text.count('<article class="card library-card"') == 24
+    assert (
+        client.get("/manage/artwork").text.count('<article class="card library-card artwork-card"')
+        == 24
+    )
     result = client.get("/manage/artwork?q=poecile")
     assert "Black-capped Chickadee" in result.text
     assert "<h2>Blue Jay</h2>" not in result.text
@@ -59,10 +62,12 @@ def test_special_day_collection_upload_empty_and_review_flow(service, tmp_path, 
     assert "Your special-day collection starts here" in client.get("/manage/event-art").text
     output = BytesIO()
     Image.new("RGB", (100, 100), "red").save(output, format="PNG")
-    artwork = service.event_art.upload(output.getvalue(), "Winter lights", "Artist <name>")
+    artwork = service.event_art.upload(output.getvalue(), "Winter <lights>", "Artist <name>")
     result = client.get("/manage/event-art")
     assert "Awaiting review" in result.text
-    assert "Artist &lt;name&gt;" in result.text
+    assert "Winter &lt;lights&gt;" in result.text
+    assert "Artist &lt;name&gt;" not in result.text
+    assert service.event_art.entries()[0]["source"] == "Artist <name>"
     assert "Approve for special days" in result.text
     assert "Permanently remove artwork" in result.text
     assert (

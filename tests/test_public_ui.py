@@ -55,16 +55,17 @@ def test_library_search_sort_and_counts_are_compositions(service):
     assert response.text.index("<h2>Blue Jay</h2>") < response.text.index(
         "<h2>Black-capped Chickadee</h2>"
     )
-    assert "1 renders · 2 rotation images" in response.text
-    assert "2 renders · 1 rotation images" in response.text
+    assert "1 generated composition" in response.text
+    assert "2 illustrations" in response.text
+    assert "2 generated compositions" in response.text
     assert "once per composition" in response.text
     assert "not page views" in response.text
     search = client.get("/library", params={"q": "poecile"})
     assert "<h2>Black-capped Chickadee</h2>" in search.text
     assert "<h2>Blue Jay</h2>" not in search.text
-    assert chickadee["source_url"] in search.text
-    assert chickadee["credit"] in search.text
-    assert "CC BY-SA 4.0" in search.text
+    assert chickadee["source_url"] not in search.text
+    assert chickadee["credit"] not in search.text
+    assert "CC BY-SA 4.0" not in search.text
 
 
 def test_library_filters_empty_state_and_escape(service):
@@ -76,8 +77,8 @@ def test_library_filters_empty_state_and_escape(service):
     assert 'href="/library"' in response.text
     reference = client.get("/library?status=reference")
     assert "Web reference only" in reference.text
-    assert "0 matching rotation images" in reference.text
+    assert "0 generated compositions" in reference.text
     first = client.get("/library")
-    assert first.text.count('<article class="card library-card">') == 24
+    assert first.text.count('<article class="card library-card artwork-card">') == 24
     assert "Page 1 of " in first.text
     assert client.get("/library?p=-4").status_code == 200

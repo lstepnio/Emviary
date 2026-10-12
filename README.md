@@ -190,13 +190,16 @@ shows a waiting state until it supplies diagnostics.
 
 ### Interface and reliability review
 
-Application 0.12.0 preserves selected-frame context, previews unsaved appearance
+Application 0.12.1 preserves selected-frame context, previews unsaved appearance
 settings, and can save and queue the exact reviewed image. Failed forms retain
 entries, sign-in expiry can recover in another tab, and stale editors cannot
 silently overwrite newer settings. The overview emphasizes last-delivered artwork
 and distinguishes the daily and next-button buffers. Both artwork galleries use
 bounded cached thumbnails; frame rendering continues to use original masters.
-See [UX_REVIEW.md](UX_REVIEW.md) for findings, acceptance checks and validation limits.
+The artwork library uses compact cards with secondary management controls.
+Frame history is accessible from Overview; provenance stays in source records
+and documentation rather than the UI. See [UX_REVIEW.md](UX_REVIEW.md) for
+findings, acceptance checks and validation limits.
 
 Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).
 

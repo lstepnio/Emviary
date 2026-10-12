@@ -5,9 +5,11 @@ import re
 from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
+from fastapi.testclient import TestClient
 from PIL import Image
 from test_owner import sign_in
 
+from emviary.api import create_app
 from emviary.settings import FramePolicy, SpecialDay
 
 
@@ -150,6 +152,7 @@ def test_event_changes_reject_stale_form_without_overwriting_saved_calendar(
     assert stale.status_code == 409
     assert "changed in another tab" in stale.text
     assert service.store.frame(frame[0])["policy"] == saved_policy
+
     event_id = json.loads(saved_policy)["special_days"][0]["id"]
     stale_remove = client.post(
         "/manage/frames/test-frame/special-days/" + event_id + "/delete",
@@ -157,3 +160,36 @@ def test_event_changes_reject_stale_form_without_overwriting_saved_calendar(
     )
     assert stale_remove.status_code == 409
     assert service.store.frame(frame[0])["policy"] == saved_policy
+
+
+def test_full_artwork_review_is_private_and_available_after_recoverable_removal(
+    service, tmp_path, monkeypatch
+):
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    artwork = next(a for a in service.settings.artworks if a["approved"])
+    url = "/manage/artwork/" + artwork["id"] + "/image"
+    original = (service.settings.art_dir / artwork["asset"]).read_bytes()
+    anonymous = TestClient(create_app(service, schedule=False))
+    assert anonymous.get(url).status_code == 401
+    assert client.get(url).content == original
+    service.delete_artworks([artwork["id"]])
+    assert client.get(url).content == original
+    assert anonymous.get(url).status_code == 401
+
+
+def test_app_hides_artwork_provenance_without_losing_catalog_records(
+    service, frame, tmp_path, monkeypatch
+):
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    before = json.dumps(service.settings.catalog, sort_keys=True)
+    for path in ("/library", "/manage/artwork", "/manage/event-art"):
+        response = client.get(path)
+        for text in (
+            "Source artwork",
+            "Sources and provenance",
+            "Variants and credits",
+            "Artwork details and credit",
+            "Creator or source",
+        ):
+            assert text not in response.text
+    assert json.dumps(service.settings.catalog, sort_keys=True) == before

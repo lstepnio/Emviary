@@ -1,6 +1,6 @@
 # Emviary product, accessibility and resilience review
 
-Latest review and implementation: [October 12, 2026, application 0.12.0](research/UX_REVIEW_2026_10.md).
+Latest review and implementation: [October 12, 2026, application 0.12.1](research/UX_REVIEW_2026_10.md).
 
 The following is the retained historical October 8 review for application 0.9.0.
 

@@ -175,7 +175,7 @@ def test_review_remove_and_exclude_artwork(service, frame, tmp_path, monkeypatch
         == 303
     )
     assert artwork not in service.store.excluded_artworks()
-    assert "compositions featuring this species" in client.get("/manage/artwork").text
+    assert " compositions</p>" in client.get("/manage/artwork").text
 
 
 def test_management_exposes_battery_history_and_charge_alert(service, frame, tmp_path, monkeypatch):
