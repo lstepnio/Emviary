@@ -9,7 +9,7 @@ module. Run with the repo environment:
 
 SSH uses the existing key configuration for `lstepnio@one.majjix.com`, batch mode
 and a 15-second connection timeout. The remote container `emviary` verifies its
-most recent complete backup under `/backups`, mounted from
+most recent complete backup from the current Denver date under `/backups`, mounted from
 `/docker/backups/emviary`. If none passes, it creates `offhost-YYYY-MM-DD` and
 verifies it. Existing backups are never replaced or deleted.
 
@@ -33,4 +33,4 @@ pull does not refresh the remote success marker.
 `com.majjix.emviary.backup.plist` is a reviewable LaunchAgent template, scheduled
 at 06:30 in the Mac's local timezone. Keep the Mac timezone at America/Denver for
 the intended schedule. Review the absolute repo and `uv` paths before copying
-it to `~/Library/LaunchAgents` and loading it. This task does not install it.
+it to `~/Library/LaunchAgents` and loading it. The LaunchAgent was installed and loaded on October 12, 2026, with a 1 GiB archive/payload limit. Its first actual scheduled-job invocation was tested with `launchctl kickstart` and exited successfully. The Mac must be available for off-host copies; the server continues its own nightly backups independently.

@@ -10,6 +10,7 @@
     <string>/Users/lukasz.stepniowski/Development/Emviary</string>
     <string>python</string>
     <string>/Users/lukasz.stepniowski/Development/Emviary/tools/pull_verified_backup.py</string>
+    <string>--max-bytes</string><string>1073741824</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict><key>Hour</key><integer>6</integer><key>Minute</key><integer>30</integer></dict>
