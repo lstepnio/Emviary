@@ -199,3 +199,11 @@ acceptance checks, measurements and remaining validation limits.
 Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).
 
 See [prepared-image freshness](research/REFRESH_FRESHNESS.md) for scheduling, cache, fallback and verification details.
+
+Application 0.11.0 adds firmware release channels, rollout delays and blocked
+versions; schedule-aware management alerts; verified offline backup restoration
+and independent Mac backups; recurring weekday special days and conflict priority;
+and artwork bulk actions, catalog filters and physical-panel review tracking.
+See [reliability upgrades](research/RELIABILITY_UPGRADES.md) and
+[independent backups](tools/BACKUPS.md). Existing rotation, image processing,
+automatic firmware preference and nightly wake remain in place.

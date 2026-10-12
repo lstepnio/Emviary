@@ -21,11 +21,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
-from .diagnostics import saved_networks_section
-from .event_art import MAX_UPLOAD, import_presets
+from .diagnostics import management_alerts_section, saved_networks_section
+from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import token_hash
+from .ui import local_time
 
 COOKIE = "emviary_owner"
 
@@ -411,6 +412,7 @@ def attach_owner(app, service):
         for frame in selected_frames:
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
             status = statuses[frame["id"]]
+            body += management_alerts_section(service, frame, escape)
             identifier = escape(frame["id"])
             if view == "manage":
                 delivered = service.delivered_image(frame)
@@ -588,8 +590,10 @@ def attach_owner(app, service):
                 )
                 body += (
                     '<details><summary>Firmware updates</summary><p class="quiet">'
-                    "Checked each time the frame wakes online. Automatic accepts newer published "
-                    "Emviary firmware, including preview releases. Manual requires a "
+                    "Checked each time the frame wakes online. Automatic accepts eligible "
+                    "published "
+                    "Emviary firmware within the selected channel and rollout delay. "
+                    "Manual requires a "
                     "chosen version; "
                     "disabled keeps the installed firmware.</p>"
                     '<p><a href="https://github.com/lstepnio/Emviary-firmware/releases">'
@@ -604,6 +608,25 @@ def attach_owner(app, service):
                     selected = "selected" if policy["firmware_updates"] == value else ""
                     body += f'<option value="{value}" {selected}>{label}</option>'
                 body += "</select></label>"
+                body += '<label>Release channel<br><select name="firmware_channel">'
+                for value, label in (
+                    ("all", "All releases, including previews"),
+                    ("stable", "Stable releases only"),
+                ):
+                    selected = "selected" if policy["firmware_channel"] == value else ""
+                    body += f'<option value="{value}" {selected}>{label}</option>'
+                body += "</select></label>"
+                body += field(
+                    "firmware_rollout_days",
+                    "Wait days after publication (0 to 30)",
+                    str(policy["firmware_rollout_days"]),
+                    kind="number",
+                )
+                body += field(
+                    "firmware_blocked_versions",
+                    "Blocked releases (comma separated)",
+                    ", ".join(policy["firmware_blocked_versions"]),
+                )
                 body += field(
                     "firmware_pinned_version",
                     "Optional release version (for example v0.4.0)",
@@ -743,7 +766,7 @@ def attach_owner(app, service):
                 body += '<section class="card"><h2>Occasions & seasons</h2><p class="quiet">'
                 body += (
                     "Your chosen occasion art and greeting replace the usual layout "
-                    "on the matching Denver date. The first matching enabled entry wins. "
+                    "on the matching local date. Higher priority wins; ties use saved order. "
                     "Annual February 29 entries appear only in leap years.</p>"
                 )
                 body += (
@@ -778,16 +801,18 @@ def attach_owner(app, service):
                 today = datetime.now(ZoneInfo("America/Denver")).date()
 
                 def occasion_date(event):
-                    value = date.fromisoformat(event["date"])
-                    if event["annual"]:
-                        for year in range(today.year, today.year + 9):
-                            try:
-                                value = value.replace(year=year)
-                            except ValueError:
-                                continue
-                            if value >= today:
-                                break
-                    return value
+                    return next_special_day_date(event, today)
+
+                conflicts = special_day_conflicts(policy["special_days"], today)
+                if conflicts:
+                    body += '<div class="notice"><strong>Overlapping special days</strong>'
+                    body += "<p>Higher priority wins. Equal priorities use saved list order. "
+                    body += "Upcoming overlaps over the next five years:</p><ul>"
+                    for when, matches in conflicts:
+                        body += "<li>" + escape(when.strftime("%b %-d, %Y")) + ": "
+                        body += escape(matches[0]["label"]) + " will display instead of "
+                        body += escape(", ".join(e["label"] for e in matches[1:])) + ".</li>"
+                    body += "</ul></div>"
 
                 events = sorted(
                     policy["special_days"],
@@ -890,7 +915,71 @@ def attach_owner(app, service):
                                 + "</option>"
                             )
                     body += "</select></label></div>"
-                    body += checkbox("annual", "Repeat every year", day["annual"])
+                    rule = day.get("recurrence") or {}
+                    body += '<label>Date rule<br><select name="date_rule">'
+                    for value, label in (
+                        ("fixed", "Use the date above"),
+                        ("nth_weekday", "Weekday each year"),
+                    ):
+                        body += '<option value="' + value + '"'
+                        body += " selected" if value == rule.get("kind", "fixed") else ""
+                        body += ">" + label + "</option>"
+                    body += "</select></label><details><summary>Weekday date and priority</summary>"
+                    body += "<p>For a weekday each year, choose the month, weekday and occurrence. "
+                    body += "The date above stays saved as the original date.</p>"
+                    for name, label, choices, selected in (
+                        (
+                            "rule_month",
+                            "Month",
+                            [(i, date(2000, i, 1).strftime("%B")) for i in range(1, 13)],
+                            rule.get("month", 1),
+                        ),
+                        (
+                            "rule_weekday",
+                            "Weekday",
+                            list(
+                                enumerate(
+                                    (
+                                        "Monday",
+                                        "Tuesday",
+                                        "Wednesday",
+                                        "Thursday",
+                                        "Friday",
+                                        "Saturday",
+                                        "Sunday",
+                                    )
+                                )
+                            ),
+                            rule.get("weekday", 0),
+                        ),
+                        (
+                            "rule_ordinal",
+                            "Occurrence",
+                            [
+                                (1, "First"),
+                                (2, "Second"),
+                                (3, "Third"),
+                                (4, "Fourth"),
+                                (-1, "Last"),
+                            ],
+                            rule.get("ordinal", 1),
+                        ),
+                    ):
+                        body += "<label>" + label + '<br><select name="' + name + '">'
+                        for value, text in choices:
+                            body += '<option value="' + str(value) + '"'
+                            body += " selected" if value == selected else ""
+                            body += ">" + text + "</option>"
+                        body += "</select></label>"
+                    body += field(
+                        "priority",
+                        "Priority (higher wins)",
+                        day.get("priority", 0),
+                        "number",
+                        'min="0" max="100"',
+                    )
+                    body += "</details>"
+                    body += checkbox("annual", "Repeat the fixed date every year", day["annual"])
                     body += checkbox("enabled", "Enabled", day["enabled"])
                     body += (
                         "<button>"
@@ -933,6 +1022,39 @@ def attach_owner(app, service):
                     + '<a href="#recovery">Recovery instructions</a>'
                 )
         if view == "recovery":
+            body += '<section class="card"><h2>Backup health</h2>'
+            verified = []
+            for candidate in service.settings.backup_dir.iterdir():
+                marker = candidate / "COMPLETE"
+                if candidate.is_dir() and marker.is_file():
+                    try:
+                        result = json.loads(marker.read_text())
+                        if result.get("restore_rehearsal") == "passed":
+                            verified.append(result["created_at"])
+                    except (ValueError, KeyError, OSError):
+                        pass
+            body += (
+                "<p>Latest verified backup: "
+                + escape(local_time(max(verified)))
+                + ". Every new backup passes an isolated offline restore rehearsal.</p>"
+                if verified
+                else '<p class="notice">No backup with a verified restore rehearsal yet.</p>'
+            )
+            try:
+                independent = json.loads(
+                    (service.settings.data_dir / "offhost-backup.json").read_text()
+                )
+                body += (
+                    "<p>Independent copy verified: "
+                    + escape(local_time(independent["created_at"]))
+                    + ".</p>"
+                )
+            except (OSError, ValueError, KeyError):
+                body += '<p class="notice">No independent backup copy has been confirmed.</p>'
+            body += (
+                '<p class="quiet">Older backups remain available. '
+                "They predate automatic integrity manifests.</p></section>"
+            )
             body += (
                 '<section id="recovery"><h2>Frame recovery and Wi-Fi setup</h2>'
                 "<details><summary>Wake or restart an unresponsive frame</summary>"
@@ -1367,13 +1489,40 @@ def attach_owner(app, service):
 
     @app.get("/manage/artwork")
     def artwork_management(
-        request: Request, q: str = "", status: str = "", sort: str = "name", p: int = 1
+        request: Request,
+        q: str = "",
+        status: str = "",
+        sort: str = "name",
+        p: int = 1,
+        style: str = "",
+        pose: str = "",
+        season: str = "",
+        review: str = "",
     ):
         from urllib.parse import urlencode
 
         auth = require(request)
         excluded = service.store.excluded_artworks()
         counts = service.store.bird_counts()
+        reviews = service.store.artwork_reviews()
+        catalog = service.settings.source_catalog["artworks"]
+        styles = sorted({a.get("style", "") for a in catalog} - {""})
+        poses = sorted({a.get("pose", "") for a in catalog} - {""})
+        style = style if style in styles else ""
+        pose = pose if pose in poses + ["missing"] else ""
+        seasons = {
+            "winter": {12, 1, 2},
+            "spring": {3, 4, 5},
+            "summer": {6, 7, 8},
+            "autumn": {9, 10, 11},
+        }
+        season = season if season in seasons else ""
+        review_labels = {
+            "unreviewed": "Unreviewed",
+            "on-panel-approved": "On-panel approved",
+            "needs-changes": "Needs changes",
+        }
+        review = review if review in review_labels else ""
         q = q.strip()[:200]
         status = status if status in {"rotation", "excluded", "reference", "deleted"} else ""
         sort = sort if sort in {"name", "most", "least"} else "name"
@@ -1388,6 +1537,10 @@ def attach_owner(app, service):
             in " ".join(
                 str(a.get(k, "")) for k in ("common_name", "scientific_name", "credit", "id")
             ).casefold()
+            and (not style or a.get("style") == style)
+            and (not pose or (not a.get("pose") if pose == "missing" else a.get("pose") == pose))
+            and (not season or bool(set(a.get("months", [])) & seasons[season]))
+            and (not review or reviews.get(a["id"], "unreviewed") == review)
             and (
                 not status
                 or status == "deleted"
@@ -1409,9 +1562,17 @@ def attach_owner(app, service):
         )
         pages = max(1, (len(works) + 23) // 24)
         p = min(max(p, 1), pages)
-        return_url = "/manage/artwork?" + urlencode(
-            {"q": q, "status": status, "sort": sort, "p": p}
-        )
+        context = {
+            "q": q,
+            "status": status,
+            "sort": sort,
+            "p": p,
+            "style": style,
+            "pose": pose,
+            "season": season,
+            "review": review,
+        }
+        return_url = "/manage/artwork?" + urlencode({k: v for k, v in context.items() if v != ""})
         if str(p) != request.query_params.get("p", "1"):
             return RedirectResponse(return_url, status_code=303)
         body = (
@@ -1444,6 +1605,25 @@ def attach_owner(app, service):
                 "Sort",
                 [("name", "Name A to Z"), ("most", "Most rendered"), ("least", "Least rendered")],
                 sort,
+            ),
+            ("style", "Style", [("", "All styles")] + [(v, v) for v in styles], style),
+            (
+                "pose",
+                "Pose",
+                [("", "All poses")] + [(v, v) for v in poses] + [("missing", "Pose not recorded")],
+                pose,
+            ),
+            (
+                "season",
+                "Season eligibility",
+                [("", "All seasons")] + [(v, v.title()) for v in seasons],
+                season,
+            ),
+            (
+                "review",
+                "Panel review",
+                [("", "All review states")] + list(review_labels.items()),
+                review,
             ),
         ):
             body += "<label>" + label + '<select name="' + name + '">'
@@ -1480,6 +1660,28 @@ def attach_owner(app, service):
             '<p class="quiet">Delete moves artwork to Deleted artwork, where it can be restored. '
         )
         body += "The current frame image and rendered history are preserved.</p>"
+        if status != "deleted":
+            body += (
+                '<form id="artwork-bulk" method="post" data-library-action '
+                'data-library-message="Selected artworks updated." '
+                'action="/manage/artwork/bulk">'
+                + hidden(auth["csrf"])
+                + '<input type="hidden" name="return" value="'
+                + escape(return_url)
+                + '">'
+                + '<p class="quiet">Select artworks on this page, then choose an action.</p>'
+                + '<button name="action" value="include" class="secondary">'
+                "Include selected in rotation</button> "
+                + '<button name="action" value="exclude" class="secondary">'
+                "Exclude selected from rotation</button> "
+                + '<button name="action" value="delete" class="danger">'
+                "Delete selected artworks</button></form>"
+            )
+        body += '<p class="quiet">Panel review records your own physical-screen assessment. '
+        body += (
+            "It does not change rotation approval. "
+            "Season filters use catalog month eligibility.</p>"
+        )
         body += '<div class="card-grid">'
         for art in works[(p - 1) * 24 : p * 24]:
             excluded_art = art["id"] in excluded
@@ -1519,6 +1721,34 @@ def attach_owner(app, service):
                 + escape(art["source_url"])
                 + '">Source artwork</a></details>'
             )
+            if status != "deleted":
+                body += (
+                    '<label><input type="checkbox" form="artwork-bulk" name="selected_'
+                    + escape(art["id"])
+                    + '" value="1"> Select artwork</label>'
+                )
+            body += (
+                '<form method="post" data-library-action '
+                'data-library-message=" panel review saved." '
+                'action="/manage/artwork/'
+                + escape(art["id"])
+                + '/review">'
+                + hidden(auth["csrf"])
+                + '<input type="hidden" name="return" value="'
+                + escape(return_url)
+                + '"><label>Panel review<select name="review">'
+            )
+            for value, text in review_labels.items():
+                body += (
+                    '<option value="'
+                    + value
+                    + '"'
+                    + (" selected" if reviews.get(art["id"], "unreviewed") == value else "")
+                    + ">"
+                    + text
+                    + "</option>"
+                )
+            body += '</select></label><button class="secondary">Save panel review</button></form>'
             if art["approved"] and status != "deleted":
                 body += (
                     '<form method="post" data-library-action action="/manage/artwork/'
@@ -1570,7 +1800,11 @@ def attach_owner(app, service):
                 if 1 <= number <= pages:
                     body += (
                         '<a class="button secondary" href="/manage/artwork?'
-                        + escape(urlencode({"q": q, "status": status, "sort": sort, "p": number}))
+                        + escape(
+                            urlencode(
+                                {k: v for k, v in {**context, "p": number}.items() if v != ""}
+                            )
+                        )
                         + '">'
                         + label
                         + "</a>"
@@ -1585,7 +1819,11 @@ def attach_owner(app, service):
         target = "/manage/artwork"
         if parts.path == target:
             values = parse_qs(parts.query)
-            params = {k: values[k][-1] for k in ("q", "status", "sort", "p") if k in values}
+            params = {
+                k: values[k][-1]
+                for k in ("q", "status", "sort", "p", "style", "pose", "season", "review")
+                if k in values
+            }
             if "p" in params:
                 try:
                     params["p"] = str(max(1, int(params["p"])))
@@ -1593,6 +1831,73 @@ def attach_owner(app, service):
                     params["p"] = "1"
             target += "?" + urlencode(params) if params else ""
         return target
+
+    def set_rotation(identifiers, exclude):
+        with preparation_lock(service.settings.data_dir):
+            active = {a["id"]: a for a in service.settings.artworks}
+            if not identifiers <= active.keys():
+                raise HTTPException(404, "Unknown artwork")
+            if not exclude and any(not active[key]["approved"] for key in identifiers):
+                raise HTTPException(
+                    409, "Reference artwork must be approved in the catalog before rotation"
+                )
+            excluded = service.store.excluded_artworks()
+            if exclude and not any(
+                a["approved"] and a["id"] not in excluded | identifiers
+                for a in service.settings.artworks
+            ):
+                raise HTTPException(409, "Keep at least one artwork in rotation")
+            with service.store.connect() as db:
+                db.executemany(
+                    "INSERT OR IGNORE INTO excluded_artworks VALUES(?)"
+                    if exclude
+                    else "DELETE FROM excluded_artworks WHERE id=?",
+                    [(key,) for key in identifiers],
+                )
+            if exclude:
+                for frame in service.store.frames():
+                    image = service.store.active_image(frame)
+                    if image:
+                        plan = json.loads(image["manifest"])
+                        if any(
+                            a["id"] in identifiers for a in plan.get("artworks", [plan["artwork"]])
+                        ):
+                            service.store.request_refill(frame["id"], image["id"])
+
+    @app.post("/manage/artwork/bulk")
+    async def bulk_artwork_action(request: Request):
+        data = await checked_form(request)
+        identifiers = {
+            key.removeprefix("selected_")
+            for key, value in data.items()
+            if key.startswith("selected_") and value == "1"
+        }
+        if not identifiers or len(identifiers) > 24:
+            raise HTTPException(400, "Select between 1 and 24 artworks on this page")
+        action = data.get("action")
+        if action == "delete":
+            try:
+                service.delete_artworks(identifiers)
+            except ValueError as exc:
+                raise HTTPException(409, str(exc)) from None
+        elif action in {"include", "exclude"}:
+            set_rotation(identifiers, action == "exclude")
+        else:
+            raise HTTPException(400, "Unknown artwork action")
+        return RedirectResponse(
+            artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
+    @app.post("/manage/artwork/{artwork_id}/review")
+    async def artwork_panel_review(artwork_id: str, request: Request):
+        data = await checked_form(request)
+        if not any(a["id"] == artwork_id for a in service.settings.source_catalog["artworks"]):
+            raise HTTPException(404, "Unknown artwork")
+        try:
+            service.store.set_artwork_review(artwork_id, data.get("review"))
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from None
+        return RedirectResponse(artwork_return(data), status_code=303)
 
     @app.post("/manage/artwork/bulk-delete")
     async def delete_unused_artworks(request: Request):
@@ -1652,23 +1957,7 @@ def attach_owner(app, service):
     @app.post("/manage/artwork/{artwork_id}")
     async def artwork_rotation(artwork_id: str, request: Request):
         data = await checked_form(request)
-        if not any(a["id"] == artwork_id for a in service.settings.artworks):
-            raise HTTPException(404, "Unknown artwork")
-        with preparation_lock(service.settings.data_dir):
-            with service.store.connect() as db:
-                if data.get("exclude") == "1":
-                    db.execute("INSERT OR IGNORE INTO excluded_artworks VALUES(?)", (artwork_id,))
-                else:
-                    db.execute("DELETE FROM excluded_artworks WHERE id=?", (artwork_id,))
-            if data.get("exclude") == "1":
-                for frame in service.store.frames():
-                    image = service.store.active_image(frame)
-                    if image:
-                        plan = json.loads(image["manifest"])
-                        if any(
-                            a["id"] == artwork_id for a in plan.get("artworks", [plan["artwork"]])
-                        ):
-                            service.store.request_refill(frame["id"], image["id"])
+        set_rotation({artwork_id}, data.get("exclude") == "1")
         return RedirectResponse(
             artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
         )
@@ -1724,6 +2013,15 @@ def attach_owner(app, service):
                 firmware_rotate_cron=cron_for(data["wake"]),
                 max_birds=int(data["max_birds"]),
                 firmware_updates=data.get("firmware_updates", policy["firmware_updates"]),
+                firmware_channel=data.get("firmware_channel", policy["firmware_channel"]),
+                firmware_rollout_days=int(
+                    data.get("firmware_rollout_days", policy["firmware_rollout_days"])
+                ),
+                firmware_blocked_versions=(
+                    [v.strip() for v in data["firmware_blocked_versions"].split(",") if v.strip()]
+                    if "firmware_blocked_versions" in data
+                    else policy["firmware_blocked_versions"]
+                ),
                 firmware_pinned_version=(
                     data.get("firmware_pinned_version", policy["firmware_pinned_version"]) or None
                 ),
@@ -1985,6 +2283,21 @@ def attach_owner(app, service):
             day_id = data.get("id") or secrets.token_hex(6)
             if data.get("id") and not any(d["id"] == day_id for d in policy["special_days"]):
                 raise ValueError("Unknown special day")
+            previous = next((d for d in policy["special_days"] if d["id"] == day_id), {})
+            recurrence = previous.get("recurrence")
+            if "date_rule" in data:
+                if data["date_rule"] not in {"fixed", "nth_weekday"}:
+                    raise ValueError("Choose a fixed date or a weekday each year")
+                recurrence = (
+                    {
+                        "kind": "nth_weekday",
+                        "month": int(data.get("rule_month", "1")),
+                        "weekday": int(data.get("rule_weekday", "0")),
+                        "ordinal": int(data.get("rule_ordinal", "1")),
+                    }
+                    if data["date_rule"] == "nth_weekday"
+                    else None
+                )
             day = SpecialDay.model_validate(
                 {
                     "id": day_id,
@@ -1995,6 +2308,8 @@ def attach_owner(app, service):
                     "enabled": data.get("enabled") == "on",
                     "theme": data["theme"],
                     "artwork_id": data.get("artwork_id") or None,
+                    "recurrence": recurrence,
+                    "priority": int(data.get("priority", previous.get("priority", 0))),
                 }
             )
             if day.artwork_id:
@@ -2011,7 +2326,8 @@ def attach_owner(app, service):
                         not art.get("event_only")
                         and (
                             art.get("depicted_birds", 1) != 1
-                            or int(day.date[5:7]) not in art["months"]
+                            or (day.recurrence.month if day.recurrence else int(day.date[5:7]))
+                            not in art["months"]
                         )
                     )
                 ):

@@ -47,6 +47,8 @@ def main():
     owner.add_argument("--password-file", required=True)
     backup = commands.add_parser("backup")
     backup.add_argument("--output")
+    verify = commands.add_parser("verify-backup")
+    verify.add_argument("path")
     provision = commands.add_parser("provision")
     provision.add_argument("id")
     provision.add_argument("--token-file", required=True)
@@ -64,6 +66,15 @@ def main():
             workers=1,
             access_log=False,
         )
+        return
+    if args.command == "verify-backup":
+        from .backup_validation import verify_backup
+
+        try:
+            print(json.dumps(verify_backup(args.path), indent=2))
+        except (ValueError, RuntimeError, OSError) as exc:
+            # Verification reports no configuration, credentials or database contents.
+            parser.exit(1, "Backup verification failed: " + str(exc) + "\n")
         return
     service = Service()
     try:

@@ -1,0 +1,111 @@
+from fastapi.testclient import TestClient
+from test_owner import sign_in
+
+from emviary.api import create_app
+from emviary.store import Store
+
+
+def test_catalog_filters_and_pagination_preserve_new_context(service, tmp_path, monkeypatch):
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    artworks = service.settings.artworks
+    example = next(a for a in artworks if a.get("pose"))
+    result = client.get(
+        "/manage/artwork", params={"style": example["style"], "pose": example["pose"]}
+    )
+    matching = [
+        a
+        for a in artworks
+        if a.get("style") == example["style"] and a.get("pose") == example["pose"]
+    ]
+    assert f"{len(matching)} artworks match" in result.text
+    assert 'name="style"' in result.text and 'name="pose"' in result.text
+    assert "Pose not recorded" in result.text
+    result = client.get("/manage/artwork?season=winter&review=unreviewed&sort=least")
+    assert "season=winter&amp;review=unreviewed" in result.text
+    assert "Least rendered" in result.text
+    assert "Panel review records your own physical-screen assessment" in result.text
+
+
+def test_panel_review_private_persistent_and_independent_of_rotation(
+    service, tmp_path, monkeypatch
+):
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    artwork = next(a for a in service.settings.artworks if a["approved"])
+    url = "/manage/artwork/" + artwork["id"] + "/review"
+    anonymous = TestClient(create_app(service, schedule=False))
+    assert anonymous.post(url, data={"review": "on-panel-approved"}).status_code == 401
+    assert (
+        client.post(url, data={"csrf": "wrong", "review": "on-panel-approved"}).status_code == 403
+    )
+    assert client.post(url, data={"csrf": csrf, "review": "invented"}).status_code == 400
+    before = (service.settings.art_dir / artwork["asset"]).read_bytes()
+    result = client.post(
+        url,
+        data={
+            "csrf": csrf,
+            "review": "needs-changes",
+            "return": "/manage/artwork?style=foo&season=winter&review=unreviewed&p=2",
+        },
+        follow_redirects=False,
+    )
+    assert result.status_code == 303
+    assert "season=winter&review=unreviewed" in result.headers["location"]
+    assert "p=2" in result.headers["location"]
+    assert Store(service.settings.db_path).artwork_reviews()[artwork["id"]] == "needs-changes"
+    assert artwork["id"] not in service.store.excluded_artworks()
+    assert (service.settings.art_dir / artwork["asset"]).read_bytes() == before
+    result = client.get("/manage/artwork?review=needs-changes")
+    assert "1 artworks match" in result.text
+    assert artwork["common_name"] in result.text
+
+
+def test_selected_bulk_rotation_and_delete_are_atomic_and_guarded(
+    service, frame, tmp_path, monkeypatch
+):
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    approved = [a for a in service.settings.artworks if a["approved"]]
+    reference = next(a for a in service.settings.artworks if not a["approved"])
+    first = service.prepare(frame[0], offline=True)
+    chosen = next(a for a in approved if a["id"] == first["artwork_id"])
+    before = (service.settings.art_dir / chosen["asset"]).read_bytes()
+    url = "/manage/artwork/bulk"
+    payload = {
+        "csrf": csrf,
+        "action": "exclude",
+        "selected_" + chosen["id"]: "1",
+        "return": "/manage/artwork?style=test&pose=missing&season=winter&sort=least&p=2",
+    }
+    assert client.post(url, data={**payload, "csrf": "wrong"}).status_code == 403
+    response = client.post(url, data=payload, follow_redirects=False)
+    assert response.status_code == 303
+    assert "pose=missing&season=winter" in response.headers["location"]
+    assert chosen["id"] in service.store.excluded_artworks()
+    assert service.cache_path(first["preview_path"]).is_file()
+    mixed = {**payload, "action": "include", "selected_" + reference["id"]: "1"}
+    assert client.post(url, data=mixed).status_code == 409
+    assert chosen["id"] in service.store.excluded_artworks()
+    assert (
+        client.post(url, data={**payload, "action": "include"}, follow_redirects=False).status_code
+        == 303
+    )
+    assert chosen["id"] not in service.store.excluded_artworks()
+    assert (
+        client.post(url, data={**payload, "action": "delete"}, follow_redirects=False).status_code
+        == 303
+    )
+    assert chosen["id"] in {a["id"] for a in service.deleted_artwork_entries()}
+    assert (service.settings.art_dir / chosen["asset"]).read_bytes() == before
+    assert service.cache_path(first["preview_path"]).is_file()
+    assert client.post(url, data={"csrf": csrf, "action": "exclude"}).status_code == 400
+
+
+def test_excluding_final_approved_artwork_is_rejected(service, tmp_path, monkeypatch):
+    approved = next(a for a in service.settings.artworks if a["approved"])
+    service.settings.artworks = [approved]
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    response = client.post(
+        "/manage/artwork/bulk",
+        data={"csrf": csrf, "action": "exclude", "selected_" + approved["id"]: "1"},
+    )
+    assert response.status_code == 409
+    assert not service.store.excluded_artworks()

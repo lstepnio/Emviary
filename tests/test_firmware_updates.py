@@ -135,3 +135,27 @@ def test_discovery_cache_and_failure(monkeypatch):
     bad = httpx.MockTransport(lambda request: httpx.Response(503))
     monkeypatch.setattr(httpx, "Client", lambda **kwargs: original(transport=bad, **kwargs))
     assert not updates.check(FramePolicy(), "v0.3.0")["update_available"]
+
+
+def test_release_channels_delay_blocklist_and_bootloader_gate():
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime(2026, 10, 12, tzinfo=UTC)
+    older = release("v0.7.7", published_at=(now - timedelta(days=5)).isoformat())
+    preview = release("v0.8.0", prerelease=True, published_at=now.isoformat())
+    updates = checker([older, preview])
+    assert updates.check(FramePolicy(firmware_channel="stable"), "v0.7.6")["tag_name"] == "v0.7.7"
+    assert (
+        updates.check(FramePolicy(firmware_rollout_days=2), "v0.7.6", now=now)["tag_name"]
+        == "v0.7.7"
+    )
+    assert (
+        updates.check(FramePolicy(firmware_blocked_versions=["v0.8.0"]), "v0.7.6")["tag_name"]
+        == "v0.7.7"
+    )
+    preview["assets"].append({"name": "requires-rollback-bootloader.txt"})
+    assert updates.check(FramePolicy(), "v0.7.7")["update_available"] is False
+    assert updates.check(FramePolicy(), "v0.7.7", rollback_ready=True)["tag_name"] == "v0.8.0"
+    assert not checker([release()]).check(FramePolicy(firmware_rollout_days=1), "v0.1.0", now=now)[
+        "update_available"
+    ]

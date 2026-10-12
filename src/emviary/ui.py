@@ -420,8 +420,8 @@ JAVASCRIPT = r"""
         const card = form.closest('[data-artwork-id]');
         const cards = [...current.querySelectorAll('[data-artwork-id]')];
         const index = cards.indexOf(card);
-        const top = card.getBoundingClientRect().top;
-        const keys = [card.dataset.artworkId, cards[index + 1]?.dataset.artworkId,
+        const top = (card || form).getBoundingClientRect().top;
+        const keys = [card?.dataset.artworkId, cards[index + 1]?.dataset.artworkId,
           cards[index - 1]?.dataset.artworkId];
         const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
         const next = doc.getElementById('artwork-library');
@@ -433,11 +433,15 @@ JAVASCRIPT = r"""
           const anchor = keys.map(key => freshCards.find(item => item.dataset.artworkId === key))
             .find(Boolean) || freshCards[0];
           next.querySelector('[data-library-feedback]').textContent =
-            card.querySelector('h2').textContent +
+            (card ? card.querySelector('h2').textContent : '') +
             (form.dataset.libraryMessage ||
               (data.get('exclude') === '1' ? ' excluded from rotation.' :
                 ' restored to rotation.'));
-          if (anchor) {
+          if (!card) {
+            window.scrollBy({top: next.querySelector('#artwork-bulk').getBoundingClientRect().top
+              - top, behavior: 'instant'});
+            next.querySelector('#artwork-bulk button')?.focus({preventScroll: true});
+          } else if (anchor) {
             window.scrollBy({top: anchor.getBoundingClientRect().top - top, behavior: 'instant'});
             anchor.querySelector('button')?.focus({preventScroll: true});
           } else {

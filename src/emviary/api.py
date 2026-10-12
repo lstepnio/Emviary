@@ -136,7 +136,17 @@ def create_app(service=None, schedule=True):
             raise HTTPException(400, "Invalid firmware version")
         policy = FramePolicy.model_validate_json(frame["policy"])
         return JSONResponse(
-            app.state.firmware_updates.check(policy, current),
+            app.state.firmware_updates.check(
+                policy,
+                current,
+                rollback_ready=bool(
+                    service.store.device_samples(frame["id"])
+                    and json.loads(service.store.device_samples(frame["id"])[-1]["metrics"]).get(
+                        "ota_rollback"
+                    )
+                    is True
+                ),
+            ),
             headers={"Cache-Control": "private, no-store"},
         )
 

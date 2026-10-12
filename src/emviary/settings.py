@@ -110,6 +110,13 @@ class Panel(Model):
     format: Literal["epdgz"] = "epdgz"
 
 
+class SpecialDayRecurrence(Model):
+    kind: Literal["nth_weekday"] = "nth_weekday"
+    month: int = Field(ge=1, le=12)
+    weekday: int = Field(ge=0, le=6)
+    ordinal: Literal[-1, 1, 2, 3, 4] = 1
+
+
 class SpecialDay(Model):
     id: str = Field(pattern=r"^[a-z0-9-]{1,48}$")
     date: str
@@ -119,6 +126,19 @@ class SpecialDay(Model):
     enabled: bool = True
     theme: Literal["birthday", "anniversary", "celebration", "remembrance"] = "celebration"
     artwork_id: str | None = Field(default=None, max_length=100)
+    recurrence: SpecialDayRecurrence | None = None
+    priority: int = Field(default=0, ge=0, le=100)
+
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_legacy_preset(cls, value):
+        from .event_art import legacy_preset_recurrence
+
+        if isinstance(value, dict) and "recurrence" not in value:
+            recurrence = legacy_preset_recurrence(value)
+            if recurrence:
+                return {**value, "recurrence": recurrence}
+        return value
 
     @model_validator(mode="after")
     def validate_day(self):
@@ -172,6 +192,9 @@ class FramePolicy(Model):
     wifi_networks: list[WifiNetwork] | None = Field(default=None, max_length=5)
     wifi_forget_ssids: list[str] = Field(default_factory=list, max_length=32)
     firmware_updates: Literal["automatic", "manual", "disabled"] = "automatic"
+    firmware_channel: Literal["all", "stable"] = "all"
+    firmware_rollout_days: int = Field(default=0, ge=0, le=30)
+    firmware_blocked_versions: list[str] = Field(default_factory=list, max_length=32)
     firmware_pinned_version: str | None = Field(
         default=None,
         max_length=80,
@@ -198,6 +221,9 @@ class FramePolicy(Model):
             WifiNetwork(ssid=ssid)
         if len(set(self.wifi_forget_ssids)) != len(self.wifi_forget_ssids):
             raise ValueError("Forgotten network names must be unique")
+        for release in self.firmware_blocked_versions:
+            if not re.fullmatch(r"v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", release):
+                raise ValueError("Blocked firmware must be semantic release versions")
         return self
 
 

@@ -824,35 +824,84 @@ class Service:
             self.cache_path(master_name).unlink(missing_ok=True)
 
     def _backup(self, output):
-        output = Path(output)
-        output.mkdir(parents=True, exist_ok=True)
-        database = output / "emviary.sqlite3"
-        with self.store.connect() as source:
-            destination = sqlite3.connect(database)
-            try:
-                source.backup(destination)
-                if destination.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                    raise RuntimeError("Backup database failed integrity validation")
-            finally:
-                destination.close()
-        (output / "site.json").write_text(self.settings.config.model_dump_json(indent=2))
-        shutil.copytree(self.settings.art_dir, output / "art", dirs_exist_ok=True)
-        shutil.copytree(self.event_art.root, output / "event-art", dirs_exist_ok=True)
-        # Preserve the navigable collection, not only the active/delivered pair.
-        cache = output / "active-cache"
-        cache.mkdir(exist_ok=True)
-        with self.store.connect() as db:
-            images = db.execute("SELECT * FROM images WHERE hidden=0").fetchall()
-        paths = {name for image in images for name in (image["path"], image["preview_path"])}
-        for frame in self.store.frames():
-            delivered = self.delivered_image(frame)
-            if delivered:
-                paths.update((delivered["path"], delivered["preview_path"]))
-        for name in paths:
-            source = self.cache_path(name)
-            if source.is_file():
-                shutil.copy2(source, cache / Path(name).name)
-        (output / "COMPLETE").write_text(utcnow())
+        from .backup_validation import file_digest, safe_files, verify_backup, write_manifest
+
+        output = Path(output).absolute()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if output.exists() or output.is_symlink():
+            raise ValueError("Backup destination already exists")
+        # Reject source links before copying so recovery never follows external files.
+        safe_files(self.settings.art_dir)
+        safe_files(self.event_art.root)
+        with tempfile.TemporaryDirectory(prefix=".emviary-backup-", dir=output.parent) as temporary:
+            staging = Path(temporary) / "backup"
+            staging.mkdir(mode=0o700)
+            database = staging / "emviary.sqlite3"
+            with self.store.connect() as source:
+                destination = sqlite3.connect(database)
+                try:
+                    source.backup(destination)
+                    destination.execute("PRAGMA journal_mode=DELETE")
+                    if destination.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise RuntimeError("Backup database failed integrity validation")
+                finally:
+                    destination.close()
+            (staging / "site.json").write_text(self.settings.config.model_dump_json(indent=2))
+            shutil.copytree(self.settings.art_dir, staging / "art")
+            shutil.copytree(self.event_art.root, staging / "event-art")
+            if not (staging / "event-art/manifest.json").exists():
+                (staging / "event-art/manifest.json").write_text("[]\n")
+            cache = staging / "active-cache"
+            cache.mkdir()
+            with self.store.connect() as db:
+                images = db.execute("SELECT * FROM images WHERE hidden=0").fetchall()
+                protected_ids = {
+                    r[0]
+                    for r in db.execute(
+                        "SELECT image_id FROM prepared_slots WHERE image_id IS NOT NULL"
+                    )
+                }
+                for frame in self.store.frames():
+                    protected_ids.update(
+                        frame[key]
+                        for key in ("active_image_id", "max_delivered_image_id")
+                        if frame.get(key) is not None
+                    )
+                    delivered = self.delivered_image(frame)
+                    if delivered:
+                        protected_ids.add(delivered["id"])
+                protected = db.execute("SELECT * FROM images").fetchall()
+            paths = {
+                name
+                for image in list(images) + [r for r in protected if r["id"] in protected_ids]
+                for name in (image["path"], image["preview_path"])
+            }
+            for name in paths:
+                source = self.cache_path(name)
+                unresolved = self.settings.data_dir / name
+                if any(part.is_symlink() for part in (unresolved, *unresolved.parents)):
+                    raise ValueError("Backup cache contains a symbolic link")
+                if not source.is_file():
+                    raise ValueError("Backup is missing a retained image or preview")
+                target = cache / source.relative_to(self.settings.data_dir / "cache")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+            write_manifest(staging)
+            verify_backup(staging, require_complete=False)
+            # A complete backup becomes visible in one rename, after the final marker.
+            (staging / "COMPLETE").write_text(
+                stable_json(
+                    {
+                        "created_at": utcnow(),
+                        "manifest_sha256": file_digest(staging / "integrity-manifest.json"),
+                        "restore_rehearsal": "passed",
+                    }
+                )
+                + "\n"
+            )
+            for entry in staging.rglob("*"):
+                entry.chmod(0o700 if entry.is_dir() else 0o600)
+            staging.rename(output)
         return str(output)
 
     def backup(self, output=None):

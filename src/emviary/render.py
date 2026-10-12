@@ -180,13 +180,20 @@ def composition_cells(name, count):
 
 
 def special_day_for(policy, local_date):
-    # Stable list order resolves overlaps; leap-day events only match February 29.
+    from datetime import date
+
+    from .event_art import effective_special_days, special_day_date
+
+    when = date.fromisoformat(local_date)
+    # Higher priority wins; stable saved list order resolves equal priorities.
     return next(
         (
             d
-            for d in policy.get("special_days", [])
-            if d["enabled"]
-            and (d["date"][5:] == local_date[5:] if d["annual"] else d["date"] == local_date)
+            for d in sorted(
+                effective_special_days(policy.get("special_days", []), when.year),
+                key=lambda d: -d.get("priority", 0),
+            )
+            if d["enabled"] and special_day_date(d, when.year) == when
         ),
         None,
     )

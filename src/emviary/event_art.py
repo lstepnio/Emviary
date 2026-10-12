@@ -5,12 +5,111 @@ import io
 import json
 import secrets
 import warnings
+from datetime import date, timedelta
 from pathlib import Path
 
 from PIL import Image, ImageOps
 
 MAX_UPLOAD = 10 * 1024 * 1024
 MAX_PIXELS = 20_000_000
+
+MOVABLE_PRESETS = [
+    (1, 0, 3, "Martin Luther King Jr. Day"),
+    (2, 0, 3, "Presidents' Day"),
+    (5, 6, 2, "Mother's Day"),
+    (6, 6, 3, "Father's Day"),
+    (9, 0, 1, "Labor Day"),
+    (11, 3, 4, "Thanksgiving"),
+    (5, 0, -1, "Memorial Day"),
+]
+
+
+def weekday_date(year, rule):
+    month, weekday, ordinal = rule["month"], rule["weekday"], rule["ordinal"]
+    if ordinal == -1:
+        last = date(year + (month == 12), month % 12 + 1, 1) - timedelta(days=1)
+        return last - timedelta(days=(last.weekday() - weekday) % 7)
+    first = date(year, month, 1)
+    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (ordinal - 1))
+
+
+def legacy_preset_recurrence(entry):
+    """Only infer recurrence for an unchanged, recognizable dated preset."""
+    if entry.get("annual", True):
+        return None
+    for month, weekday, ordinal, label in MOVABLE_PRESETS:
+        slug = "".join(c.lower() if c.isalnum() else "-" for c in label).strip("-")
+        prefix = "preset-" + slug[:35] + "-"
+        identifier = entry.get("id", "")
+        if not identifier.startswith(prefix) or entry.get("label") != label:
+            continue
+        suffix = identifier[len(prefix) :]
+        if not suffix.isdigit() or not 2020 <= int(suffix) <= 2100:
+            continue
+        rule = dict(kind="nth_weekday", month=month, weekday=weekday, ordinal=ordinal)
+        if entry.get("date") == weekday_date(int(suffix), rule).isoformat():
+            return rule
+    return None
+
+
+def special_day_date(entry, year):
+    if entry.get("recurrence"):
+        return weekday_date(year, entry["recurrence"])
+    original = date.fromisoformat(entry["date"])
+    if not entry.get("annual", True):
+        return original if original.year == year else None
+    try:
+        return original.replace(year=year)
+    except ValueError:
+        return None
+
+
+def next_special_day_date(entry, today):
+    for year in range(today.year, min(today.year + 9, 10000)):
+        when = special_day_date(entry, year)
+        if when is not None and when >= today:
+            return when
+    return date.fromisoformat(entry["date"])
+
+
+def effective_special_days(entries, year):
+    """Keep saved entries, but collapse identical dated copies of known presets.
+
+    A changed greeting, artwork or setting remains a separate event. The original
+    group position preserves precedence; the closest original year supplies its
+    representative entry.
+    """
+    groups, positions = {}, []
+    for entry in entries:
+        inferred = legacy_preset_recurrence(entry)
+        if inferred and inferred == entry.get("recurrence"):
+            key = json.dumps(
+                {k: v for k, v in entry.items() if k not in {"id", "date"}}, sort_keys=True
+            )
+        else:
+            key = "id:" + entry["id"]
+        if key not in groups:
+            groups[key] = []
+            positions.append(key)
+        groups[key].append(entry)
+    return [min(groups[key], key=lambda e: abs(year - int(e["date"][:4]))) for key in positions]
+
+
+def special_day_conflicts(entries, today, years=5):
+    """Preview all overlaps in the next five years using the runtime precedence."""
+    by_date = {}
+    for year in range(today.year, min(today.year + years, 10000)):
+        for entry in effective_special_days(entries, year):
+            if not entry.get("enabled", True):
+                continue
+            when = special_day_date(entry, year)
+            if when is not None and when >= today:
+                by_date.setdefault(when, []).append(entry)
+    return [
+        (when, sorted(matches, key=lambda e: -e.get("priority", 0)))
+        for when, matches in sorted(by_date.items())
+        if len(matches) > 1
+    ]
 
 
 class EventArt:
@@ -177,6 +276,11 @@ def import_presets(existing, group, year):
     for entry in event_presets(group, year):
         if not any(
             e["id"] == entry["id"]
+            or (
+                entry.get("recurrence")
+                and (e.get("recurrence") or legacy_preset_recurrence(e)) == entry["recurrence"]
+                and e["label"] == entry["label"]
+            )
             or (
                 e["label"] == entry["label"]
                 and (

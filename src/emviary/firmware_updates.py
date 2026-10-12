@@ -4,6 +4,7 @@ import json
 import re
 import threading
 import time
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
 import httpx
@@ -79,7 +80,8 @@ class FirmwareUpdates:
             self._expires = time.monotonic() + 600
             return self._releases
 
-    def check(self, policy, current):
+    def check(self, policy, current, now=None, rollback_ready=False):
+        now = now or datetime.now(UTC)
         mode = policy.firmware_updates
         pin = policy.firmware_pinned_version
         result = {"tag_name": current, "assets": [], "update_available": False, "policy": mode}
@@ -98,8 +100,31 @@ class FirmwareUpdates:
                 or (pin and tag != pin)
             ):
                 continue
+            if tag in policy.firmware_blocked_versions:
+                continue
+            if policy.firmware_channel == "stable" and (
+                release.get("prerelease", False) or not candidate[1]
+            ):
+                continue
+            if policy.firmware_rollout_days:
+                try:
+                    published = datetime.fromisoformat(release.get("published_at", ""))
+                    if published.tzinfo is None or now - published < timedelta(
+                        days=policy.firmware_rollout_days
+                    ):
+                        continue
+                except (ValueError, TypeError):
+                    continue
             assets = release.get("assets", [])
             if not isinstance(assets, list):
+                continue
+            if (
+                any(
+                    isinstance(a, dict) and a.get("name") == "requires-rollback-bootloader.txt"
+                    for a in assets
+                )
+                and not rollback_ready
+            ):
                 continue
             for asset in assets[:30]:
                 if isinstance(asset, dict) and valid_asset(asset, tag):

@@ -279,3 +279,36 @@ times per local day/configuration episode with at least 15 minutes between attem
 The existing nightly wake and Docker memory limit stay unchanged.
 
 For full behavior and migration notes see research/REFRESH_FRESHNESS.md.
+
+## Reliability controls (application 0.11.0)
+
+Appearance provides firmware release channels (all or stable), a publication-delay
+window and a blocked-version list. Existing automatic/all/zero-delay defaults
+are retained. Rollback-required releases are offered only after the frame reports
+that its flashed bootloader matches an approved rollback build. Never flash the
+bootloader through ordinary application OTA. USB migration preserves NVS, the
+partition layout and artwork storage; keep a targeted recovery backup first.
+Pending OTA applications confirm only after offline initialization and a bounded
+storage/heap self-test. A reset before confirmation permits bootloader rollback.
+
+Overview alerts account for local scheduled wake plus a 45-minute grace period;
+normal daytime sleep is not an outage. Forecast alerts respect the daily forecast
+date, while preparation/explicit OTA failures clear after recovery. These checks
+use existing telemetry and add no frame wakes.
+
+Special days support nth/last weekday rules and priority (higher wins, saved order
+breaks ties). Exact original movable presets acquire recurring rules on load;
+customized dates are retained. Identical year copies share runtime precedence
+without deleting saved entries. Overlapping customized events show a warning.
+
+Artwork Library supports style, pose, season and panel-review filters and bulk
+rotation/delete controls for selected entries on the current page. Deletion remains
+recoverable. Panel review is an owner assessment; every image starts unreviewed
+until physically checked. Filters and pagination survive actions.
+
+New backups contain streamed file hashes, SQLite integrity checks and a complete
+offline clone restore rehearsal. COMPLETE is published only after successful
+validation. Run `emviary verify-backup PATH` to repeat it without touching live
+state. Existing legacy backups remain available. See [independent backup setup](tools/BACKUPS.md)
+for the private Mac copy and 06:30 daily pull; a sleeping/offline Mac delays that
+copy. Recovery displays local verification and independent-copy timestamps.
