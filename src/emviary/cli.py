@@ -49,6 +49,7 @@ def main():
     backup.add_argument("--output")
     verify = commands.add_parser("verify-backup")
     verify.add_argument("path")
+    verify.add_argument("--temp-dir", help="Writable disk directory for the isolated restore clone")
     provision = commands.add_parser("provision")
     provision.add_argument("id")
     provision.add_argument("--token-file", required=True)
@@ -71,7 +72,7 @@ def main():
         from .backup_validation import verify_backup
 
         try:
-            print(json.dumps(verify_backup(args.path), indent=2))
+            print(json.dumps(verify_backup(args.path, temp_dir=args.temp_dir), indent=2))
         except (ValueError, RuntimeError, OSError) as exc:
             # Verification reports no configuration, credentials or database contents.
             parser.exit(1, "Backup verification failed: " + str(exc) + "\n")

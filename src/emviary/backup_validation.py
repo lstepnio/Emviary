@@ -57,7 +57,7 @@ def unavailable_converter(*args, **kwargs):
     raise RuntimeError("Image preparation is disabled during restore rehearsal")
 
 
-def verify_backup(root, *, require_complete=True):
+def verify_backup(root, *, require_complete=True, temp_dir=None):
     """Validate every payload file, then restore only a clone. Never contact a provider."""
     from .service import Service
     from .settings import Settings
@@ -113,7 +113,9 @@ def verify_backup(root, *, require_complete=True):
     except sqlite3.Error:
         raise ValueError("Backup database cannot be read or has invalid schema") from None
     try:
-        with tempfile.TemporaryDirectory(prefix="emviary-restore-") as temporary:
+        with tempfile.TemporaryDirectory(
+            prefix=".emviary-restore-", dir=Path(temp_dir) if temp_dir else root.parent
+        ) as temporary:
             clone = Path(temporary)
             data = clone / "data"
             data.mkdir()

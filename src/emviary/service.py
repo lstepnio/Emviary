@@ -853,7 +853,8 @@ class Service:
                 (staging / "event-art/manifest.json").write_text("[]\n")
             cache = staging / "active-cache"
             cache.mkdir()
-            with self.store.connect() as db:
+            with sqlite3.connect(database.as_uri() + "?mode=ro&immutable=1", uri=True) as db:
+                db.row_factory = sqlite3.Row
                 images = db.execute("SELECT * FROM images WHERE hidden=0").fetchall()
                 protected_ids = {
                     r[0]
@@ -861,16 +862,20 @@ class Service:
                         "SELECT image_id FROM prepared_slots WHERE image_id IS NOT NULL"
                     )
                 }
-                for frame in self.store.frames():
+                frames = [dict(row) for row in db.execute("SELECT * FROM frames")]
+                protected = db.execute("SELECT * FROM images").fetchall()
+                for frame in frames:
                     protected_ids.update(
                         frame[key]
                         for key in ("active_image_id", "max_delivered_image_id")
                         if frame.get(key) is not None
                     )
-                    delivered = self.delivered_image(frame)
-                    if delivered:
-                        protected_ids.add(delivered["id"])
-                protected = db.execute("SELECT * FROM images").fetchall()
+                    digest = (frame.get("last_served_etag") or "").strip('"')[:64]
+                    protected_ids.update(
+                        image["id"]
+                        for image in protected
+                        if image["frame_id"] == frame["id"] and image["body_hash"] == digest
+                    )
             paths = {
                 name
                 for image in list(images) + [r for r in protected if r["id"] in protected_ids]

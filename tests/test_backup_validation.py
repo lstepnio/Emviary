@@ -138,3 +138,42 @@ def test_unsafe_manifest_path_and_database_reference_fail(service, frame, tmp_pa
     (backup / "integrity-manifest.json").write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="integrity"):
         verify_backup(backup)
+
+
+def test_rehearsal_uses_backup_parent_or_explicit_storage_without_changing_sources(
+    service, tmp_path, monkeypatch
+):
+    import tempfile
+
+    backup = Path(service.backup(tmp_path / "backup"))
+    before = {p.relative_to(backup): file_digest(p) for p in backup.rglob("*") if p.is_file()}
+    live_before = {
+        p.relative_to(service.settings.data_dir): file_digest(p)
+        for p in service.settings.data_dir.rglob("*")
+        if p.is_file()
+    }
+    directories = []
+    actual = tempfile.TemporaryDirectory
+
+    def recording_directory(*args, **kwargs):
+        directories.append(Path(kwargs["dir"]))
+        return actual(*args, **kwargs)
+
+    monkeypatch.setattr(
+        "emviary.backup_validation.tempfile.TemporaryDirectory", recording_directory
+    )
+    assert verify_backup(backup)["restore_rehearsal"] == "passed"
+    alternate = tmp_path / "persistent-rehearsals"
+    alternate.mkdir()
+    assert verify_backup(backup, temp_dir=alternate)["restore_rehearsal"] == "passed"
+    assert directories == [backup.parent, alternate]
+    assert not list(alternate.iterdir())
+    assert not list(backup.parent.glob(".emviary-restore-*"))
+    assert before == {
+        p.relative_to(backup): file_digest(p) for p in backup.rglob("*") if p.is_file()
+    }
+    assert live_before == {
+        p.relative_to(service.settings.data_dir): file_digest(p)
+        for p in service.settings.data_dir.rglob("*")
+        if p.is_file()
+    }
