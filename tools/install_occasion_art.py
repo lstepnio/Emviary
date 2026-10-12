@@ -64,6 +64,8 @@ def stage(service, root, review_dir, frame_id):
             {
                 "slug": slug,
                 "label": item["label"],
+                "source_asset_sha256": item["asset_sha256"],
+                "normalized_art": art,
                 "packed_sha256": digest,
                 "preview": preview.name,
                 "renderer_version": render.RENDER_VERSION,
