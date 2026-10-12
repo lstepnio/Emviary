@@ -1356,11 +1356,18 @@ def attach_owner(app, service):
         )
         pages = max(1, (len(works) + 23) // 24)
         p = min(max(p, 1), pages)
+        return_url = "/manage/artwork?" + urlencode(
+            {"q": q, "status": status, "sort": sort, "p": p}
+        )
+        if str(p) != request.query_params.get("p", "1"):
+            return RedirectResponse(return_url, status_code=303)
         body = (
             '<header class="page-header"><h1>Artwork library</h1>'
             '<p class="page-description">Choose which illustrations can appear in future '
             "compositions. Exclusions leave the artwork already on the frame "
             "unchanged.</p></header>"
+            '<section id="artwork-library" aria-label="Artwork choices">'
+            '<p data-library-feedback role="status" aria-live="polite"></p>'
             '<form class="toolbar" method="get" action="/manage/artwork"><label>Search'
             '<input type="search" name="q" value="'
             + escape(q)
@@ -1414,7 +1421,9 @@ def attach_owner(app, service):
                 else "Reference or review pending"
             )
             body += (
-                '<article class="card library-card"><img class="artwork-thumb" '
+                '<article class="card library-card" data-artwork-id="'
+                + escape(art["id"])
+                + '"><img class="artwork-thumb" '
                 'loading="lazy" src="/art-thumbnail/'
                 + escape(art["id"])
                 + '" alt="'
@@ -1437,10 +1446,13 @@ def attach_owner(app, service):
             )
             if art["approved"]:
                 body += (
-                    '<form method="post" action="/manage/artwork/'
+                    '<form method="post" data-library-action action="/manage/artwork/'
                     + escape(art["id"])
                     + '">'
                     + hidden(auth["csrf"])
+                    + '<input type="hidden" name="return" value="'
+                    + escape(return_url)
+                    + '">'
                     + '<input type="hidden" name="exclude" value="'
                     + ("0" if excluded_art else "1")
                     + '"><button class="secondary">'
@@ -1467,6 +1479,7 @@ def attach_owner(app, service):
                     )
             body += '<span class="quiet">Page ' + str(p) + " of " + str(pages) + "</span></nav>"
         body += '<p><a href="/library">Browse full artwork provenance and licenses</a></p>'
+        body += "</section>"
         return page("Artwork library", body, active="artwork")
 
     @app.post("/manage/artwork/{artwork_id}")
@@ -1489,8 +1502,19 @@ def attach_owner(app, service):
                             a["id"] == artwork_id for a in plan.get("artworks", [plan["artwork"]])
                         ):
                             service.store.request_refill(frame["id"], image["id"])
+        parts = urlsplit(safe_return(data.get("return")))
+        target = "/manage/artwork"
+        if parts.path == target:
+            values = parse_qs(parts.query)
+            params = {k: values[k][-1] for k in ("q", "status", "sort", "p") if k in values}
+            if "p" in params:
+                try:
+                    params["p"] = str(max(1, int(params["p"])))
+                except ValueError:
+                    params["p"] = "1"
+            target += "?" + urlencode(params) if params else ""
         return RedirectResponse(
-            "/manage/artwork", status_code=303, background=BackgroundTask(service.refill_pending)
+            target, status_code=303, background=BackgroundTask(service.refill_pending)
         )
 
     @app.get("/manage/frames/{identifier}/display")

@@ -414,6 +414,35 @@ JAVASCRIPT = r"""
           'Check the current state.');
         return;
       }
+      if (form.hasAttribute('data-library-action')) {
+        const current = document.getElementById('artwork-library');
+        const card = form.closest('[data-artwork-id]');
+        const cards = [...current.querySelectorAll('[data-artwork-id]')];
+        const index = cards.indexOf(card);
+        const top = card.getBoundingClientRect().top;
+        const keys = [card.dataset.artworkId, cards[index + 1]?.dataset.artworkId,
+          cards[index - 1]?.dataset.artworkId];
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const next = doc.getElementById('artwork-library');
+        const target = new URL(response.url);
+        if (next && target.origin === location.origin && target.pathname === '/manage/artwork') {
+          current.replaceWith(next);
+          history.replaceState(null, '', target.pathname + target.search);
+          const freshCards = [...next.querySelectorAll('[data-artwork-id]')];
+          const anchor = keys.map(key => freshCards.find(item => item.dataset.artworkId === key))
+            .find(Boolean) || freshCards[0];
+          next.querySelector('[data-library-feedback]').textContent =
+            card.querySelector('h2').textContent +
+            (data.get('exclude') === '1' ? ' excluded from rotation.' : ' restored to rotation.');
+          if (anchor) {
+            window.scrollBy({top: anchor.getBoundingClientRect().top - top, behavior: 'instant'});
+            anchor.querySelector('button')?.focus({preventScroll: true});
+          } else {
+            next.querySelector('input[type="search"]')?.focus({preventScroll: true});
+          }
+          return;
+        }
+      }
       window.location.assign(response.url);
     } catch {
       announceError('The connection was interrupted. Your entries are still here. ' +
