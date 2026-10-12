@@ -1327,17 +1327,22 @@ def attach_owner(app, service):
         excluded = service.store.excluded_artworks()
         counts = service.store.bird_counts()
         q = q.strip()[:200]
-        status = status if status in {"rotation", "excluded", "reference"} else ""
+        status = status if status in {"rotation", "excluded", "reference", "deleted"} else ""
         sort = sort if sort in {"name", "most", "least"} else "name"
         works = [
             a
-            for a in service.settings.artworks
+            for a in (
+                service.deleted_artwork_entries()
+                if status == "deleted"
+                else service.settings.artworks
+            )
             if q.casefold()
             in " ".join(
                 str(a.get(k, "")) for k in ("common_name", "scientific_name", "credit", "id")
             ).casefold()
             and (
                 not status
+                or status == "deleted"
                 or (status == "excluded" and a["id"] in excluded)
                 or (status == "rotation" and a["approved"] and a["id"] not in excluded)
                 or (status == "reference" and not a["approved"])
@@ -1382,6 +1387,7 @@ def attach_owner(app, service):
                     ("rotation", "In rotation"),
                     ("excluded", "Excluded"),
                     ("reference", "References and review"),
+                    ("deleted", "Deleted artwork"),
                 ],
                 status,
             ),
@@ -1409,12 +1415,30 @@ def attach_owner(app, service):
             'href="/manage/artwork">Reset</a></form>'
             '<p class="quiet">' + str(len(works)) + " artworks match. Species render counts "
             "include successful compositions, including images later removed from history.</p>"
-            '<div class="card-grid">'
         )
+        unused = sum(not a["approved"] or a["id"] in excluded for a in service.settings.artworks)
+        if unused:
+            body += (
+                '<form method="post" action="/manage/artwork/bulk-delete">'
+                + hidden(auth["csrf"])
+                + '<input type="hidden" name="return" value="'
+                + escape(return_url)
+                + '">'
+                + '<button class="danger">Delete all '
+                + str(unused)
+                + " artworks outside rotation</button></form>"
+            )
+        body += (
+            '<p class="quiet">Delete moves artwork to Deleted artwork, where it can be restored. '
+        )
+        body += "The current frame image and rendered history are preserved.</p>"
+        body += '<div class="card-grid">'
         for art in works[(p - 1) * 24 : p * 24]:
             excluded_art = art["id"] in excluded
             label = (
-                "Excluded"
+                "Deleted"
+                if status == "deleted"
+                else "Excluded"
                 if excluded_art
                 else "In rotation"
                 if art["approved"]
@@ -1423,9 +1447,12 @@ def attach_owner(app, service):
             body += (
                 '<article class="card library-card" data-artwork-id="'
                 + escape(art["id"])
-                + '"><img class="artwork-thumb" '
-                'loading="lazy" src="/art-thumbnail/'
-                + escape(art["id"])
+                + '"><img class="artwork-thumb" loading="lazy" src="'
+                + (
+                    "/manage/artwork/" + escape(art["id"]) + "/thumbnail"
+                    if status == "deleted"
+                    else "/art-thumbnail/" + escape(art["id"])
+                )
                 + '" alt="'
                 + escape(art["common_name"])
                 + '"><h2>'
@@ -1444,7 +1471,7 @@ def attach_owner(app, service):
                 + escape(art["source_url"])
                 + '">Source artwork</a></details>'
             )
-            if art["approved"]:
+            if art["approved"] and status != "deleted":
                 body += (
                     '<form method="post" data-library-action action="/manage/artwork/'
                     + escape(art["id"])
@@ -1459,6 +1486,29 @@ def attach_owner(app, service):
                     + ("Restore to rotation" if excluded_art else "Exclude from rotation")
                     + "</button></form>"
                 )
+            operation = "restore" if status == "deleted" else "delete"
+            body += (
+                '<form method="post" data-library-action data-library-message="'
+                + (
+                    " restored to the library."
+                    if status == "deleted"
+                    else " deleted from the library."
+                )
+                + '" action="/manage/artwork/'
+                + escape(art["id"])
+                + "/"
+                + operation
+                + '">'
+                + hidden(auth["csrf"])
+                + '<input type="hidden" name="return" value="'
+                + escape(return_url)
+                + '">'
+                + '<button class="'
+                + ("secondary" if status == "deleted" else "danger")
+                + '">'
+                + ("Restore artwork" if status == "deleted" else "Delete artwork")
+                + "</button></form>"
+            )
             body += "</article>"
         body += "</div>"
         if not works:
@@ -1482,6 +1532,75 @@ def attach_owner(app, service):
         body += "</section>"
         return page("Artwork library", body, active="artwork")
 
+    def artwork_return(data):
+        parts = urlsplit(safe_return(data.get("return")))
+        target = "/manage/artwork"
+        if parts.path == target:
+            values = parse_qs(parts.query)
+            params = {k: values[k][-1] for k in ("q", "status", "sort", "p") if k in values}
+            if "p" in params:
+                try:
+                    params["p"] = str(max(1, int(params["p"])))
+                except ValueError:
+                    params["p"] = "1"
+            target += "?" + urlencode(params) if params else ""
+        return target
+
+    @app.post("/manage/artwork/bulk-delete")
+    async def delete_unused_artworks(request: Request):
+        data = await checked_form(request)
+        excluded = service.store.excluded_artworks()
+        identifiers = [
+            a["id"] for a in service.settings.artworks if not a["approved"] or a["id"] in excluded
+        ]
+        try:
+            service.delete_artworks(identifiers)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from None
+        return RedirectResponse(
+            artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
+    @app.post("/manage/artwork/{artwork_id}/delete")
+    async def delete_library_artwork(artwork_id: str, request: Request):
+        data = await checked_form(request)
+        try:
+            service.delete_artworks([artwork_id])
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from None
+        return RedirectResponse(
+            artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
+        )
+
+    @app.post("/manage/artwork/{artwork_id}/restore")
+    async def restore_library_artwork(artwork_id: str, request: Request):
+        data = await checked_form(request)
+        try:
+            service.restore_artwork(artwork_id)
+        except ValueError as exc:
+            raise HTTPException(404, str(exc)) from None
+        return RedirectResponse(artwork_return(data), status_code=303)
+
+    @app.get("/manage/artwork/{artwork_id}/thumbnail")
+    def deleted_library_thumbnail(artwork_id: str, request: Request):
+        require(request)
+        from .thumbnails import thumbnail_file
+
+        artwork = next(
+            (a for a in service.deleted_artwork_entries() if a["id"] == artwork_id), None
+        )
+        if artwork is None:
+            raise HTTPException(404, "Deleted artwork unavailable")
+        path = service.settings.art_dir / artwork["asset"]
+        stat = path.stat()
+        target, _ = thumbnail_file(
+            str(path),
+            stat.st_mtime_ns,
+            stat.st_size,
+            service.settings.data_dir / "cache" / "thumbnails",
+        )
+        return FileResponse(target, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
     @app.post("/manage/artwork/{artwork_id}")
     async def artwork_rotation(artwork_id: str, request: Request):
         data = await checked_form(request)
@@ -1502,19 +1621,8 @@ def attach_owner(app, service):
                             a["id"] == artwork_id for a in plan.get("artworks", [plan["artwork"]])
                         ):
                             service.store.request_refill(frame["id"], image["id"])
-        parts = urlsplit(safe_return(data.get("return")))
-        target = "/manage/artwork"
-        if parts.path == target:
-            values = parse_qs(parts.query)
-            params = {k: values[k][-1] for k in ("q", "status", "sort", "p") if k in values}
-            if "p" in params:
-                try:
-                    params["p"] = str(max(1, int(params["p"])))
-                except ValueError:
-                    params["p"] = "1"
-            target += "?" + urlencode(params) if params else ""
         return RedirectResponse(
-            target, status_code=303, background=BackgroundTask(service.refill_pending)
+            artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
         )
 
     @app.get("/manage/frames/{identifier}/display")

@@ -91,6 +91,9 @@ class Store:
                     error TEXT
                 );
                 CREATE TABLE IF NOT EXISTS excluded_artworks (id TEXT PRIMARY KEY);
+                CREATE TABLE IF NOT EXISTS deleted_artworks (
+                    id TEXT PRIMARY KEY, deleted_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS bird_render_counts (
                     scientific_name TEXT PRIMARY KEY, common_name TEXT NOT NULL,
                     renders INTEGER NOT NULL
@@ -117,7 +120,7 @@ class Store:
                 );
                 CREATE INDEX IF NOT EXISTS device_samples_frame_time
                     ON device_samples(frame_id, recorded_at);
-                PRAGMA user_version=4;
+                PRAGMA user_version=5;
             """)
 
         with self.connect() as db:

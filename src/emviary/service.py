@@ -37,12 +37,64 @@ class Service:
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
         self.event_art = EventArt(self.settings.data_dir)
+        # Keep the read-only source catalog as recovery data, while the active
+        # catalog excludes persistent owner deletions in SQLite.
+        if not hasattr(self.settings, "source_catalog"):
+            self.settings.source_catalog = self.settings.catalog
+        self.refresh_artwork_library()
+
         with self.store.connect() as db:
             override = db.execute("SELECT value FROM config_overrides WHERE id=1").fetchone()
         if override:
             self.settings.config = Config.model_validate_json(override["value"])
         self.providers = providers or Providers(self.store)
         self.converter = converter or render.convert
+
+    def refresh_artwork_library(self):
+        with self.store.connect() as db:
+            deleted = {r[0] for r in db.execute("SELECT id FROM deleted_artworks")}
+        self.settings.artworks = [
+            a for a in self.settings.source_catalog["artworks"] if a["id"] not in deleted
+        ]
+        self.settings.catalog = {**self.settings.source_catalog, "artworks": self.settings.artworks}
+
+    def deleted_artwork_entries(self):
+        active = {a["id"] for a in self.settings.artworks}
+        return [a for a in self.settings.source_catalog["artworks"] if a["id"] not in active]
+
+    def delete_artworks(self, identifiers):
+        identifiers = set(identifiers)
+        with preparation_lock(self.settings.data_dir):
+            active = {a["id"] for a in self.settings.artworks}
+            if not identifiers <= active:
+                raise ValueError("Unknown artwork")
+            excluded = self.store.excluded_artworks()
+            if identifiers and not any(
+                a["approved"] and a["id"] not in identifiers | excluded
+                for a in self.settings.artworks
+            ):
+                raise ValueError("Keep at least one artwork in rotation")
+            with self.store.connect() as db:
+                db.executemany(
+                    "INSERT OR IGNORE INTO deleted_artworks VALUES(?,?)",
+                    [(identifier, datetime.now(UTC).isoformat()) for identifier in identifiers],
+                )
+            self.refresh_artwork_library()
+            for frame in self.store.frames():
+                image = self.store.active_image(frame)
+                if image:
+                    plan = json.loads(image["manifest"])
+                    if any(a["id"] in identifiers for a in plan.get("artworks", [plan["artwork"]])):
+                        self.store.request_refill(frame["id"], image["id"])
+        return len(identifiers)
+
+    def restore_artwork(self, identifier):
+        with preparation_lock(self.settings.data_dir):
+            if not any(a["id"] == identifier for a in self.deleted_artwork_entries()):
+                raise ValueError("Unknown deleted artwork")
+            with self.store.connect() as db:
+                db.execute("DELETE FROM deleted_artworks WHERE id=?", (identifier,))
+            self.refresh_artwork_library()
 
     def save_configuration(self, value):
         config = Config.model_validate(value)

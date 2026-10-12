@@ -433,7 +433,9 @@ JAVASCRIPT = r"""
             .find(Boolean) || freshCards[0];
           next.querySelector('[data-library-feedback]').textContent =
             card.querySelector('h2').textContent +
-            (data.get('exclude') === '1' ? ' excluded from rotation.' : ' restored to rotation.');
+            (form.dataset.libraryMessage ||
+              (data.get('exclude') === '1' ? ' excluded from rotation.' :
+                ' restored to rotation.'));
           if (anchor) {
             window.scrollBy({top: anchor.getBoundingClientRect().top - top, behavior: 'instant'});
             anchor.querySelector('button')?.focus({preventScroll: true});
