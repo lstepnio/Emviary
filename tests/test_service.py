@@ -165,9 +165,10 @@ def test_missing_input_and_restart_are_idempotent(service, frame):
 
 def test_due_schedule_is_local_and_manual_prepare_does_not_shift_wake(service, frame):
     frame_id, _ = frame
-    first = service.prepare(frame_id, "2026-10-07")
+    service.prepare(frame_id, "2026-10-07")
     service.prepare_due(datetime(2026, 10, 8, 8, 29, tzinfo=UTC))  # 02:29 Denver
-    assert service.store.active_image(service.store.frame(frame_id))["id"] == first["id"]
+    assert service.store.slot_image(frame_id, "scheduled") is None
+    assert service.store.active_image(service.store.frame(frame_id))["local_date"] == "2026-10-08"
     service.prepare_due(datetime(2026, 10, 8, 8, 30, tzinfo=UTC))
     assert service.store.active_image(service.store.frame(frame_id))["local_date"] == "2026-10-08"
     assert json.loads(service.store.frame(frame_id)["policy"])["firmware_rotate_cron"] == ["15 3 *"]

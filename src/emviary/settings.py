@@ -166,6 +166,7 @@ class FramePolicy(Model):
     show_dated_weather_text: bool = False
     show_forecast_temperatures: bool = True
     weather_cues: bool = True
+    weather_max_age_minutes: int = Field(default=120, ge=15, le=1440)
     show_weather_icon: bool = True
     show_weather_condition: bool = True
     wifi_networks: list[WifiNetwork] | None = Field(default=None, max_length=5)

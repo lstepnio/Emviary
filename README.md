@@ -26,7 +26,7 @@ Raspberry Pi or online image generation is required for this POC.
   The frame supports five saved networks total; cloud additions preserve its
   existing connection and apply on the next online artwork fetch.
 - Public homepage mirrors the last image delivered to the selected frame;
-  owner previews show upcoming prepared art separately.
+  owner previews show daily-refresh and next-button art separately.
 - One to three distinct birds, default maximum three, sized for the 800×480 panel, with sparse seasonal
   edges and forecast cues behind the unchanged curated illustrations.
 - Special dates with annual/one-time recurrence, custom greetings, four drawn
@@ -124,7 +124,7 @@ The compact header summarizes the prevailing daylight sky for the dated Denver f
 
 After a firmware image download completes, the backend prepares one new image in the background. The right white button advances to the next saved composition and the left white button returns to the previous one (firmware v0.5.0+), while the automatic 03:15 refresh remains unchanged. Allow a few seconds between wakes for rendering. The public display continues to mirror the image last delivered to the frame; management previews show the prepared next image.
 
-Preview requests do not advance the rotation. Duplicate downloads share one refill, and the persistent queue survives server restarts. Failed renders keep the last good image and retry every 15 minutes, up to three attempts per local day. Nightly preparation still supplies a fresh forecast for the new day. The refill queue works with existing firmware; bidirectional white-button navigation requires v0.5.0 or later. Firmware v0.6.1 keeps white-button scanning active during downloads and panel refreshes. A press during a refresh queues one additional navigation; further presses replace that pending direction rather than accumulating a backlog. A button held through wake is not counted twice. The e-paper refresh itself still takes roughly 30 seconds.
+Preview requests do not advance the rotation. Duplicate downloads share one refill, and the persistent queue survives server restarts. Failed renders keep the last good image and retry every 15 minutes, up to three attempts per local day. Nightly preparation now has a separate daily slot, so an early button buffer cannot satisfy the scheduled job. Forecasts default to a two-hour age limit; expired next-button buffers refresh on the server while the frame sleeps. Historical images keep their original forecasts. If no fresh image is ready, the device keeps its existing picture without waiting for rendering. The refill queue works with existing firmware; bidirectional white-button navigation requires v0.5.0 or later. Firmware v0.6.1 keeps white-button scanning active during downloads and panel refreshes. A press during a refresh queues one additional navigation; further presses replace that pending direction rather than accumulating a backlog. A button held through wake is not counted twice. The e-paper refresh itself still takes roughly 30 seconds.
 
 Management includes an authenticated image-history gallery and artwork rotation controls. Removing a composition excludes it from navigation; the image currently displayed is protected until the frame advances. Excluding source artwork also replaces an upcoming composition that uses it. Neither operation removes attribution. Species render counters count each species once per successful composition, across all frames, and survive history removal/expiry. Existing saved history seeds the initial counters; already expired history cannot be reconstructed.
 
@@ -197,3 +197,5 @@ continues to use original masters. See [UX_REVIEW.md](UX_REVIEW.md) for findings
 acceptance checks, measurements and remaining validation limits.
 
 Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).
+
+See [prepared-image freshness](research/REFRESH_FRESHNESS.md) for scheduling, cache, fallback and verification details.

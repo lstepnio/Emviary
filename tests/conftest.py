@@ -1,5 +1,6 @@
 import gzip
 import hashlib
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -38,7 +39,12 @@ def service(tmp_path):
         art_dir=ROOT / "art",
         backup_dir=tmp_path / "backups",
     )
-    return Service(settings, providers=OfflineProviders(), converter=fake_converter)
+    return Service(
+        settings,
+        providers=OfflineProviders(),
+        converter=fake_converter,
+        clock=lambda: datetime(2026, 10, 8, 16, tzinfo=UTC),
+    )
 
 
 @pytest.fixture

@@ -140,6 +140,7 @@ color:var(--muted)}
 .split,.current-next{display:grid;
 
 grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+.refresh-slots{grid-template-columns:repeat(3,minmax(0,1fr))}
 .toolbar,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}
 .toolbar label{flex:1 1 170px;margin:0}
 .toolbar h2:first-child,.toolbar p:first-child{margin-right:auto}

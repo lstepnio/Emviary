@@ -159,7 +159,7 @@ def test_review_remove_and_exclude_artwork(service, frame, tmp_path, monkeypatch
     )
     assert client.get(f"/manage/images/{next_image['id']}/preview").status_code == 404
     assert service.store.frame(frame_id)["active_image_id"] != next_image["id"]
-    assert service.delivered_image(service.store.frame(frame_id))["id"] == first["id"]
+    assert service.delivered_image(service.store.frame(frame_id))["body_hash"] == first["body_hash"]
     active = service.store.active_image(service.store.frame(frame_id))
     artwork = json.loads(active["manifest"])["artworks"][0]["id"]
     url = "/manage/artwork/" + artwork

@@ -414,7 +414,8 @@ def attach_owner(app, service):
             identifier = escape(frame["id"])
             if view == "manage":
                 delivered = service.delivered_image(frame)
-                ready = service.store.active_image(frame)
+                ready = service.store.slot_image(frame["id"], "navigation")
+                daily = service.store.slot_image(frame["id"], "scheduled")
                 battery = battery_summary(service, frame["id"])
                 body += (
                     '<section class="card"><div class="section-heading"><h2>'
@@ -441,7 +442,7 @@ def attach_owner(app, service):
                     body += (
                         "<span>" + escape(label) + ": <strong>" + escape(value) + "</strong></span>"
                     )
-                body += '</div><div class="current-next"><div><h3>On the frame</h3>'
+                body += '</div><div class="current-next refresh-slots"><div><h3>On the frame</h3>'
                 body += (
                     (
                         '<img class="preview" alt="Last artwork delivered to this frame" '
@@ -455,7 +456,42 @@ def attach_owner(app, service):
                         "picture.</p>"
                     )
                 )
-                body += "</div><div><h3>Ready for next refresh</h3>"
+
+                def readiness(image):
+                    if not image:
+                        return "Waiting for server preparation."
+                    plan = json.loads(image["manifest"])
+                    forecast = plan["inputs"].get("open_meteo", {})
+                    stamp = forecast.get("fetched_at")
+                    state = (
+                        "Ready"
+                        if service.image_usable(image, frame)
+                        else "Waiting for fresh preparation"
+                    )
+                    detail = (
+                        "Forecast updated "
+                        + datetime.fromisoformat(stamp)
+                        .astimezone(
+                            ZoneInfo(service.settings.config.site(frame["site_id"]).timezone)
+                        )
+                        .strftime("%b %d, %I:%M %p")
+                        if stamp
+                        else "Weather omitted"
+                        if policy["weather_cues"]
+                        else "Weather off"
+                    )
+                    return state + " · " + image["local_date"] + " · " + detail
+
+                body += "</div><div><h3>Daily refresh</h3>"
+                body += (
+                    '<img class="preview" alt="Prepared daily artwork" src="/manage/frames/'
+                    + identifier
+                    + '/prepared/scheduled">'
+                    if daily
+                    else '<p class="empty-state">Preparing near the next daily wake.</p>'
+                )
+                body += '<p class="quiet">' + escape(readiness(daily)) + "</p>"
+                body += "</div><div><h3>Next button</h3>"
                 body += (
                     '<img class="preview" alt="Prepared next artwork" src="/manage/frames/'
                     + identifier
@@ -464,9 +500,12 @@ def attach_owner(app, service):
                     else '<p class="empty-state">No picture prepared yet.</p>'
                 )
                 body += (
-                    '</div></div><p class="quiet">Prepared artwork waits for the next '
-                    "wake or next-image button press. This view follows image delivery; "
-                    "it cannot confirm the physical panel.</p>"
+                    '<p class="quiet">' + escape(readiness(ready)) + "</p>"
+                    '</div></div><p class="quiet">Daily refreshes get a separately prepared '
+                    "forecast. The next button uses a ready image; older images keep their "
+                    "original weather when browsing history. If preparation is delayed, the "
+                    "frame keeps its current picture. This view follows delivery and cannot "
+                    "confirm the physical panel.</p>"
                 )
                 if battery["alert"]:
                     body += '<p class="notice" role="alert">' + escape(battery["alert"]) + "</p>"
@@ -593,6 +632,15 @@ def attach_owner(app, service):
                     "Condition text (sunny, etc.)",
                     policy["show_weather_condition"],
                 )
+                body += field(
+                    "weather_max_age",
+                    "Forecast freshness (minutes)",
+                    str(policy["weather_max_age_minutes"]),
+                    "number",
+                    'min="15" max="1440"',
+                )
+                body += '<p class="quiet">Default: 120 minutes. Forecasts refresh on the '
+                body += "server while your frame sleeps.</p>"
                 body += "</div>"
                 body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
                 body += "</fieldset>"
@@ -1649,6 +1697,21 @@ def attach_owner(app, service):
             headers={"Cache-Control": "no-store"},
         )
 
+    @app.get("/manage/frames/{identifier}/prepared/{purpose}")
+    def prepared_preview(identifier: str, purpose: str, request: Request):
+        require(request)
+        service.store.frame(identifier)
+        if purpose not in {"scheduled", "navigation"}:
+            raise HTTPException(404, "Unknown prepared image")
+        record = service.store.slot_image(identifier, purpose)
+        if not record:
+            raise HTTPException(404, "No prepared preview")
+        return FileResponse(
+            service.cache_path(record["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store"},
+        )
+
     @app.post("/manage/frames/{identifier}/settings")
     async def frame_settings(identifier: str, request: Request):
         data = await checked_form(request)
@@ -1669,6 +1732,9 @@ def attach_owner(app, service):
                 show_species_name=data.get("labels") == "on",
                 show_location_name=data.get("location_name", data.get("location_date")) == "on",
                 weather_cues=data.get("weather") == "on",
+                weather_max_age_minutes=int(
+                    data.get("weather_max_age", policy["weather_max_age_minutes"])
+                ),
                 show_weather_icon=data.get("weather_icon") == "on",
                 show_weather_condition=data.get("weather_condition") == "on",
                 show_forecast_temperatures=data.get("forecast_temperatures") == "on",

@@ -255,7 +255,17 @@ class Providers:
             "max_results": site.providers.ebird.max_results if provider == "ebird" else 32,
         }
 
-    def inputs(self, site, local_date, offline=False):
+    def inputs(
+        self,
+        site,
+        local_date,
+        offline=False,
+        *,
+        now=None,
+        weather_max_age_minutes=120,
+        weather_not_before=None,
+    ):
+        now = now or datetime.now(UTC)
         results = {}
         flags = {
             "birdweather": site.providers.birdweather.enabled,
@@ -268,7 +278,17 @@ class Providers:
             cached = self.store.snapshot(site.id, provider, local_date)
             if cached:
                 value = json.loads(cached["payload"])
-                if value.get("scope") == self.scope(site, provider):
+                received = datetime.fromisoformat(value.get("fetched_at", cached["received_at"]))
+                weather_fresh = (
+                    received <= now + timedelta(minutes=5)
+                    and received > now - timedelta(minutes=weather_max_age_minutes)
+                    and (weather_not_before is None or received >= weather_not_before)
+                    and value.get("local_date") == local_date
+                )
+                if value.get("scope") == self.scope(site, provider) and (
+                    provider != "open_meteo" or weather_fresh
+                ):
+                    value["fetched_at"] = received.isoformat()
                     results[provider] = value
                     continue
             if not offline:
@@ -280,7 +300,8 @@ class Providers:
                     else:
                         value = self.forecast(site, local_date)
                     value["scope"] = self.scope(site, provider)
-                    self.store.save_snapshot(site.id, provider, local_date, value)
+                    value["fetched_at"] = now.isoformat()
+                    self.store.save_snapshot(site.id, provider, local_date, value, now.isoformat())
                     results[provider] = value
                     continue
                 except (httpx.HTTPError, ValueError, KeyError, TypeError, OSError) as exc:

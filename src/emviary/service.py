@@ -33,7 +33,8 @@ def preparation_lock(data_dir):
 
 
 class Service:
-    def __init__(self, settings=None, providers=None, converter=None):
+    def __init__(self, settings=None, providers=None, converter=None, clock=None):
+        self.clock = clock or (lambda: datetime.now(UTC))
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
         self.event_art = EventArt(self.settings.data_dir)
@@ -125,12 +126,114 @@ class Service:
             raise ValueError("Cache file is outside the configured cache directory")
         return path
 
-    def _new_plan(self, frame, local_date, revision, profile, offline, special_day_id=None):
+    def configuration_hash(self, frame):
+        policy = FramePolicy.model_validate_json(frame["policy"])
+        site = self.settings.config.site(frame["site_id"])
+        return hashlib.sha256(
+            (
+                render.profile_hash(policy.model_dump(), self.settings.catalog)
+                + stable_json(site.model_dump())
+                + stable_json(sorted(self.store.excluded_artworks()))
+                + stable_json(self.event_art.entries())
+            ).encode()
+        ).hexdigest()
+
+    def image_usable(self, image, frame, now=None, fresh=True):
+        if not image or image.get("hidden"):
+            return False
+        now = now or self.clock()
+        site = self.settings.config.site(frame["site_id"])
+        if image["local_date"] != now.astimezone(ZoneInfo(site.timezone)).date().isoformat():
+            return False
+        plan = json.loads(image["manifest"])
+        if plan.get("configuration_hash", image["profile_hash"]) != self.configuration_hash(frame):
+            return False
+        policy = FramePolicy.model_validate_json(frame["policy"])
+        if not policy.weather_cues or not site.providers.open_meteo.enabled:
+            return True
+        forecast = plan["inputs"].get("open_meteo")
+        if not forecast:
+            # A weather-free image remains an honest fallback for its own day.
+            stamp = plan.get("prepared_at", image["created_at"])
+            return not fresh or now - datetime.fromisoformat(stamp) < timedelta(
+                minutes=policy.weather_max_age_minutes
+            )
+        if forecast.get("local_date") != image["local_date"] or not forecast.get("fetched_at"):
+            return False
+        stamp = datetime.fromisoformat(forecast["fetched_at"])
+        return stamp <= now + timedelta(minutes=5) and now - stamp < timedelta(
+            minutes=policy.weather_max_age_minutes
+        )
+
+    def request_navigation_refresh(self, frame):
+        self.store.request_refill(frame["id"], frame["active_image_id"] or 0)
+
+    def select_image(self, frame, direction, client_tag, now=None):
+        """Only database/cache selection on the wake path; never fetch or render here."""
+        now = now or self.clock()
+        navigation = self.store.slot_image(frame["id"], "navigation")
+        scheduled = self.store.slot_image(frame["id"], "scheduled")
+        digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]
+        with self.store.connect() as db:
+            cursor = db.execute(
+                "SELECT * FROM images WHERE frame_id=? AND body_hash=? ORDER BY id DESC LIMIT 1",
+                (frame["id"], digest),
+            ).fetchone()
+            cursor = dict(cursor) if cursor else None
+        if direction == "previous" and cursor:
+            candidate = self.store.navigation_image(frame, direction, client_tag)
+            if candidate and (
+                candidate["id"] <= cursor["id"] or self.image_usable(candidate, frame, now)
+            ):
+                return candidate, False
+        if direction == "next" and cursor and frame.get("max_delivered_image_id"):
+            candidate = self.store.navigation_image(frame, direction, client_tag)
+            if candidate and cursor["id"] < candidate["id"] <= frame["max_delivered_image_id"]:
+                return candidate, False
+        # An explicitly requested occasion preview takes priority until delivered.
+        if (
+            navigation
+            and json.loads(navigation["manifest"]).get("special_day_test")
+            and self.image_usable(navigation, frame, now)
+        ):
+            return navigation, False
+        choices = [scheduled, navigation] if direction == "latest" else [navigation]
+        for image in choices:
+            if self.image_usable(image, frame, now):
+                return image, False
+        self.request_navigation_refresh(frame)
+        # Do not mislabel an expired forecast as fresh. Prefer a weather-free
+        # same-day fallback, otherwise retain the device's existing bytes (304).
+        for image in choices:
+            if self.image_usable(image, frame, now, fresh=False):
+                return image, False
+        if cursor and not cursor.get("hidden"):
+            return cursor, True
+        return None, False
+
+    def _new_plan(
+        self,
+        frame,
+        local_date,
+        revision,
+        profile,
+        offline,
+        special_day_id=None,
+        now=None,
+        weather_not_before=None,
+    ):
         policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
         policy.pop("wifi_networks", None)
         policy.pop("wifi_forget_ssids", None)
         site = self.settings.config.site(frame["site_id"])
-        inputs = self.providers.inputs(site, local_date, offline=offline)
+        inputs = self.providers.inputs(
+            site,
+            local_date,
+            offline=offline,
+            now=now or self.clock(),
+            weather_max_age_minutes=policy["weather_max_age_minutes"],
+            weather_not_before=weather_not_before,
+        )
         cutoff = (
             date.fromisoformat(local_date) - timedelta(days=policy["repeat_penalty_days"])
         ).isoformat()
@@ -200,6 +303,8 @@ class Service:
             )
         return {
             "frame_id": frame["id"],
+            "configuration_hash": self.configuration_hash(frame),
+            "prepared_at": (now or self.clock()).isoformat(),
             "location_label": "COLORADO" if site.bird_area == "colorado" else "DENVER",
             "local_date": local_date,
             "revision": revision,
@@ -227,7 +332,7 @@ class Service:
     def preview_special_day(self, frame_id, day_id):
         frame = self.store.frame(frame_id)
         site = self.settings.config.site(frame["site_id"])
-        today = datetime.now(ZoneInfo(site.timezone)).date().isoformat()
+        today = self.clock().astimezone(ZoneInfo(site.timezone)).date().isoformat()
         plan = self._new_plan(frame, today, 0, "preview", False, day_id)
         artwork, policy = plan["artwork"], plan["policy"]
         with preparation_lock(self.settings.data_dir), tempfile.TemporaryDirectory() as scratch:
@@ -253,21 +358,27 @@ class Service:
         with preparation_lock(self.settings.data_dir):
             return self._prepare(frame_id, local_date, force, offline)
 
-    def _prepare(self, frame_id, local_date, force, offline, special_day_id=None):
+    def _prepare(
+        self,
+        frame_id,
+        local_date,
+        force,
+        offline,
+        special_day_id=None,
+        purpose="navigation",
+        cycle=None,
+        now=None,
+        weather_not_before=None,
+        reuse_image=None,
+    ):
         frame = self.store.frame(frame_id)
-        policy = FramePolicy.model_validate_json(frame["policy"])
         site = self.settings.config.site(frame["site_id"])
-        local_date = local_date or datetime.now(ZoneInfo(site.timezone)).date().isoformat()
+        now = now or self.clock()
+        local_date = local_date or now.astimezone(ZoneInfo(site.timezone)).date().isoformat()
         date.fromisoformat(local_date)
-        profile = render.profile_hash(policy.model_dump(), self.settings.catalog)
-        profile = hashlib.sha256(
-            (
-                profile
-                + stable_json(site.model_dump())
-                + stable_json(sorted(self.store.excluded_artworks()))
-                + stable_json(self.event_art.entries())
-            ).encode()
-        ).hexdigest()
+        profile = self.configuration_hash(frame)
+        if purpose == "scheduled":
+            profile = hashlib.sha256((profile + ":scheduled:" + cycle).encode()).hexdigest()
         if special_day_id is not None:
             profile = hashlib.sha256((profile + ":test:" + special_day_id).encode()).hexdigest()
         with self.store.connect() as db:
@@ -286,14 +397,34 @@ class Service:
             )
             # A removed image must not satisfy scheduled or retried preparation.
             # Keep its history intact and start a fresh revision instead.
-            if job and not force and not (image and image["hidden"]):
-                plan = json.loads(job["plan"])
+            plan = json.loads(job["plan"]) if job else None
+            forecast = (plan or {}).get("inputs", {}).get("open_meteo")
+            expired = False
+            if forecast:
+                stamp = forecast.get("fetched_at")
+                expired = (
+                    not stamp
+                    or datetime.fromisoformat(stamp) > now + timedelta(minutes=5)
+                    or datetime.fromisoformat(stamp)
+                    <= now
+                    - timedelta(
+                        minutes=FramePolicy.model_validate_json(
+                            frame["policy"]
+                        ).weather_max_age_minutes
+                    )
+                    or (
+                        weather_not_before is not None
+                        and datetime.fromisoformat(stamp) < weather_not_before
+                    )
+                )
+            if job and not force and not expired and not (image and image["hidden"]):
                 if image:
                     cached = self.cache_path(image["path"])
                     if (
                         cached.is_file()
                         and hashlib.sha256(cached.read_bytes()).hexdigest() == image["body_hash"]
                     ):
+                        self._publish_slot(db, frame_id, purpose, image["id"], cycle)
                         return dict(image)
             else:
                 row = db.execute(
@@ -303,7 +434,30 @@ class Service:
                 revision = (row[0] or 0) + 1
                 plan = None
         if plan is None:
-            plan = self._new_plan(frame, local_date, revision, profile, offline, special_day_id)
+            plan = self._new_plan(
+                frame,
+                local_date,
+                revision,
+                profile,
+                offline,
+                special_day_id,
+                now=now,
+                weather_not_before=weather_not_before,
+            )
+            if reuse_image and reuse_image["local_date"] == local_date:
+                old = json.loads(reuse_image["manifest"])
+                if old.get(
+                    "configuration_hash", reuse_image["profile_hash"]
+                ) == self.configuration_hash(frame):
+                    for key in (
+                        "artwork",
+                        "artworks",
+                        "layout",
+                        "seed",
+                        "license",
+                        "artwork_licenses",
+                    ):
+                        plan[key] = old[key]
             with self.store.connect() as db:
                 db.execute(
                     """INSERT INTO jobs(frame_id,local_date,revision,profile_hash,plan,status)
@@ -370,13 +524,13 @@ class Service:
                         preview_path,
                         body_hash,
                         stable_json(plan),
-                        utcnow(),
+                        now.isoformat(),
                     ),
                 )
                 image_id = db.execute(
                     "SELECT id FROM images WHERE frame_id=? AND local_date=? AND revision=?", key
                 ).fetchone()[0]
-                db.execute("UPDATE frames SET active_image_id=? WHERE id=?", (image_id, frame_id))
+                self._publish_slot(db, frame_id, purpose, image_id, cycle)
                 db.execute(
                     """UPDATE jobs SET status='done',finished_at=?,error=NULL
                        WHERE frame_id=? AND local_date=? AND revision=?""",
@@ -392,6 +546,22 @@ class Service:
                     (utcnow(), type(exc).__name__, *key),
                 )
             raise
+
+    def _publish_slot(self, db, frame_id, purpose, image_id, cycle):
+        db.execute(
+            "INSERT INTO prepared_slots(frame_id,purpose,image_id,cycle) VALUES(?,?,?,?) "
+            "ON CONFLICT(frame_id,purpose) DO UPDATE SET "
+            "image_id=excluded.image_id,cycle=excluded.cycle,error=NULL",
+            (frame_id, purpose, image_id, cycle),
+        )
+        if purpose == "scheduled":
+            # Share immutable bytes until this image is consumed; no duplicate render.
+            db.execute(
+                "INSERT INTO prepared_slots(frame_id,purpose,image_id) VALUES(?,'navigation',?) "
+                "ON CONFLICT(frame_id,purpose) DO UPDATE SET image_id=excluded.image_id,error=NULL",
+                (frame_id, image_id),
+            )
+        db.execute("UPDATE frames SET active_image_id=? WHERE id=?", (image_id, frame_id))
 
     def image_delivered(
         self,
@@ -418,22 +588,48 @@ class Service:
             usb_connected,
         )
         self.store.device_sample(frame_id, device_metrics, firmware)
-        self.store.request_refill(frame_id, image_id)
+        with self.store.connect() as db:
+            db.execute(
+                "UPDATE frames SET "
+                "max_delivered_image_id=MAX(COALESCE(max_delivered_image_id,0),?) WHERE id=?",
+                (image_id, frame_id),
+            )
+        try:
+            frame = self.store.frame(frame_id)
+        except ValueError:
+            return  # The owner removed this frame while its download was in flight.
+        if frame["active_image_id"] == image_id:
+            self.store.request_refill(frame_id, image_id)
         self.refill_pending(frame_id=frame_id)
 
     def refill_pending(self, now=None, frame_id=None):
-        now = now or datetime.now(UTC)
+        now = now or self.clock()
         try:
             with preparation_lock(self.settings.data_dir):
                 for request in self.store.pending_refills(frame_id):
                     frame = self.store.frame(request["frame_id"])
                     key = (frame["id"], request["consumed_image_id"])
-                    if frame["active_image_id"] != request["consumed_image_id"]:
+                    if (frame["active_image_id"] or 0) != request["consumed_image_id"]:
                         # A concurrent download or scheduled preparation already refilled it.
                         self.store.complete_refill(*key)
                         continue
                     site = self.settings.config.site(frame["site_id"])
                     local_date = now.astimezone(ZoneInfo(site.timezone)).date().isoformat()
+                    current_profile = self.configuration_hash(frame)
+                    if request.get("request_profile") != current_profile:
+                        with self.store.connect() as db:
+                            db.execute(
+                                "UPDATE image_refills SET request_profile=?,attempts=0,"
+                                "attempt_date=NULL,"
+                                "last_attempt_at=NULL WHERE frame_id=? AND consumed_image_id=?",
+                                (current_profile, *key),
+                            )
+                        request = {
+                            **request,
+                            "attempts": 0,
+                            "attempt_date": None,
+                            "last_attempt_at": None,
+                        }
                     attempts = request["attempts"] if request["attempt_date"] == local_date else 0
                     if attempts >= 3:
                         continue
@@ -452,7 +648,22 @@ class Service:
                             (attempts + 1, local_date, now.isoformat(), *key),
                         )
                     try:
-                        self._prepare(frame["id"], local_date, force=attempts == 0, offline=False)
+                        candidate = self.store.active_image(frame)
+                        reuse = (
+                            candidate
+                            if candidate
+                            and not candidate.get("hidden")
+                            and candidate["id"] > (frame.get("max_delivered_image_id") or 0)
+                            else None
+                        )
+                        self._prepare(
+                            frame["id"],
+                            local_date,
+                            force=attempts == 0,
+                            offline=False,
+                            now=now,
+                            reuse_image=reuse,
+                        )
                         self.store.complete_refill(*key)
                     except Exception as exc:
                         with self.store.connect() as db:
@@ -471,37 +682,106 @@ class Service:
             log.debug("Refill postponed: preparation lock busy")
 
     def prepare_due(self, now=None):
-        now = now or datetime.now(UTC)
-        self.refill_pending(now=now)
+        now = now or self.clock()
         with preparation_lock(self.settings.data_dir):
-            pending = {r["frame_id"] for r in self.store.pending_refills()}
             for frame in self.store.frames():
-                if frame["id"] in pending:
-                    continue
                 site = self.settings.config.site(frame["site_id"])
                 local = now.astimezone(ZoneInfo(site.timezone))
-                local_date = local.date().isoformat()
-                image = self.store.active_image(frame)
-                if image and local.strftime("%H:%M") < site.prepare_local_time:
-                    continue
-                # Retry failed preparation every 15 minutes, with at most three attempts/day.
-                with self.store.connect() as db:
-                    failed = db.execute(
-                        """SELECT * FROM jobs WHERE frame_id=? AND local_date=?
-                           ORDER BY revision DESC LIMIT 1""",
-                        (frame["id"], local_date),
-                    ).fetchone()
-                if failed and failed["status"] == "failed":
-                    if failed["attempts"] >= 3:
-                        continue
-                    if datetime.fromisoformat(failed["finished_at"]) > now - timedelta(minutes=15):
-                        continue
-                try:
-                    self._prepare(frame["id"], local_date, force=False, offline=False)
-                except Exception as exc:
-                    log.error(
-                        "Preparation failed frame=%s error=%s", frame["id"], type(exc).__name__
+                today = local.date()
+                policy = FramePolicy.model_validate_json(frame["policy"])
+
+                def deadline_for(day):
+                    zone = ZoneInfo(site.timezone)
+                    wake = (
+                        datetime.fromisoformat(day.isoformat() + "T" + policy.wake_local_time)
+                        .replace(tzinfo=zone)
+                        .astimezone(UTC)
                     )
+                    preparation_day = day - timedelta(
+                        days=site.prepare_local_time >= policy.wake_local_time
+                    )
+                    configured = (
+                        datetime.fromisoformat(
+                            preparation_day.isoformat() + "T" + site.prepare_local_time
+                        )
+                        .replace(tzinfo=zone)
+                        .astimezone(UTC)
+                    )
+                    recent = wake - timedelta(minutes=min(45, policy.weather_max_age_minutes // 2))
+                    # UTC arithmetic also handles a nonexistent spring-forward prep time.
+                    return max(configured, recent) if configured < wake else recent
+
+                target = today
+                deadline = deadline_for(today)
+                tomorrow = today + timedelta(days=1)
+                if now >= deadline_for(tomorrow):
+                    target = tomorrow
+                    deadline = deadline_for(tomorrow)
+                cycle = (
+                    target.isoformat()
+                    + ":"
+                    + site.prepare_local_time
+                    + ":"
+                    + self.configuration_hash(frame)
+                )
+                state = self.store.slot_state(frame["id"], "scheduled")
+                done = (
+                    state
+                    and state["cycle"] == cycle
+                    and self.store.slot_image(frame["id"], "scheduled")
+                    and not state["error"]
+                )
+                eligible = now >= deadline
+                attempts = state["attempts"] if state and state["cycle"] == cycle else 0
+                retry = not (
+                    attempts >= 3
+                    or (
+                        attempts
+                        and state["last_attempt_at"]
+                        and datetime.fromisoformat(state["last_attempt_at"])
+                        > now - timedelta(minutes=15)
+                    )
+                )
+                if eligible and not done and retry:
+                    with self.store.connect() as db:
+                        db.execute(
+                            "INSERT INTO "
+                            "prepared_slots(frame_id,purpose,cycle,attempts,last_attempt_at) "
+                            "VALUES(?,'scheduled',?,?,?) ON "
+                            "CONFLICT(frame_id,purpose) DO UPDATE SET "
+                            "cycle=excluded.cycle,attempts=excluded.attempts,last_attempt_at=excluded.last_attempt_at,"
+                            "image_id=NULL,error=NULL",
+                            (frame["id"], cycle, attempts + 1, now.isoformat()),
+                        )
+                    try:
+                        self._prepare(
+                            frame["id"],
+                            target.isoformat(),
+                            force=False,
+                            offline=False,
+                            purpose="scheduled",
+                            cycle=cycle,
+                            now=now,
+                            weather_not_before=deadline,
+                        )
+                    except Exception as exc:
+                        with self.store.connect() as db:
+                            db.execute(
+                                "UPDATE prepared_slots SET error=? WHERE "
+                                "frame_id=? AND purpose='scheduled'",
+                                (type(exc).__name__, frame["id"]),
+                            )
+                        log.error(
+                            "Daily preparation failed frame=%s error=%s",
+                            frame["id"],
+                            type(exc).__name__,
+                        )
+                # Expired navigation buffers refresh entirely on the backend.
+                navigation = self.store.active_image(self.store.frame(frame["id"]))
+                if navigation is None:
+                    self.request_navigation_refresh(self.store.frame(frame["id"]))
+                elif not self.image_usable(navigation, self.store.frame(frame["id"]), now):
+                    self.store.request_refill(frame["id"], navigation["id"])
             for site in self.settings.config.sites:
                 local = now.astimezone(ZoneInfo(site.timezone))
                 if local.strftime("%H:%M") >= "03:00":
@@ -511,12 +791,15 @@ class Service:
                         self._prune_backups()
                         self._prune_history(local.date())
 
+        self.refill_pending(now=now)
+
     def _prune_history(self, today):
         cutoff = (today - timedelta(days=30)).isoformat()
         with self.store.connect() as db:
             expired = db.execute(
                 """SELECT * FROM images WHERE local_date<? AND id NOT IN
                    (SELECT active_image_id FROM frames WHERE active_image_id IS NOT NULL)
+                   AND id NOT IN (SELECT image_id FROM prepared_slots WHERE image_id IS NOT NULL)
                    AND NOT EXISTS (SELECT 1 FROM frames WHERE frames.id=images.frame_id AND
                        images.body_hash=substr(trim(frames.last_served_etag,'"'),1,64))""",
                 (cutoff,),

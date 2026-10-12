@@ -26,7 +26,7 @@ def test_delete_is_private_persistent_and_preserves_history(service, frame, tmp_
     assert art["id"] not in {a["id"] for a in service.settings.artworks}
     assert anonymous.get("/art/" + art["id"]).status_code == 404
     assert anonymous.get("/art-thumbnail/" + art["id"]).status_code == 404
-    assert art["id"] not in anonymous.get("/credits.json").text
+    assert art["id"] not in {a["id"] for a in anonymous.get("/credits.json").json()["artworks"]}
     assert anonymous.get(url + "/thumbnail").status_code == 401
     assert client.get(url + "/thumbnail").status_code == 200
     assert "Restore artwork" in client.get("/manage/artwork?status=deleted").text

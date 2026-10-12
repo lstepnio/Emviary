@@ -262,3 +262,20 @@ life is not yet established; use a complete battery-powered cycle to assess it.
 Firmware v0.6.0 uses internal LittleFS and disables SD albums and SD `wifi.txt`
 provisioning in this Emviary E1002 profile. Green-button web recovery, config
 imports, Wi-Fi networks, image downloads, OTA and the 03:15 schedule remain.
+
+## Daily refresh and button freshness
+
+Overview separates On the frame, Daily refresh and Next button. In Appearance,
+Forecast freshness defaults to 120 minutes. The server prepares the daily image
+near the configured wake, fetching weather again after the preparation deadline.
+An early next-button image never marks the daily cycle complete. Expired unused
+next images refresh on the server while preserving the selected birds and layout.
+
+Previous images retain their original weather. If new weather is unavailable,
+new art can omit weather. If no eligible image is ready, the service sends 304 to
+retain the recognized client image, or 503/Retry-After 300 without a client cursor.
+It never renders synchronously during a frame image request. Failures retry three
+times per local day/configuration episode with at least 15 minutes between attempts.
+The existing nightly wake and Docker memory limit stay unchanged.
+
+For full behavior and migration notes see research/REFRESH_FRESHNESS.md.

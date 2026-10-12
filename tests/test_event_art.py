@@ -19,7 +19,6 @@ def image_bytes():
 def test_occasion_preview_queues_exact_panel_with_current_weather(
     service, frame, tmp_path, monkeypatch
 ):
-    from datetime import datetime
     from zoneinfo import ZoneInfo
 
     entry = service.event_art.upload(image_bytes(), "Fall", "Owner")
@@ -41,10 +40,11 @@ def test_occasion_preview_queues_exact_panel_with_current_weather(
     service.store.telemetry(frame[0], None, "test", "", first["body_hash"])
     service.prepare(frame[0], force=True, offline=True)  # Earlier ordinary buffered image.
     site = service.settings.config.site("denver-gift")
-    today = datetime.now(ZoneInfo(site.timezone)).date().isoformat()
+    today = service.clock().astimezone(ZoneInfo(site.timezone)).date().isoformat()
     weather = {
         "open_meteo": {
             "local_date": today,
+            "fetched_at": service.clock().isoformat(),
             "values": dict(
                 weather_code=0,
                 daylight_weather_code=0,

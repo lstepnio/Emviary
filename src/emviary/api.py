@@ -147,12 +147,8 @@ def create_app(service=None, schedule=True):
         direction = request.headers.get("x-image-navigation", "latest")
         if direction not in {"latest", "previous", "next"}:
             raise HTTPException(400, "Unknown image navigation direction")
-        record = (
-            service.store.active_image(frame)
-            if direction == "latest"
-            else service.store.navigation_image(
-                frame, direction, request.headers.get("if-none-match", "")
-            )
+        record, retain = service.select_image(
+            frame, direction, request.headers.get("if-none-match", "")
         )
         if not record:
             raise HTTPException(503, "No prepared image", headers={"Retry-After": "300"})
@@ -200,12 +196,15 @@ def create_app(service=None, schedule=True):
             if firmware
             else None
         )
-        headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
-        if etag_matches(client_tag, tag):
-            return Response(status_code=304, headers=headers, background=background)
         payload = config_payload(frame)
         if len(payload.encode()) > 1900:
             raise HTTPException(503, "Configuration exceeds the firmware header limit")
+        headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
+        if retain or etag_matches(client_tag, tag):
+            headers["X-Config-Payload"] = payload
+            if retain:
+                headers["X-Image-Readiness"] = "retained; refreshing on server"
+            return Response(status_code=304, headers=headers, background=background)
         headers["X-Config-Payload"] = payload
         return FileResponse(
             path, media_type="application/octet-stream", headers=headers, background=background

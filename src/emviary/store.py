@@ -120,10 +120,34 @@ class Store:
                 );
                 CREATE INDEX IF NOT EXISTS device_samples_frame_time
                     ON device_samples(frame_id, recorded_at);
-                PRAGMA user_version=5;
+                CREATE TABLE IF NOT EXISTS prepared_slots (
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    purpose TEXT NOT NULL CHECK(purpose IN ('scheduled','navigation')),
+                    image_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
+                    cycle TEXT, attempts INTEGER NOT NULL DEFAULT 0,
+                    last_attempt_at TEXT, error TEXT,
+                    PRIMARY KEY(frame_id,purpose)
+                );
+                PRAGMA user_version=6;
             """)
 
         with self.connect() as db:
+            frame_columns = {row[1] for row in db.execute("PRAGMA table_info(frames)")}
+            if "max_delivered_image_id" not in frame_columns:
+                db.execute("ALTER TABLE frames ADD COLUMN max_delivered_image_id INTEGER")
+                db.execute(
+                    "UPDATE frames SET max_delivered_image_id=(SELECT MAX(id) FROM images "
+                    "WHERE frame_id=frames.id AND "
+                    "body_hash=substr(trim(frames.last_served_etag,'\"'),1,64))"
+                )
+            refill_columns = {row[1] for row in db.execute("PRAGMA table_info(image_refills)")}
+            if "request_profile" not in refill_columns:
+                db.execute("ALTER TABLE image_refills ADD COLUMN request_profile TEXT")
+            db.execute(
+                "INSERT OR IGNORE INTO prepared_slots(frame_id,purpose,image_id) "
+                "SELECT id,'navigation',active_image_id FROM frames "
+                "WHERE active_image_id IS NOT NULL"
+            )
             columns = {row[1] for row in db.execute("PRAGMA table_info(images)")}
             if "hidden" not in columns:
                 db.execute("ALTER TABLE images ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
@@ -154,6 +178,22 @@ class Store:
     def excluded_artworks(self):
         with self.connect() as db:
             return {r[0] for r in db.execute("SELECT id FROM excluded_artworks")}
+
+    def slot_state(self, frame_id, purpose):
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT * FROM prepared_slots WHERE frame_id=? AND purpose=?", (frame_id, purpose)
+            ).fetchone()
+        return dict(row) if row else None
+
+    def slot_image(self, frame_id, purpose):
+        with self.connect() as db:
+            row = db.execute(
+                "SELECT i.* FROM prepared_slots s JOIN images i ON i.id=s.image_id "
+                "WHERE s.frame_id=? AND s.purpose=? AND i.hidden=0",
+                (frame_id, purpose),
+            ).fetchone()
+        return dict(row) if row else None
 
     def navigation_image(self, frame, direction, client_tag):
         digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]
@@ -397,10 +437,10 @@ class Store:
                 ).fetchone()
         return dict(row) if row else None
 
-    def save_snapshot(self, site_id, provider, local_date, payload):
+    def save_snapshot(self, site_id, provider, local_date, payload, received_at=None):
         with self.connect() as db:
             db.execute(
                 """INSERT OR REPLACE INTO provider_snapshots
                    VALUES(?,?,?,?,?)""",
-                (site_id, provider, local_date, stable_json(payload), utcnow()),
+                (site_id, provider, local_date, stable_json(payload), received_at or utcnow()),
             )
