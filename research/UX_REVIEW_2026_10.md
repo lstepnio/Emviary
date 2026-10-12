@@ -158,3 +158,18 @@ Temporary viewport overrides were cleared. Browser security policy prevented
 opening Chrome’s internal zoom settings; the localhost test origin may retain
 200% native zoom and can be reset manually with Cmd+0. The live Emviary origin
 was verified at its unchanged normal zoom.
+
+Final deployment verified October 12: application **0.12.1**, image
+`emviary:poc-042`, runtime commit `4125b7b96df6b558d8de44154ce6f57e53892a57`,
+image ID `sha256:5fff1f835da9d5aad76aba1c225665770908b99c7842a02ed2d0cec77da73663`.
+The runtime commit passed [GitHub CI](https://github.com/lstepnio/Emviary/actions/runs/38321280211)
+and all 200 local tests. Health returns 0.12.1. Saved policy hashes and collection
+counts match the pre-deployment backup: 169 active artworks, 45 recoverably deleted
+artworks and 27 event artworks; the saved wake remains 04:15. The 512 MiB memory
+and 1 GiB memory-plus-swap limits are unchanged. Public and authenticated browser
+checks confirm compact cards, no credit/provenance UI, and secondary frame history.
+The built 0.12.0 Docker image also passed an offline isolated test of the real
+converter, authenticated draft, exact-byte queue and frame fetch; the subsequent
+0.12.1 refinement changes presentation and original-image review, not conversion.
+No physical panel refresh or firmware installation was performed for this review.
+The live proof is `.private/ux-review-20261012/deployed-library-final.png`.
