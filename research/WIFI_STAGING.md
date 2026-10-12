@@ -82,3 +82,28 @@ reported all five to the authenticated cloud settings UI. The original single
 profile and its saved password were restored; the image URL, nightly cron, frame
 token-presence flag and deep-sleep setting were unchanged. The final refresh
 reported the restored list. Automatic firmware updates remain enabled.
+
+## Prominent local inventory, v0.7.7
+
+The lightweight E1002 recovery page shows every configured network in a compact
+ordered inventory before the editing controls. Each entry identifies the SSID,
+current connection and saved-password presence. **Reload saved networks** reads
+the device's current inventory; it does not scan, reconnect or modify profiles.
+**Edit networks** expands the existing staging controls. Password values remain
+write-only, and cloud-staged changes appear after an artwork fetch.
+
+The firmware update is distributed through the GitHub E1002 release workflow and
+installed through the authenticated local **Check firmware** / **Install offered
+update** actions, or the configured automatic wake update. Installation verification
+requires the device to report the new version after reboot, followed by a normal
+artwork fetch to synchronize the saved-network inventory with cloud management.
+
+Release verification (2026-10-12): all 70 web tests, web lint and production build
+passed; GitHub E1002 build `38310031099` succeeded. Release v0.7.7 is firmware
+commit `96851684cc79e2a3a7231e7d4d5d4dfc148a6f0a`, with a 1,561,664-byte application
+and SHA-256 `0d4035662d24838fc8cf918a4fb0ac25b48b512750a1ae1a18fc22788011ec44`.
+The partition table matches v0.7.6. The authenticated production firmware endpoint
+offers this exact release to v0.7.6. The latest observed v0.7.6 inventory already
+contains both CenturyLink0604 and inet.majjix.com with saved passwords. Physical
+OTA installation remains pending until the frame is reachable; release availability
+alone does not establish installation or panel behavior.
