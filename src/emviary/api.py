@@ -237,7 +237,7 @@ def create_app(service=None, schedule=True):
 
     @app.get("/art-thumbnail/{artwork_id}")
     def artwork_thumbnail(artwork_id: str, request: Request):
-        from .thumbnails import thumbnail
+        from .thumbnails import thumbnail_file
 
         artwork = next((a for a in service.settings.artworks if a["id"] == artwork_id), None)
         if not artwork:
@@ -247,7 +247,12 @@ def create_app(service=None, schedule=True):
             raise HTTPException(404, "Artwork unavailable")
         try:
             stat = path.stat()
-            body, tag = thumbnail(str(path), stat.st_mtime_ns, stat.st_size)
+            body, tag = thumbnail_file(
+                str(path),
+                stat.st_mtime_ns,
+                stat.st_size,
+                service.settings.data_dir / "cache" / "thumbnails",
+            )
         except (OSError, ValueError):
             raise HTTPException(503, "Artwork thumbnail unavailable") from None
         headers = {
@@ -257,7 +262,7 @@ def create_app(service=None, schedule=True):
         }
         if etag_matches(request.headers.get("if-none-match", ""), tag):
             return Response(status_code=304, headers=headers)
-        return Response(body, media_type="image/jpeg", headers=headers)
+        return FileResponse(body, media_type="image/jpeg", headers=headers)
 
     @app.get("/credits.json")
     def credits():

@@ -6,6 +6,7 @@ import os
 import random
 import shutil
 import subprocess
+from contextlib import closing
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
@@ -140,8 +141,9 @@ def choose_artworks(
 
 
 def artwork_aspect(art_dir, artwork):
-    with Image.open(art_dir / artwork["asset"]) as image:
-        box = image.convert("RGBA").getchannel("A").getbbox()
+    with closing(Image.open(art_dir / artwork["asset"])) as image:
+        with closing(image.convert("RGBA")) as rgba, closing(rgba.getchannel("A")) as alpha:
+            box = alpha.getbbox()
         if not box:
             raise ValueError("Artwork is entirely transparent")
         return (box[2] - box[0]) / (box[3] - box[1])
@@ -343,9 +345,13 @@ def draw_occasion_art(draw, theme):
 
 
 def compose(art_dir, artwork, plan, output, event_art_dir=None):
+    with closing(Image.new("RGBA", (800, 480), "#ffffff")) as canvas:
+        _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir)
+
+
+def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir):
     date = plan["local_date"]
     season = season_for(int(date[5:7]))
-    canvas = Image.new("RGBA", (800, 480), "#ffffff")
     draw = ImageDraw.Draw(canvas)
     draw.rectangle((8, 8, 791, 471), outline="#333333", width=1)
     occasion = plan.get("special_day")
@@ -431,17 +437,21 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
             and hashlib.sha256(asset_path.read_bytes()).hexdigest() != item["asset_sha256"]
         ):
             raise ValueError("Event artwork does not match its reviewed image")
-        with Image.open(asset_path) as original:
-            bird = original.convert("RGBA")
-            box = bird.getchannel("A").getbbox()
-            if not box:
-                raise ValueError("Artwork is entirely transparent")
-            bird = ImageOps.contain(
-                bird.crop(box), (right - left, bottom - top), Image.Resampling.LANCZOS
-            )
-            x = left + (right - left - bird.width) // 2
-            y = top + (bottom - top - bird.height) // 2
-            canvas.alpha_composite(bird, (x, y))
+        with closing(Image.open(asset_path)) as original:
+            with closing(original.convert("RGBA")) as rgba:
+                with closing(rgba.getchannel("A")) as alpha:
+                    box = alpha.getbbox()
+                if not box:
+                    raise ValueError("Artwork is entirely transparent")
+                with closing(rgba.crop(box)) as cropped:
+                    with closing(
+                        ImageOps.contain(
+                            cropped, (right - left, bottom - top), Image.Resampling.LANCZOS
+                        )
+                    ) as bird:
+                        x = left + (right - left - bird.width) // 2
+                        y = top + (bottom - top - bird.height) // 2
+                        canvas.alpha_composite(bird, (x, y))
         draw = ImageDraw.Draw(canvas)
         if policy["show_species_name"] and not item.get("event_only"):
             font, lines = fitted_lines(
@@ -504,7 +514,8 @@ def compose(art_dir, artwork, plan, output, event_art_dir=None):
         "eink_neutral_bands",
         json.dumps([[0, 48], [divider if event_image else (328 if occasion else 420), 480]]),
     )
-    canvas.convert("RGB").save(output, format="PNG", pnginfo=metadata)
+    with closing(canvas.convert("RGB")) as rgb:
+        rgb.save(output, format="PNG", pnginfo=metadata)
 
 
 def validate_epdgz(path, width=800, height=480):
@@ -566,10 +577,11 @@ def preserve_paper_white(source, target):
     # Palette tone adjustment can dither even untouched white paper into
     # colored speckles. Keep exactly white source pixels as the panel's white
     # ink. Colored art, antialiasing and decorative marks retain conversion.
-    with Image.open(source) as image:
+    with closing(Image.open(source)) as image:
         if image.size != (800, 480):
             raise ValueError("Invalid source dimensions")
-        pixels = image.convert("RGB").tobytes()
+        with closing(image.convert("RGB")) as rgb:
+            pixels = rgb.tobytes()
     with gzip.open(target, "rb") as handle:
         packed = bytearray(handle.read(192001))
     if len(packed) != 192000:
@@ -585,10 +597,11 @@ def preserve_paper_white(source, target):
 def preserve_neutral_graphics(source, target):
     # Text and fine rules should use black/white ink, not photo color diffusion.
     # These bands exclude all bird cells and seasonal botanical artwork.
-    with Image.open(source) as image:
+    with closing(Image.open(source)) as image:
         if image.size != (800, 480):
             raise ValueError("Invalid source dimensions")
-        pixels = image.convert("RGB").tobytes()
+        with closing(image.convert("RGB")) as rgb:
+            pixels = rgb.tobytes()
         bands = json.loads(image.info.get("eink_neutral_bands", "[[0,48],[420,480]]"))
         if any(
             not isinstance(b, list) or len(b) != 2 or not 0 <= b[0] < b[1] <= 480 for b in bands
@@ -632,7 +645,8 @@ def panel_preview(target, preview):
     indices = bytes(n for byte in packed for n in (byte >> 4, byte & 15))
     if set(indices) - INK_CODES:
         raise ValueError("Invalid packed preview colors")
-    image = Image.frombytes("P", (800, 480), indices)
-    palette = [channel for n in range(256) for channel in colors.get(n, (0, 0, 0))]
-    image.putpalette(palette)
-    image.convert("RGB").save(preview, "JPEG", quality=95, subsampling=0)
+    with closing(Image.frombytes("P", (800, 480), indices)) as image:
+        palette = [channel for n in range(256) for channel in colors.get(n, (0, 0, 0))]
+        image.putpalette(palette)
+        with closing(image.convert("RGB")) as rgb:
+            rgb.save(preview, "JPEG", quality=95, subsampling=0)
