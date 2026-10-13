@@ -95,8 +95,8 @@ export class RecoveryController {
         if(['wrong_device','wrong_board','usb_disconnected','cancelled','port_busy','operation_busy','not_ready'].includes(fault.code)) throw fault;
         // Sleeping/slow-starting applications are challenged again after one
         // bounded wake, before entering ROM or considering firmware repair.
-        if(fault.code !== 'boot_unverified' && this.operations.reset && !this.ledger.wake) {
-          this.ledger.wake = 1; this.emit('booting','reset');
+        if(fault.code !== 'boot_unverified' && this.operations.reset) {
+          this.ledger.wake = (this.ledger.wake || 0) + 1; this.emit('booting','reset');
           await this.op('reset',{wakeOnly:true});
           for(let probe=0;probe<2 && !hello;probe++) {
             try {hello = await this.probeBoot();}
@@ -118,7 +118,6 @@ export class RecoveryController {
         }
         this.emit('booting','hello');
         for(let attempt = 0;attempt < 2 && !hello;attempt++) {
-          if((this.ledger.reset || 0) >= 3) break;
           await this.op('reset');
           try {hello = await this.probeBoot();} catch(e) {if(['wrong_device','wrong_board','usb_disconnected','cancelled','operation_busy','not_ready'].includes(classifyRecoveryError(e).code)) throw e;}
         }

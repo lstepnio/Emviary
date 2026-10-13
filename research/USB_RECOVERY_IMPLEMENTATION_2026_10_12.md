@@ -18,9 +18,9 @@ Recovery UART commands, temporary leases and bounded checkpoints are specific to
 
 ## Release and evidence
 
-Service: 0.15.3. Firmware candidate: v0.8.6, source `dd9a973bff4de055af9e3c9b8350a53d1930c473`, official ESP-IDF v6.0 build [38352231006](https://github.com/lstepnio/Emviary-firmware/actions/runs/38352231006). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
+Service candidate: 0.15.4. Firmware candidate: v0.8.6, source `dd9a973bff4de055af9e3c9b8350a53d1930c473`, official ESP-IDF v6.0 build [38352231006](https://github.com/lstepnio/Emviary-firmware/actions/runs/38352231006). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
 
-274 backend tests and 95 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
+274 backend tests and 98 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
 
 The first live v0.15.0 check exposed closed UART reuse after a timeout, before any firmware writes. v0.15.1 recreates closed UART transports automatically, with a real timeout regression test. Terminal failed/paused flows release their browser renewal timer so the server lease expires when idle.
 
@@ -31,3 +31,7 @@ v0.8.6 removes synchronous NVS, filesystem and charger work from the UART respon
 The service can register a new validated boot under the same active recovery session. It requires owner authorization, CSRF, matching device identity, firmware and immutable bundle; old image/cloud/panel evidence is cleared. Pending configuration credentials survive the transition. An unknown first-use device is tentative until an authenticated frame request establishes durable identity.
 
 The v0.8.6 run verified the downloaded body with a correlated cloud image acknowledgment. Panel completion was not established before a serial reply timeout. Service0.15.3 now preserves an open UART after a completed read-only STATUS write whose reply times out, and retries polling within the original connection deadline. Pending writes, cancellation and disconnection still release the port. This prevents a missing status reply from triggering an early reset during refresh.
+
+Continuing a previously attempted session now receives one bounded wake and two post-verification restart attempts per run, while retaining the ten-minute overall active budget, identity constraints and three firmware-transfer attempts. Lifetime wake/reset counts remain metrics rather than preventing a later verified restart.
+
+The E1002 enables automatic light sleep, which gates peripheral interrupts unless a suitable wake source or power-management lock is held. Recovery had guarded deep sleep but had no corresponding light-sleep guard. A v0.8.7 candidate adds an explicit recovery-only lock and fixed UART clock configuration; normal scheduled battery operation must remain unchanged. See [ESP-IDF power management](https://docs.espressif.com/projects/esp-idf/en/v6.0/esp32s3/api-reference/system/power_management.html).
