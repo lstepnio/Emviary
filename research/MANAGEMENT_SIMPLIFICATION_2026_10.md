@@ -55,3 +55,32 @@ The firmware publication race produced immutable v0.8.2 before the final timesta
 optimization. It was preserved; final recovery and the firmware lock use v0.8.3.
 
 The application can receive v0.8.3 through ordinary OTA with its approved existing rollback bootloader. OTA retains bootloader console output; the new silent bootloader requires USB recovery. ROM startup messages may still appear. No new physical firmware installation or browser USB flash is claimed by these software checks.
+
+## Deployed acceptance
+
+Application 0.13.0 is deployed on `one.majjix.com` as `emviary:poc-043`, image
+`sha256:33ddedbba5107294f85de67a45f889bf9f0971275e7114b3ff51bc2d1a05e740`,
+from application commit `92782bff75e710795fb9390de39a9f90731fdacd`.
+[GitHub checks](https://github.com/lstepnio/Emviary/actions/runs/38327741421)
+passed both the full Python suite and the reproducible browser-recovery build/tests.
+The service is healthy and reports 0.13.0; its 512 MiB memory limit is unchanged.
+Only Emviary was recreated. The consistent database, previous compose/source,
+release metadata and special-day artwork backups are in
+`/docker/backups/emviary/release-poc-043`.
+
+Post-deployment comparison verified all saved frame policies except the requested
+new management-network flag, plus all 169 active artworks, 45 recoverable deleted
+artworks, 27 special-day artworks and the existing calendar. Emily retains 63 species,
+her Wi-Fi profiles and 04:15 Denver wake. Management network access is enabled;
+logging remains off. Caddy's exact TCP peer `172.18.0.5/32` is the only trusted proxy.
+Network access begins after a real authenticated frame image request, never a
+fabricated contact or browser-supplied frame identity.
+
+Live browser checks verified 24 to 96 loaded artwork cards with no duplicates,
+hidden pagination and preserved filtering, the combined Special days artwork
+collection, and the USB installer downloading and verifying v0.8.3 before USB access.
+Public gallery and Settings also passed 390 CSS-pixel overflow checks. No live
+artwork mutations were needed for these checks. The USB browser flow has not been
+physically flashed and the new five-second hold has not been physically verified.
+The release is available through normal OTA; installation is independently checked
+through device telemetry rather than inferred from release publication.
