@@ -39,7 +39,7 @@ existing temporary directory and are deleted afterward. No second frame request,
 full image transfer or persistent alternate image is needed.
 
 The patch is stored in both the immutable image manifest and the retry job plan.
-Rendering failure cannot publish an image, and retries preserve the chosen plan.
+Main image rendering failure cannot publish an image, and retries preserve the chosen plan. Optional neutral-tile conversion failure preserves ordinary delivery but omits offline admission metadata.
 Admission binds metadata to the complete compressed EPDGZ SHA256 and requires a
 complete verified body plus successful display. The original body remains intact.
 

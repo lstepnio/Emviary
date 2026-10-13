@@ -1,6 +1,6 @@
 # Offline rotation proposal
 
-Status: proposal only. No firmware, service or frame settings changed.
+Status: accepted proposal, now implemented. See OFFLINE_ROTATION_IMPLEMENTATION_2026_10_13.md for release validation and adjustments found during hardware testing.
 
 ## Product behavior
 

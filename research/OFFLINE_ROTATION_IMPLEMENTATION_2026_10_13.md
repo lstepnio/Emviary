@@ -1,6 +1,6 @@
 # Weather-safe offline rotation implementation
 
-Firmware candidate v0.8.9, service candidate 0.16.0. No extra scheduled wakes.
+Current candidate: firmware v0.8.10 and service 0.16.1. Initial deployment and hardware validation used v0.8.9 and service 0.16.0. No extra scheduled wakes.
 
 Normal 200 downloads opt in to bounded metadata, preserving legacy EPDGZ bodies and recovery SHA. The backend quantizes a weather-free composition with the production converter and extracts an exact packed header tile. It excludes all special-day artwork/messages. Optional tile preparation failure preserves ordinary image delivery but prevents admission.
 
@@ -12,6 +12,9 @@ Season metadata prefers current-season or evergreen art. If all alternatives are
 
 Last cloud success and offline state remain distinct. Offline pixels never claim the original cloud ETag. Cache count/bytes and mode piggyback on normal telemetry. The website identifies the last cloud-confirmed picture and explains that an offline local rotation is not a live mirror. Device health displays compact last-reported cache details.
 
-Validation so far: 254 firmware host tests including real filesystem fault scenarios; local v0.8.9 SDK build passed with 55 percent OTA slot free. Focused backend tests cover exact six-color extraction, all weather differences within the source tile, special-day exclusion, legacy compatibility, optional converter failure and bounded retries. Official firmware CI, full backend suite, deployment, OTA and physical outage acceptance pending.
+Validation so far: 254 firmware host tests including real filesystem fault scenarios; local v0.8.9 SDK build passed with 55 percent OTA slot free. Focused backend tests cover exact six-color extraction, all weather differences within the source tile, special-day exclusion, legacy compatibility, optional converter failure and bounded retries. Official ESP-IDF 6 CI run 38435315937 passed; all 297 backend tests and service CI passed. Service 0.16.0 (`emviary:poc-062`, source `395bb4ecaae4bb861adc0ecae5f6cbf6995fb4bf`) is deployed and healthy with the unchanged 512 MiB limit. Saved policies and artwork collection counts match the standard independent pre-deployment backup. Production composition 225 has valid SHA-bound metadata (300 bytes) and an exact 10,440-byte inflated tile. Browser recovery packages verified v0.8.9 parts. OTA and physical outage acceptance pending.
 
 Battery behavior is verified structurally; charging interval and energy savings are not measured without power equipment. No normal debug logging or full frame backup added.
+
+
+Hardware validation of v0.8.9 confirmed weather removal. A 45-second cloud pause resumed ordinary cloud delivery instead of testing fallback, revealing that async socket timeout was not an idle deadline. A stopped-service test forced cached display; the owner confirmed weather absent but right appeared inactive. Reconnection telemetry showed the cache count dropped from three to one after wake. Shipped LittleFS registers stat but not access; cleanup interpreted unsupported access as a missing sidecar and deleted prior complete pairs while the RAM index still counted them. The v0.8.10 hardening candidate uses stat, deletes only confirmed missing sidecars, adds the actual unsupported-operation host fixture, and retains the offline navigation consumer through sleep commitment. It also aborts stalled requests after 15 seconds without another idle retry. Physical retest is pending.
