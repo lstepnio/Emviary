@@ -617,6 +617,48 @@ def attach_owner(app, service):
                     "frame keeps its current picture. This view follows delivery and cannot "
                     "confirm the physical panel.</p>"
                 )
+                past = (
+                    service.store.past_compositions(frame["id"], delivered["id"], 10)
+                    if delivered
+                    else []
+                )
+                body += '<section class="past-compositions"><h3>Past compositions</h3>'
+                body += (
+                    '<p class="quiet">Browse the pictures before the current '
+                    "composition, newest first.</p>"
+                )
+                if not past:
+                    body += (
+                        '<p class="empty-state">Past compositions will appear after your '
+                        "frame changes pictures.</p>"
+                    )
+                else:
+
+                    def past_cards(images):
+                        return (
+                            '<div class="current-next">'
+                            + "".join(
+                                '<figure><img class="preview" loading="lazy" '
+                                'alt="Past composition from '
+                                + escape(image["local_date"])
+                                + '" src="/manage/images/'
+                                + str(image["id"])
+                                + '/preview"><figcaption>'
+                                + escape(image["local_date"])
+                                + "</figcaption></figure>"
+                                for image in images
+                            )
+                            + "</div>"
+                        )
+
+                    body += past_cards(past[:2])
+                    if len(past) > 2:
+                        body += (
+                            "<details><summary>More past compositions</summary>"
+                            + past_cards(past[2:])
+                            + "</details>"
+                        )
+                body += "</section>"
                 if battery["alert"]:
                     body += '<p class="notice" role="alert">' + escape(battery["alert"]) + "</p>"
                 body += (

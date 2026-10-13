@@ -204,6 +204,17 @@ class Store:
             ).fetchone()
         return dict(row) if row else None
 
+    def past_compositions(self, frame_id, current_id, limit=2):
+        with self.connect() as db:
+            return [
+                dict(row)
+                for row in db.execute(
+                    "SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id<? "
+                    "ORDER BY id DESC LIMIT ?",
+                    (frame_id, current_id, min(10, max(1, limit))),
+                )
+            ]
+
     def navigation_image(self, frame, direction, client_tag):
         digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]
         with self.connect() as db:

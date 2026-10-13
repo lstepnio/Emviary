@@ -44,3 +44,20 @@ def test_owner_preview_is_last_delivered_not_prepared(service, frame, tmp_path, 
         },
     )
     assert client.get("/manage/frames/" + frame[0] + "/display").status_code == 401
+
+
+def test_overview_past_compositions_follow_current_and_hide_removed(
+    service, frame, tmp_path, monkeypatch
+):
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    images = [service.prepare(frame[0], "2026-10-08", offline=True, force=True) for _ in range(4)]
+    service.store.telemetry(frame[0], 80, "v0.8.4", "demo", images[2]["body_hash"])
+    home = client.get("/manage").text
+    assert "Past compositions" in home
+    assert "/manage/images/" + str(images[1]["id"]) + "/preview" in home
+    assert "/manage/images/" + str(images[0]["id"]) + "/preview" in home
+    assert "/manage/images/" + str(images[3]["id"]) + "/preview" not in home
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (images[1]["id"],))
+    home = client.get("/manage").text
+    assert "/manage/images/" + str(images[1]["id"]) + "/preview" not in home

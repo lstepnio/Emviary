@@ -162,7 +162,8 @@ if (panel) {
     if (busy || !bundle) return;
     try {
       // Port selection is the browser's unavoidable permission step, directly from a click.
-      const selected = await navigator.serial.requestPort();
+      setStatus('In the port picker, select USB Serial (usbserial, CH340 or a COM number), then click Connect.');
+      const selected = await navigator.serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
       await run(selected);
     } catch (error) {
       setStatus(error.name === 'NotFoundError' ? 'No frame selected. Nothing was changed.' :
@@ -185,7 +186,7 @@ if (panel) {
         'Your artwork and special days on Emviary will stay unchanged.')) return;
     let nvs;
     try {
-      const selected = port || await navigator.serial.requestPort();
+      const selected = port || await navigator.serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
       busy = true; update();
       const response = await fetch('/manage/session', {cache: 'no-store'});
       if (!response.ok) throw new Error('Sign in again before restoring cloud settings.');

@@ -233,6 +233,18 @@ def panel(frame):
         '<ol class="recovery-steps" aria-label="Recovery progress">'
         '<li data-usb-step="prepare">Prepare</li><li data-usb-step="restore">Restore</li>'
         '<li data-usb-step="connect">Connect</li><li data-usb-step="finish">Check picture</li></ol>'
+        '<ol aria-label="USB connection instructions">'
+        "<li>Turn the frame’s power switch on and connect it to this laptop with a "
+        "USB data cable. Close other apps using the frame’s USB connection.</li>"
+        "<li>Choose <strong>Recover frame</strong> below. In the browser’s port picker, "
+        "select <strong>USB Serial</strong> (its name may include <strong>usbserial</strong>, "
+        "<strong>CH340</strong> or a <strong>COM</strong> number), then click "
+        "<strong>Connect</strong>.</li>"
+        "<li>Leave USB connected and do not press the frame’s buttons while writing. "
+        "When prompted, check that the picture is visible and choose "
+        "<strong>Yes, finish recovery</strong> before unplugging.</li></ol>"
+        '<p class="quiet">No USB entry? Cancel the picker, reconnect the cable and try '
+        "another data cable or USB port. Do not select Bluetooth or a debug console.</p>"
         '<div class="actions"><button type="button" data-usb-start disabled>'
         "Recover frame</button></div>"
         '<progress max="100" value="0" hidden aria-label="Firmware recovery progress"></progress>'
