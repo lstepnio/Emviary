@@ -23,4 +23,14 @@ A thread heartbeat checks stored recovery checkpoints and service health every f
 
 ## Validation
 
-282 backend tests pass, including incomplete-proof rejection, explicit failure state, successful same-picture retry, and idempotent completion. 117 full browser/controller tests passed, including serial ownership, delayed cloud confirmation, lost completion response, changed boot/image proof, idle disconnect and reconnection, heartbeat serialization, and an operation longer than the former finish timeout. Live end-to-end completion is pending the candidate service 0.15.6 deployment. Firmware remains v0.8.7.
+282 backend tests pass, including incomplete-proof rejection, explicit failure state, successful same-picture retry, and idempotent completion. 117 full browser/controller tests passed, including serial ownership, delayed cloud confirmation, lost completion response, changed boot/image proof, idle disconnect and reconnection, heartbeat serialization, and an operation longer than the former finish timeout. Service 0.15.6 (`emviary:poc-060`, source `934c70b678a0cf51592787615b596b73396fcac4`) was deployed and verified with the unchanged 512 MiB limit, saved policies and artwork counts. GitHub CI passed. Firmware remains v0.8.7.
+
+## Live result
+
+The actual browser check used v0.8.7 without firmware writes. It requested picture 219 at 14:57:42 UTC, verified its digest at 14:57:46 UTC, and received panel acknowledgment at 14:58:17 UTC. Two pending cloud-proof reads were retried without another BEGIN, image delivery or reset. The owner confirmed the picture matched and remained stable.
+
+The browser immediately showed Finishing recovery and disabled duplicate confirmation presses. It then reached Your frame is ready. The backend durably recorded completion and physical confirmation at 15:00:19 UTC. USB and ownership were released through the normal browser path, without an administrative completion workaround.
+
+The frame's prepared-next pointer was 220, while the actual delivered image resolved from last_served_etag remained 219. Those are intentionally different roles. The public/overview delivery record matched the recovered picture; no delivery-pointer change was needed.
+
+Monitoring cadence was updated at the owner's request to every five minutes for 24 hours (288 checks), using existing cloud records only. Normal firmware logging and wake behavior are unchanged.
