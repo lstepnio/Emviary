@@ -19,7 +19,7 @@ class Node {
   setAttribute(k,v){this.attributes[k]=v;}removeAttribute(k){delete this.attributes[k];}append(node){this.children.push(node);}
 }
 async function flush(){for(let i=0;i<20;i++)await new Promise(resolve=>setImmediate(resolve));}
-async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure=false,legacy=false,hangStatus=false,hangWrite=false,initializing=false,invalidConfig=false,autoSettings=false,unsupported=false,prepareFailures=0,settingsDetail=null,restorePictureFailure=false}={}) {
+async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure=false,legacy=false,hangStatus=false,hangWrite=false,initializing=false,invalidConfig=false,autoSettings=false,unsupported=false,prepareFailures=0,settingsDetail=null,restorePictureFailure=false,delayedStatus=false}={}) {
   const nodes=new Map();
   for(const selector of new Set(template.match(/data-usb-[a-z-]+/g)))nodes.set('['+selector+']',new Node());
   nodes.set('progress',new Node());
@@ -41,6 +41,7 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
     writable:{getWriter:()=>({abort:async()=>{},releaseLock(){},write:async bytes=>{
       const text=new TextDecoder().decode(bytes),match=/^!EMV1:(\d+):(\d+):/.exec(text),request=JSON.parse(text.slice(match[0].length,text.lastIndexOf(':')));commands.push(request);timeline.push({kind:'uart',cmd:request.cmd});
       if(hangStatus&&request.cmd==='STATUS')return;
+      if(delayedStatus&&request.cmd==='STATUS'&&statusCount++===0)return;
       if(appLegacy&&request.cmd==='HELLO')return;
       if(request.cmd==='BEGIN_RECOVERY'){active=true;sessionId=request.session_id;nonce=request.nonce;}
       if(request.cmd==='END_RECOVERY'){active=false;sessionId='';nonce='';}
@@ -75,7 +76,7 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
     async writeFlash(options){writeStarted=true;options.reportProgress?.(0,1,2);if(hangWrite)await new Promise(resolve=>resolveWrite=resolve);appLegacy=false;if(options.fileArray?.[0].address===0x9000)configured=true;}
   }
   class EsptoolTransport {constructor(device){this.device=device;}async write(){}async read(){return new Uint8Array(Buffer.from(createHash('md5').update(new Uint8Array(16384)).digest('hex'),'hex'));}async disconnect(){await this.device.close();}}
-  class BrowserUart extends RecoveryTransport {async command(cmd,fields,options){return super.command(cmd,fields,appLegacy&&cmd==='HELLO'?{...options,timeoutMs:5}:options);}}
+  class BrowserUart extends RecoveryTransport {async command(cmd,fields,options){return super.command(cmd,fields,(appLegacy&&cmd==='HELLO')||(delayedStatus&&cmd==='STATUS')?{...options,timeoutMs:5}:options);}}
   const context={...core,RecoveryController,RecoveryFault,boundedOperation,RecoveryTransport:BrowserUart,renderRecovery,ESPLoader:Loader,Transport:EsptoolTransport,
     SparkMD5:{ArrayBuffer:{hash:data=>createHash('md5').update(new Uint8Array(data)).digest('hex')}},
     loadRecovery:async()=>{preparationAttempts++;if(preparationAttempts<=prepareFailures)throw new RecoveryFault('service_error','temporary download failure',{retryable:true});return {manifest:{version:'0.8.5'},files:[{address:0x20000,data:new Uint8Array([1,2])}]};},
@@ -116,3 +117,5 @@ test('persisted settings-attempt marker prevents automatic NVS replacement repea
 test('real UART timeout closes streams then entrypoint recreates transport and reaches scoped ROM repair',async()=>{const b=await browser({legacy:true});await b.click('[data-usb-start]');assert.equal(b.writeStarted,true);assert.equal(b.commands.filter(command=>command.cmd==='HELLO').length>=4,true);assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');assert.equal(b.nodes.get('[data-usb-wake-panel]').hidden,true);assert.equal(b.opened,false);await b.click('[data-usb-good]');assert.equal(b.panel.dataset.recoveryState,'finished');});
 
 test('verified boot proof is posted before UART BEGIN after legacy firmware reset and repair',async()=>{const b=await browser({legacy:true});await b.click('[data-usb-start]');const proof=b.requests.find(request=>request.url.endsWith('/boot'));assert.equal(proof.method,'POST');assert.equal(proof.fields.csrf,'csrf');assert.equal(proof.fields.boot_id,'boot');assert.equal(proof.fields.device_id,'aabbccddeeff');assert.equal(proof.fields.firmware,'0.8.5');assert.equal(proof.fields.bundle_sha256,'a'.repeat(64));const before=b.timeline.findIndex(item=>item.kind==='http'&&item.url.endsWith('/boot')),begin=b.timeline.findIndex(item=>item.kind==='uart'&&item.cmd==='BEGIN_RECOVERY');assert.equal(before>=0&&before<begin,true);assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');await b.click('[data-usb-good]');});
+
+test('real entrypoint delays one readonly STATUS reply and continues same session without another BEGIN or HELLO',async()=>{const b=await browser({delayedStatus:true});await b.click('[data-usb-start]');assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');assert.equal(b.commands.filter(command=>command.cmd==='BEGIN_RECOVERY').length,1);assert.equal(b.commands.filter(command=>command.cmd==='HELLO').length,1);assert.equal(b.commands.filter(command=>command.cmd==='STATUS').length,2);assert.equal(b.writeStarted,false);await b.click('[data-usb-good]');assert.equal(b.panel.dataset.recoveryState,'finished');});

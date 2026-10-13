@@ -55,12 +55,14 @@ export class RecoveryTransport {
     if(this.closed) throw new RecoveryFault('usb_disconnected','USB is not open.',{retryable:false});
     if(this.pending) throw new RecoveryFault('protocol_busy','Another UART request is active.',{retryable:false});
     const sequence = ++this.sequence;
+    let writeCompleted = false;
     try {
       return await boundedOperation(async requestSignal => {
         const reply = new Promise((resolve,reject) => {this.pending={sequence,resolve,reject};requestSignal.addEventListener('abort',()=>reject(requestSignal.reason),{once:true});});
         // Attach rejection handling before starting I/O, including timeout races.
         reply.catch(()=>{});
         await this.writer.write(encodeRecoveryFrame(sequence,{cmd,...fields}));
+        writeCompleted = true;
         const result = await reply;
         if(['operation_busy','not_ready'].includes(result.error)) throw new RecoveryFault(result.error,result.error === 'operation_busy' ? 'The frame is completing another operation. Recovery will wait.' : 'The frame is still starting.',{retryable:true});
         if(result.error === 'session_mismatch' || result.error === 'session_conflict') throw new RecoveryFault(result.error,'Another or expired recovery session is active.',{retryable:false});
@@ -68,9 +70,12 @@ export class RecoveryTransport {
         return result;
       },timeoutMs,{signal,clock:this.clock,operation:cmd});
     } catch(error) {
-      // A timed-out stream may still be writing. Release it before allowing ROM
-      // entry or another UART command, so late I/O cannot cross operation boundaries.
-      if(error.code === 'timeout' || error.code === 'cancelled' || signal?.aborted) await this.close();
+      // A pending write must be released on timeout. A completed, read-only
+      // STATUS request can leave its reader open and discard a late sequence.
+      // Cancellation or a lost device always releases streams.
+      const readonlyReplyTimeout = cmd === 'STATUS' && writeCompleted && error.code === 'timeout' && !signal?.aborted;
+      if(readonlyReplyTimeout) {error.replyTimeout=true;error.writeCompleted=true;}
+      else if(error.code === 'timeout' || error.code === 'cancelled' || error.code === 'usb_disconnected' || signal?.aborted) await this.close();
       throw error;
     } finally {this.pending=null;}
   }

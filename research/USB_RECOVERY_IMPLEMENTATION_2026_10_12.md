@@ -18,9 +18,9 @@ Recovery UART commands, temporary leases and bounded checkpoints are specific to
 
 ## Release and evidence
 
-Service candidate: 0.15.2. Firmware candidate: v0.8.6, source `dd9a973bff4de055af9e3c9b8350a53d1930c473`, official ESP-IDF v6.0 build [38352231006](https://github.com/lstepnio/Emviary-firmware/actions/runs/38352231006). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
+Service: 0.15.3. Firmware candidate: v0.8.6, source `dd9a973bff4de055af9e3c9b8350a53d1930c473`, official ESP-IDF v6.0 build [38352231006](https://github.com/lstepnio/Emviary-firmware/actions/runs/38352231006). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
 
-274 backend tests and 89 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
+274 backend tests and 95 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
 
 The first live v0.15.0 check exposed closed UART reuse after a timeout, before any firmware writes. v0.15.1 recreates closed UART transports automatically, with a real timeout regression test. Terminal failed/paused flows release their browser renewal timer so the server lease expires when idle.
 
@@ -29,3 +29,5 @@ The next hardware test verified v0.8.5 firmware-region repair and application st
 v0.8.6 removes synchronous NVS, filesystem and charger work from the UART responder and uses a zero-wait OTA state read. Bounded RAM diagnostics expose download progress and ACK status; allocation/bounds failures return explicit errors instead of silently dropping replies. This removes identified blocking paths but does not prove the cause of the incomplete v0.8.5 run. Normal operation retains quiet logging.
 
 The service can register a new validated boot under the same active recovery session. It requires owner authorization, CSRF, matching device identity, firmware and immutable bundle; old image/cloud/panel evidence is cleared. Pending configuration credentials survive the transition. An unknown first-use device is tentative until an authenticated frame request establishes durable identity.
+
+The v0.8.6 run verified the downloaded body with a correlated cloud image acknowledgment. Panel completion was not established before a serial reply timeout. Service0.15.3 now preserves an open UART after a completed read-only STATUS write whose reply times out, and retries polling within the original connection deadline. Pending writes, cancellation and disconnection still release the port. This prevents a missing status reply from triggering an early reset during refresh.

@@ -146,7 +146,16 @@ export class RecoveryController {
       this.ledger.pipeline = (this.ledger.pipeline || 0) + 1;
       try {
       do {
-        status = await this.op('status',{},Math.max(1,networkEnd-this.clock.now())); this.checkBoot(status);
+        try {status = await this.op('status',{},Math.max(1,networkEnd-this.clock.now()));}
+        catch(error) {
+          if(error.code === 'timeout' && error.replyTimeout && error.writeCompleted && !this.abort.signal.aborted && this.clock.now() < networkEnd) {
+            this.emit('connecting','status',status,error);
+            await this.delay(Math.min(1500,Math.max(1,networkEnd-this.clock.now())));
+            continue;
+          }
+          throw error;
+        }
+        this.checkBoot(status);
         if(status.boot_id !== this.verified.boot || status.session_id !== this.sessionId || status.nonce !== this.nonce || !status.active) throw new RecoveryFault('session_mismatch','The frame recovery session changed.',{retryable:false});
         this.emit('connecting','status',status);
         const failed = status.error && !['none','ok','ESP_OK'].includes(status.error);
@@ -171,7 +180,7 @@ export class RecoveryController {
         if(status.wifi_connected && status.cloud === 'authenticated' && status.image === 'verified' && status.panel === 'complete') break;
         await this.delay(Math.min(1500,Math.max(1,networkEnd-this.clock.now())));
       } while(this.clock.now() < networkEnd);
-      if(!(status.wifi_connected && status.cloud === 'authenticated' && status.image === 'verified' && status.panel === 'complete')) throw new RecoveryFault('network_timeout','The connection or picture could not be verified. Firmware remains verified.',{retryable:false});
+      if(!(status?.wifi_connected && status.cloud === 'authenticated' && status.image === 'verified' && status.panel === 'complete')) throw new RecoveryFault('network_timeout','The connection or picture could not be verified. Firmware remains verified.',{retryable:false});
       cloud = await this.op('cloud',{bootId:this.verified.boot,imageSha256:status.image_sha256,imageId:status.image_id},Math.max(1,networkEnd-this.clock.now()));
       if(cloud?.session_verified !== true || cloud?.connected !== true) throw new RecoveryFault('cloud_unverified','Emviary has not acknowledged this recovery session.',{retryable:false});
       break;
