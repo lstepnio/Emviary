@@ -13,7 +13,9 @@ def test_catalog_filters_and_pagination_preserve_new_context(service, tmp_path, 
         for a in artworks
         if a.get("style") == example["style"] and a.get("pose") == example["pose"]
     ]
-    assert f"{len(matching)} artworks match" in result.text
+    assert result.text.count('<article class="card library-card artwork-card"') == min(
+        24, len(matching)
+    )
     assert 'name="style"' in result.text and 'name="pose"' in result.text
     assert "Pose not recorded" in result.text
     result = client.get("/manage/artwork?season=winter&review=unreviewed&sort=least")

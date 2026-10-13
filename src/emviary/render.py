@@ -90,7 +90,11 @@ def choose_artworks(
     artworks, local_date, inputs, recent_species, seed, policy, recent_manifests=()
 ):
     capacity = min(policy.get("max_birds", 3), 3)
-    candidates = [a for a in artworks if a.get("depicted_birds", 1) <= capacity]
+    candidates = [
+        a
+        for a in artworks
+        if a.get("category", "bird") == "bird" and a.get("depicted_birds", 1) <= capacity
+    ]
     recent_artworks = [a["id"] for m in recent_manifests for a in m.get("artworks", [m["artwork"]])]
     recent_styles = [
         a.get("style") for m in recent_manifests[:2] for a in m.get("artworks", [m["artwork"]])
@@ -413,7 +417,12 @@ def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir):
     event_image = len(birds) == 1 and birds[0].get("event_only")
     if event_image and (not occasion or not event_art_dir):
         raise ValueError("Event art requires a selected special day")
-    if not event_image and not 1 <= count <= min(3, policy.get("max_birds", 3)):
+    wildlife_image = len(birds) == 1 and birds[0].get("category") == "wildlife"
+    if (
+        not event_image
+        and not wildlife_image
+        and not 1 <= count <= min(3, policy.get("max_birds", 3))
+    ):
         raise ValueError("The panel supports at most three birds")
     if any(a.get("kind", "cutout") != "cutout" for a in birds) and len(birds) != 1:
         raise ValueError("Historical plates require their own composition")

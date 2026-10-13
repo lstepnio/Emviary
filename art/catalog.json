@@ -8380,6 +8380,761 @@
       "composition_max_birds": 3,
       "identification_url": "https://www.allaboutbirds.org/guide/Yellow-billed_Cuckoo/id",
       "provenance_file": "provenance/ai-color-cutouts/manifest.json"
+    },
+    {
+      "id": "emviary-wildlife-raccoon-v1",
+      "common_name": "Raccoon",
+      "scientific_name": "Procyon lotor",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/raccoon-v1.png",
+      "asset_sha256": "f7f8362780f8a61cce2969d88fcec0abcfea4f447f96bd48d2b2da7bf4eb02a6",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mule-deer-v1",
+      "common_name": "Mule Deer",
+      "scientific_name": "Odocoileus hemionus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "habitats": [
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/mule-deer-v1.png",
+      "asset_sha256": "35df6f81cdeed91b71e0902b5e067375b82034291da6ae6eab755d265ffe99c7",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-coyote-v1",
+      "common_name": "Coyote",
+      "scientific_name": "Canis latrans",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "habitats": [
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/coyote-v1.png",
+      "asset_sha256": "55ba327c6a95c22c48fbb87c51a23f348bab15fe91bf65e5b713da9c7b8113f0",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-red-fox-v1",
+      "common_name": "Red Fox",
+      "scientific_name": "Vulpes vulpes",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "grassland",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "grassland",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/red-fox-v1.png",
+      "asset_sha256": "2710217c2e3952b168f316463f03541a0c7bab2e9968615d5b8a16a46756df24",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-elk-v1",
+      "common_name": "Elk",
+      "scientific_name": "Cervus canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "mountain-meadow",
+        "woodland"
+      ],
+      "habitats": [
+        "mountain-meadow",
+        "woodland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/elk-v1.png",
+      "asset_sha256": "d7cdab639b7220d604a780aecdea12f3e9d68f21ab9f43c6f4162a8689027053",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-bear-v1",
+      "common_name": "Black Bear",
+      "scientific_name": "Ursus americanus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "asset": "wildlife/black-bear-v1.png",
+      "asset_sha256": "43cc4ed25d10ddababc1327310f59ce4cac608bbaface3bd5e4b3d708e89e913",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bobcat-v1",
+      "common_name": "Bobcat",
+      "scientific_name": "Lynx rufus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/bobcat-v1.png",
+      "asset_sha256": "539a992a10d62fcc939bff4e4ec9084650a3c0080d620e9b72e8f62ef44225d6",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-beaver-v1",
+      "common_name": "Beaver",
+      "scientific_name": "Castor canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "riparian",
+        "wetland"
+      ],
+      "habitats": [
+        "riparian",
+        "wetland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/beaver-v1.png",
+      "asset_sha256": "bcf0e6de7f38a44ec1505d2d3d1ab33df1158378ff293293a555d9cbd3b4580e",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bighorn-sheep-v1",
+      "common_name": "Bighorn Sheep",
+      "scientific_name": "Ovis canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "rocky-mountain",
+        "alpine"
+      ],
+      "habitats": [
+        "rocky-mountain",
+        "alpine"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/bighorn-sheep-v1.png",
+      "asset_sha256": "1069d594f732d054002d0c97ee32ba5332c7b88647c47924af3dabb6e588f5c7",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-pronghorn-v1",
+      "common_name": "Pronghorn",
+      "scientific_name": "Antilocapra americana",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "plains"
+      ],
+      "habitats": [
+        "grassland",
+        "plains"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/pronghorn-v1.png",
+      "asset_sha256": "1453dfce1efa3eef7dd1bc64be90c28941fda8bb3e40fcac2f6a938a3a8c460e",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-american-pika-v1",
+      "common_name": "American Pika",
+      "scientific_name": "Ochotona princeps",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "talus"
+      ],
+      "habitats": [
+        "alpine",
+        "talus"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/american-pika-v1.png",
+      "asset_sha256": "63ac2626a357c8c973138759556d5fe4dfcc9f28bd1982bde72ad6ff22c922fe",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-yellow-bellied-marmot-v1",
+      "common_name": "Yellow-bellied Marmot",
+      "scientific_name": "Marmota flaviventris",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "mountain-meadow"
+      ],
+      "habitats": [
+        "alpine",
+        "mountain-meadow"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/yellow-bellied-marmot-v1.png",
+      "asset_sha256": "cac071a034d18d20f4ad6d3a6ddb3057085fed316a654f501c56939be6a2a6eb",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/colorado-wildlife/manifest.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation, text-only",
+      "credit": "Original illustration created for Emviary; Colorado wildlife references: Colorado Parks and Wildlife.",
+      "review_status": "Identity, silhouette and actual 800x480 six-color packed preview screened; physical panel review pending",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [

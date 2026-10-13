@@ -52,6 +52,57 @@ def legacy_preset_recurrence(entry):
     return None
 
 
+def preset_calendar_rule(entry):
+    """Recognize original preset dates, including the old fixed-repeat mistake.
+
+    Custom IDs, headings and deliberately changed dates are not normalized.
+    """
+    for month, weekday, ordinal, label in MOVABLE_PRESETS:
+        slug = "".join(c.lower() if c.isalnum() else "-" for c in label).strip("-")
+        base = "preset-" + slug[:35]
+        identifier = entry.get("id", "")
+        if entry.get("label") != label:
+            continue
+        if identifier != base:
+            suffix = identifier.removeprefix(base + "-")
+            if not identifier.startswith(base + "-") or not suffix.isdigit():
+                continue
+            if not 2020 <= int(suffix) <= 2100:
+                continue
+        rule = dict(kind="nth_weekday", month=month, weekday=weekday, ordinal=ordinal)
+        original = date.fromisoformat(entry["date"])
+        if original == weekday_date(original.year, rule):
+            return rule
+    return None
+
+
+def normalize_preset_calendar(entries):
+    """Merge equivalent dated presets, retaining settings and original survivor ID.
+
+    Different artwork, greetings, themes or priorities remain distinct. An enabled
+    copy keeps the merged holiday enabled. This is explicit cleanup, not a read-time
+    migration of user-customized dates.
+    """
+    result, positions = [], {}
+    for entry in entries:
+        rule = preset_calendar_rule(entry)
+        normalized = {**entry, "annual": True, "recurrence": rule} if rule else dict(entry)
+        if not rule:
+            result.append(normalized)
+            continue
+        key = json.dumps(
+            {k: v for k, v in normalized.items() if k not in {"id", "date", "enabled"}},
+            sort_keys=True,
+        )
+        if key in positions:
+            survivor = result[positions[key]]
+            survivor["enabled"] = survivor.get("enabled", True) or entry.get("enabled", True)
+        else:
+            positions[key] = len(result)
+            result.append(normalized)
+    return result
+
+
 def special_day_date(entry, year):
     if entry.get("recurrence"):
         return weekday_date(year, entry["recurrence"])
@@ -81,7 +132,7 @@ def effective_special_days(entries, year):
     """
     groups, positions = {}, []
     for entry in entries:
-        inferred = legacy_preset_recurrence(entry)
+        inferred = preset_calendar_rule(entry)
         if inferred and inferred == entry.get("recurrence"):
             key = json.dumps(
                 {k: v for k, v in entry.items() if k not in {"id", "date"}}, sort_keys=True
@@ -211,8 +262,6 @@ class EventArt:
 
 
 def event_presets(group, year):
-    from datetime import date, timedelta
-
     from .settings import SpecialDay
 
     if not 2020 <= year <= 2100:
@@ -239,40 +288,29 @@ def event_presets(group, year):
     }
     if group not in fixed:
         raise ValueError("Choose holidays or seasons")
-    dates = [(date(year, m, d), label, True) for m, d, label in fixed[group]]
+    dates = [(date(year, m, d), label, None) for m, d, label in fixed[group]]
     if group == "holidays":
-        for month, weekday, ordinal, label in [
-            (1, 0, 3, "Martin Luther King Jr. Day"),
-            (2, 0, 3, "Presidents' Day"),
-            (5, 6, 2, "Mother's Day"),
-            (6, 6, 3, "Father's Day"),
-            (9, 0, 1, "Labor Day"),
-            (11, 3, 4, "Thanksgiving"),
-        ]:
-            first = date(year, month, 1)
-            dates.append(
-                (
-                    first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (ordinal - 1)),
-                    label,
-                    False,
-                )
-            )
-        last = date(year, 6, 1) - timedelta(days=1)
-        dates.append((last - timedelta(days=last.weekday()), "Memorial Day", False))
+        for month, weekday, ordinal, label in MOVABLE_PRESETS:
+            rule = dict(kind="nth_weekday", month=month, weekday=weekday, ordinal=ordinal)
+            dates.append((weekday_date(year, rule), label, rule))
     result = []
-    for when, label, annual in dates:
+    for when, label, rule in dates:
         slug = "".join(c.lower() if c.isalnum() else "-" for c in label).strip("-")
-        identifier = "preset-" + slug[:35] + ("" if annual else f"-{year}")
         result.append(
             SpecialDay(
-                id=identifier, date=when.isoformat(), label=label, annual=annual, enabled=False
+                id="preset-" + slug[:35],
+                date=when.isoformat(),
+                label=label,
+                annual=True,
+                recurrence=rule,
+                enabled=False,
             ).model_dump()
         )
     return result
 
 
 def import_presets(existing, group, year):
-    result = list(existing)
+    result = normalize_preset_calendar(existing)
     for entry in event_presets(group, year):
         if not any(
             e["id"] == entry["id"]

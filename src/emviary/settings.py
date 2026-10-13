@@ -203,6 +203,7 @@ class FramePolicy(Model):
         pattern=r"^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
     )
     max_birds: Literal[1, 2, 3] = 3
+    wildlife_per_month: Literal[0, 2] = 0
     special_days: list[SpecialDay] = Field(default_factory=list, max_length=128)
     allowed_species: list[str] = Field(default_factory=list, max_length=64)
     seasonal_themes: bool = True
@@ -294,7 +295,11 @@ class Settings:
             if artwork.get("kind") == "field_study" and artwork["approved"]:
                 raise ValueError("Field-study plates are reference only on this panel")
             bird_count = artwork.get("depicted_birds", 1)
-            if type(bird_count) is not int or bird_count not in (1, 2, 3):
+            wildlife = artwork.get("category") == "wildlife"
+            if wildlife and (not artwork.get("regions") or artwork.get("animal_group") != "mammal"):
+                raise ValueError("Wildlife needs locality regions and an animal group")
+            allowed_counts = (0,) if wildlife else (1, 2, 3)
+            if type(bird_count) is not int or bird_count not in allowed_counts:
                 raise ValueError("Artwork may depict at most three birds")
             composition_capacity = artwork.get("composition_max_birds", 3)
             if type(composition_capacity) is not int or composition_capacity not in (1, 2, 3):

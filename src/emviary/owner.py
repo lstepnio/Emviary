@@ -713,6 +713,12 @@ def attach_owner(app, service):
                     )
                     + "</select></label></div>"
                 )
+                body += '<label>Colorado wildlife<select name="wildlife_per_month">'
+                for value, label in ((0, "Birds only"), (2, "Wildlife about twice a month")):
+                    body += '<option value="' + str(value) + '"'
+                    body += " selected" if policy["wildlife_per_month"] == value else ""
+                    body += ">" + label + "</option>"
+                body += '</select></label><p class="quiet">Special days keep their own artwork.</p>'
                 body += (
                     "<details><summary>Advanced color processing</summary><p "
                     'class="quiet">Change these only when tuning the physical panel. '
@@ -806,9 +812,9 @@ def attach_owner(app, service):
                 body += checkbox(
                     "location_name", "Show location name", policy["show_location_name"]
                 )
-                body += checkbox(
-                    "labels", "Common bird names", policy["show_species_name"]
-                ) + checkbox("weather", "Show weather", policy["weather_cues"])
+                body += checkbox("labels", "Species names", policy["show_species_name"]) + checkbox(
+                    "weather", "Show weather", policy["weather_cues"]
+                )
                 body += "<div data-weather-options>"
                 body += checkbox(
                     "forecast_temperatures",
@@ -1131,7 +1137,16 @@ def attach_owner(app, service):
                         'min="0" max="100"',
                     )
                     body += "</details>"
-                    body += checkbox("annual", "Repeat every year", day["annual"])
+                    body += checkbox(
+                        "annual", "Repeat every year", bool(rule) or day["annual"]
+                    ).replace(
+                        'name="annual"',
+                        'name="annual" data-event-repeat' + (" disabled" if rule else ""),
+                    )
+                    body += '<input type="hidden" name="annual" value="on" data-event-rule-repeat'
+                    body += ">" if rule else " disabled>"
+                    if rule:
+                        body += '<p class="quiet">Weekday rules repeat every year.</p>'
                     body += "</details>"
                     body += checkbox("enabled", "Enabled", day["enabled"])
                     body += (
@@ -1544,6 +1559,7 @@ def attach_owner(app, service):
         style: str = "",
         pose: str = "",
         season: str = "",
+        category: str = "",
     ):
         from urllib.parse import urlencode
 
@@ -1562,6 +1578,7 @@ def attach_owner(app, service):
             "autumn": {9, 10, 11},
         }
         season = season if season in seasons else ""
+        category = category if category in {"bird", "wildlife"} else ""
         q = q.strip()[:200]
         status = status if status in {"rotation", "excluded", "reference", "deleted"} else ""
         sort = sort if sort in {"name", "most", "least"} else "name"
@@ -1574,8 +1591,18 @@ def attach_owner(app, service):
             )
             if q.casefold()
             in " ".join(
-                str(a.get(k, "")) for k in ("common_name", "scientific_name", "credit", "id")
+                str(a.get(k, ""))
+                for k in (
+                    "common_name",
+                    "scientific_name",
+                    "credit",
+                    "id",
+                    "tags",
+                    "regions",
+                    "habitats",
+                )
             ).casefold()
+            and (not category or a.get("category", "bird") == category)
             and (not style or a.get("style") == style)
             and (not pose or (not a.get("pose") if pose == "missing" else a.get("pose") == pose))
             and (not season or bool(set(a.get("months", [])) & seasons[season]))
@@ -1612,26 +1639,69 @@ def attach_owner(app, service):
             "style": style,
             "pose": pose,
             "season": season,
+            "category": category,
         }
         return_url = "/manage/artwork?" + urlencode({k: v for k, v in context.items() if v != ""})
         if str(p) != request.query_params.get("p", "1"):
             return RedirectResponse(return_url, status_code=303)
+
+        def filter_select(name, label, options, selected):
+            return (
+                "<label>"
+                + label
+                + '<select name="'
+                + name
+                + '">'
+                + "".join(
+                    '<option value="'
+                    + escape(value)
+                    + '"'
+                    + (" selected" if selected == value else "")
+                    + ">"
+                    + escape(text)
+                    + "</option>"
+                    for value, text in options
+                )
+                + "</select></label>"
+            )
+
+        active_filters = [
+            (key, value)
+            for key, value in (
+                ("status", status),
+                ("style", style),
+                ("pose", pose),
+                ("season", season),
+                ("category", category),
+            )
+            if value
+        ]
+        reset_url = "/manage/artwork" + (
+            "?" + urlencode({"frame": frame_context}) if frame_context else ""
+        )
         body = (
-            '<header class="page-header"><h1>Artwork library</h1>'
-            '<p class="page-description">Choose which illustrations can appear in future '
-            "compositions. Exclusions leave the artwork already on the frame "
-            "unchanged.</p></header>"
-            f'<section id="artwork-library" aria-label="Artwork choices" '
+            '<header class="page-header library-header"><h1>Artwork library</h1>'
+            '<p class="page-description">Curate the art your frame can display.</p></header>'
+            f'<section id="artwork-library" class="artwork-library" aria-label="Artwork choices" '
             f'data-first-page="{p}" data-last-page="{p}" data-total-pages="{pages}">'
-            ""
             '<p data-library-feedback role="status" aria-live="polite"></p>'
-            '<form class="toolbar" method="get" action="/manage/artwork"><label>Search'
+            '<form class="library-toolbar" data-library-filters method="get" '
+            'action="/manage/artwork">'
+            '<label class="library-search"><span class="sr-only">Search artwork</span>'
             '<input type="search" name="q" value="'
             + escape(q)
-            + '" placeholder="Find a bird"></label>'
-        )
-        for name, label, options, selected in (
-            (
+            + '" placeholder="Search birds and wildlife"></label>'
+            + filter_select(
+                "sort",
+                "Sort",
+                [("name", "Name A to Z"), ("most", "Most rendered"), ("least", "Least rendered")],
+                sort,
+            )
+            + '<details class="library-filter-menu"><summary>Filters'
+            + (" · " + str(len(active_filters)) if active_filters else "")
+            + "</summary>"
+            '<div class="library-filter-panel">'
+            + filter_select(
                 "status",
                 "Availability",
                 [
@@ -1642,58 +1712,51 @@ def attach_owner(app, service):
                     ("deleted", "Deleted artwork"),
                 ],
                 status,
-            ),
-            (
-                "sort",
-                "Sort",
-                [("name", "Name A to Z"), ("most", "Most rendered"), ("least", "Least rendered")],
-                sort,
-            ),
-            ("style", "Style", [("", "All styles")] + [(v, v) for v in styles], style),
-            (
+            )
+            + filter_select(
+                "category",
+                "Subjects",
+                [("", "Birds and wildlife"), ("bird", "Birds"), ("wildlife", "Colorado wildlife")],
+                category,
+            )
+            + filter_select(
+                "style", "Style", [("", "All styles")] + [(v, v) for v in styles], style
+            )
+            + filter_select(
                 "pose",
                 "Pose",
                 [("", "All poses")] + [(v, v) for v in poses] + [("missing", "Pose not recorded")],
                 pose,
-            ),
-            (
+            )
+            + filter_select(
                 "season",
-                "Season eligibility",
+                "Season",
                 [("", "All seasons")] + [(v, v.title()) for v in seasons],
                 season,
-            ),
-        ):
-            if name == "style":
-                body += (
-                    '<details class="collection-filter-options"'
-                    + (" open" if any((style, pose, season)) else "")
-                    + '><summary>More filters</summary><div class="fields">'
-                )
-            body += "<label>" + label + '<select name="' + name + '">'
-            for value, text in options:
-                body += (
-                    '<option value="'
-                    + value
-                    + '"'
-                    + (" selected" if selected == value else "")
-                    + ">"
-                    + text
-                    + "</option>"
-                )
-            body += "</select></label>"
-            if name == "season":
-                body += "</div></details>"
-        if frame_context:
-            body += '<input type="hidden" name="frame" value="' + escape(frame_context) + '">'
-        body += (
-            '<button>Apply filters</button><a class="button secondary" '
-            'href="/manage/artwork'
-            + ("?" + escape(urlencode({"frame": frame_context})) if frame_context else "")
-            + '">Reset</a></form>'
-            '<p class="quiet">'
-            + str(len(works))
-            + " artworks match · Shared library. Counts cover all variants of each bird.</p>"
+            )
+            + "</div></details>"
+            + (
+                '<input type="hidden" name="frame" value="' + escape(frame_context) + '">'
+                if frame_context
+                else ""
+            )
+            + '<button class="library-filter-apply">Apply</button></form>'
+            '<div class="library-results"><span>' + str(len(works)) + " artworks</span>"
         )
+        for key, value in active_filters:
+            target = "/manage/artwork?" + urlencode(
+                {k: v for k, v in context.items() if v != "" and k not in {key, "p"}}
+            )
+            body += (
+                '<a class="filter-chip" href="'
+                + escape(target)
+                + '">'
+                + escape(value.replace("-", " ").title())
+                + " ×</a>"
+            )
+        if q or active_filters:
+            body += '<a class="quiet" href="' + escape(reset_url) + '">Clear filters</a>'
+        body += "</div>"
         unused = sum(not a["approved"] or a["id"] in excluded for a in service.settings.artworks)
         cleanup = ""
         if unused:
@@ -1714,12 +1777,11 @@ def attach_owner(app, service):
             body += (
                 '<form id="artwork-bulk" method="post" data-library-action '
                 'data-library-message="Selected artworks updated." '
-                'action="/manage/artwork/bulk">'
+                'action="/manage/artwork/bulk" hidden>'
                 + hidden(auth["csrf"])
                 + '<input type="hidden" name="return" value="'
                 + escape(return_url)
                 + '">'
-                + '<p class="quiet">Select to edit in bulk.</p>'
                 + '<button type="button" class="secondary" data-select-page '
                 "hidden>Select all on this page</button> "
                 '<span data-selection-count role="status" aria-live="polite">'
@@ -1772,6 +1834,8 @@ def attach_owner(app, service):
                 + str(counts.get(art["scientific_name"], 0))
                 + " compositions</p>"
             )
+            if art.get("category") == "wildlife":
+                body += '<p class="artwork-meta">Colorado · Mammal</p>'
             body += '<div class="artwork-actions">'
             if status != "deleted":
                 body += (
@@ -1868,7 +1932,17 @@ def attach_owner(app, service):
             values = parse_qs(parts.query)
             params = {
                 k: values[k][-1]
-                for k in ("q", "status", "sort", "p", "style", "pose", "season", "frame")
+                for k in (
+                    "q",
+                    "status",
+                    "sort",
+                    "p",
+                    "style",
+                    "pose",
+                    "season",
+                    "category",
+                    "frame",
+                )
                 if k in values
             }
             if "p" in params:
@@ -2059,6 +2133,9 @@ def attach_owner(app, service):
                 wake_local_time=data["wake"],
                 firmware_rotate_cron=cron_for(data["wake"]),
                 max_birds=int(data["max_birds"]),
+                wildlife_per_month=int(
+                    data.get("wildlife_per_month", policy["wildlife_per_month"])
+                ),
                 firmware_updates=data.get("firmware_updates", policy["firmware_updates"]),
                 firmware_debug_logging=data.get("firmware_debug_logging") == "on",
                 firmware_channel=data.get("firmware_channel", policy["firmware_channel"]),
@@ -2583,7 +2660,7 @@ def attach_owner(app, service):
                     "date": data["date"],
                     "label": data["label"].strip(),
                     "message": data.get("message", "").strip(),
-                    "annual": data.get("annual") == "on",
+                    "annual": bool(recurrence) or data.get("annual") == "on",
                     "enabled": data.get("enabled") == "on",
                     "theme": data["theme"],
                     "artwork_id": data.get("artwork_id") or None,

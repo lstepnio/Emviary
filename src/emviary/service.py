@@ -73,7 +73,9 @@ class Service:
                 raise ValueError("Unknown artwork")
             excluded = self.store.excluded_artworks()
             if identifiers and not any(
-                a["approved"] and a["id"] not in identifiers | excluded
+                a["approved"]
+                and a["id"] not in identifiers | excluded
+                and a.get("category", "bird") == "bird"
                 for a in self.settings.artworks
             ):
                 raise ValueError("Keep at least one artwork in rotation")
@@ -267,7 +269,11 @@ class Service:
             f"{frame['id']}:{local_date}:{revision}:{profile}".encode()
         ).hexdigest()
         excluded = self.store.excluded_artworks()
-        candidates = [a for a in self.settings.artworks if a["id"] not in excluded]
+        from .wildlife import choose_wildlife, eligible_wildlife, wildlife_dates
+
+        available = [a for a in self.settings.artworks if a["id"] not in excluded]
+        wildlife = eligible_wildlife(available, site, local_date)
+        candidates = [a for a in available if a.get("category", "bird") == "bird"]
         if policy["allowed_species"]:
             candidates = [
                 a for a in candidates if a["scientific_name"] in policy["allowed_species"]
@@ -307,6 +313,20 @@ class Service:
                     seed + ":occasion",
                 )
             ]
+        elif wildlife and local_date in wildlife_dates(
+            frame["id"], int(local_date[:4]), int(local_date[5:7]), policy
+        ):
+            with self.store.connect() as db:
+                wildlife_history = [
+                    json.loads(r["manifest"])
+                    for r in db.execute(
+                        "SELECT manifest FROM images WHERE frame_id=? AND local_date<=? "
+                        "AND json_extract(manifest, '$.content_category')='wildlife' "
+                        "ORDER BY local_date DESC, revision DESC LIMIT 24",
+                        (frame["id"], local_date),
+                    )
+                ]
+            artworks = [choose_wildlife(wildlife, seed, wildlife_history)]
         else:
             artworks = render.choose_artworks(
                 candidates, local_date, inputs, recent, seed, policy, manifests
@@ -324,6 +344,11 @@ class Service:
             "seed": seed,
             "artwork": artworks[0],
             "artworks": artworks,
+            "content_category": "wildlife"
+            if artworks[0].get("category") == "wildlife"
+            else "special_day"
+            if occasion
+            else "birds",
             "special_day": occasion,
             "special_day_test": special_day_id is not None,
             "layout": {

@@ -198,7 +198,7 @@ wheels = [
 
 [[package]]
 name = "emviary"
-version = "0.14.6"
+version = "0.14.7"
 source = { editable = "." }
 dependencies = [
     { name = "esp-idf-nvs-partition-gen" },

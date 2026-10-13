@@ -26,7 +26,12 @@ CSS = """
 :root{color-scheme:light;--canvas:#f5f4ef;--surface:#fff;--ink:#20362c;
 --muted:#617168;--line:#dce2da;--accent:#285c43;--soft:#edf3ed;--danger:#9d362b;
 --radius:12px;--shadow:0 3px 18px #203e2a06}
-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-bottom:120px}body{margin:0;background:var(--canvas);
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;
+scroll-padding-bottom:120px}
+body{margin:0;
+background:var(--canvas);
+
 color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}
 button,input,select,textarea{font:inherit}
@@ -256,7 +261,20 @@ width:100%;aspect-ratio:5/3;object-fit:contain;border-radius:9px;background:#f5f
 aspect-ratio:4/3;object-fit:contain}.library-card h2{font-size:22px;margin:16px 0 8px}
 .library-card details{font-size:13px;margin-bottom:0}.library-card summary{padding:10px 12px}
 .variant{padding:12px 0;border-top:1px solid var(--line)}.variant:first-child{border-top:0}
-figure{margin:0}.frame-preview:has(figcaption){aspect-ratio:auto;max-width:none;padding:12px;background:white}.frame-preview>img{display:block;width:100%;border-radius:6px}.public-library-invite{margin-top:24px}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:11px;color:var(--muted)}
+figure{margin:0}
+.frame-preview:has(figcaption){aspect-ratio:auto;
+max-width:none;
+padding:12px;
+background:white}
+.frame-preview>img{display:block;
+width:100%;
+border-radius:6px}
+.public-library-invite{margin-top:24px}
+.eyebrow{text-transform:uppercase;
+letter-spacing:.15em;
+font-size:11px;
+color:var(--muted)}
+
 figcaption{font-size:13px;
 color:var(--muted);
 margin-top:10px}
@@ -401,7 +419,152 @@ font-size:13px;text-align:center}
 #usb-recovery progress{width:100%;margin:16px 0 0}
 #usb-recovery [data-usb-preview]{max-width:560px;margin-top:16px}
 
+.recovery-heading h2{margin-bottom:8px}.recovery-heading p{color:var(--muted);max-width:650px}
+.recovery-steps{background:none;
+gap:12px;
+margin:26px 0}
+.recovery-steps li{display:flex;
+align-items:center;
+gap:8px;
+text-align:left;
+background:none;
+padding:0;
+font-size:12px}
+
+.recovery-steps li span{display:grid;
+place-items:center;
+flex:0 0 28px;
+height:28px;
+border-radius:50%;
+background:var(--soft)}
+
+.recovery-steps [aria-current=step]{color:var(--ink);
+background:none}
+.recovery-steps [aria-current=step] span,
+.recovery-steps [data-complete=true] span{background:var(--accent);
+color:white}
+
+.recovery-stage{display:flex;
+align-items:center;
+gap:20px;
+padding:24px;
+border-radius:14px;
+background:var(--soft);
+margin:24px 0}
+
+.recovery-stage h3{margin:0 0 8px}
+.recovery-stage p{margin:0;
+color:var(--muted);
+max-width:650px;
+font-size:14px}
+
+.recovery-orb{display:grid;
+place-items:center;
+flex:0 0 52px;
+height:52px;
+background:white;
+border-radius:50%;
+color:var(--accent);
+font-size:28px}
+
+[data-recovery-state=needs_attention] .recovery-stage,
+[data-recovery-state=paused] .recovery-stage{background:#fcf0d9}
+
+[data-recovery-state=finished] .recovery-stage{background:#e9f2e5}
+.recovery-intro ol{padding-left:20px;line-height:2}.recovery-intro{margin:18px 0}
+.recovery-details{margin-top:28px}.recovery-details p{font-size:12px}
+@media(max-width:600px){.recovery-stage{padding:18px;
+gap:12px}
+.recovery-orb{flex-basis:40px;
+height:40px}
+.recovery-steps{gap:8px}
+.recovery-steps li{flex-direction:column;
+align-items:flex-start;
+font-size:11px}
+}
+
+
+.library-header{margin-bottom:18px}.library-header h1{margin-bottom:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+section.artwork-library{background:transparent;border:0;box-shadow:none;padding:0}
+.library-toolbar{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.library-toolbar label{margin:0}
+.library-toolbar>label:not(.library-search){display:flex;
+align-items:center;
+gap:8px;
+font-size:12px;
+color:var(--muted)}
+
+.library-search{flex:1}.library-search input{margin:0;max-width:none}
+.library-toolbar select{margin:0;
+width:auto;
+font-size:13px;
+min-height:42px;
+padding:8px 32px 8px 12px}
+
+.library-filter-menu{position:relative;margin:0;border:0;background:none;padding:0}
+.library-filter-menu>summary{padding:10px 15px;
+border:1px solid var(--line);
+border-radius:10px;
+font-size:13px;
+white-space:nowrap}
+
+.library-filter-panel{position:absolute;
+z-index:8;
+right:0;
+top:48px;
+width:360px;
+padding:20px;
+background:white;
+border:1px solid var(--line);
+border-radius:12px;
+box-shadow:var(--shadow);
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px}
+
+.library-filter-panel select{width:100%;max-width:100%}.library-filter-panel label{font-size:12px}
+.library-results{display:flex;
+align-items:center;
+gap:8px;
+flex-wrap:wrap;
+font-size:12px;
+color:var(--muted);
+min-height:30px;
+margin-bottom:14px}
+
+.filter-chip{background:var(--soft);
+border-radius:18px;
+padding:4px 10px;
+text-decoration:none;
+color:var(--ink)}
+
+#artwork-bulk{position:sticky;
+bottom:16px;
+z-index:7;
+background:white;
+border:1px solid var(--line);
+border-radius:12px;
+box-shadow:var(--shadow);
+padding:12px;
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap}
+
+#artwork-bulk[hidden]{display:none}#artwork-bulk .actions{margin:0}
+@media(max-width:760px){#artwork-bulk{left:50%;width:calc(100vw - 32px)}
+.library-toolbar{flex-wrap:wrap;
+gap:8px}
+.library-search{flex:1 1 100%}
+.library-toolbar>label:not(.library-search){flex:1}
+.library-filter-panel{width:min(360px,calc(100vw - 40px))}
+.library-header{margin-bottom:14px}
+}
+
 """
+
+CSS += EVENT_CSS
 
 
 # A small progressive enhancement preserves native HTML forms without a framework.
@@ -419,6 +582,7 @@ JAVASCRIPT = r"""
     const choices = [...bulk.elements].filter(input => input.type === 'checkbox' &&
       input.name.startsWith('selected_') && !input.disabled);
     const count = choices.filter(input => input.checked).length;
+    bulk.hidden = count === 0;
     const output = document.querySelector('[data-selection-count]');
     if (output) output.textContent = count + ' selected';
     const actions = bulk.querySelector('[data-selection-actions]');
@@ -558,6 +722,56 @@ JAVASCRIPT = r"""
     }
     return next;
   };
+  let filterTimer, filterRequest;
+  const applyLibraryFilters = async form => {
+    filterRequest?.abort(); libraryRequest?.abort();
+    const controller = new AbortController(); filterRequest = controller;
+    const params = new URLSearchParams(new FormData(form)); params.delete('p');
+    const url = new URL(form.action); url.search = params.toString();
+    const current = document.getElementById('artwork-library');
+    const query = form.querySelector('[name="q"]');
+    const typing = document.activeElement === query;
+    const selection=[query.selectionStart,query.selectionEnd];
+    const menuOpen=form.querySelector('.library-filter-menu').open;
+    try {
+      current.setAttribute('aria-busy','true');
+      const response=await fetch(url,{credentials:'same-origin',signal:controller.signal});
+      const next = await readLibrary(response);
+      if (controller.signal.aborted ||
+          new URLSearchParams(new FormData(form)).toString()!==params.toString()) return;
+      current.replaceWith(next); history.replaceState({},'',url);
+      next.querySelector('.library-filter-menu').open=menuOpen;
+      initLibraryFilters(); updateSelection(); initInfiniteLibrary();
+      if (typing) {
+        const field = next.querySelector('[name="q"]'); field.focus({preventScroll:true});
+        field.setSelectionRange(...selection);
+      }
+    } catch(error) {
+      if (error.name !== 'AbortError') {
+        current.querySelector('[data-library-feedback]').textContent = error.message;
+      }
+    } finally { current.removeAttribute('aria-busy'); }
+  };
+  const initLibraryFilters = () => {
+    const form = document.querySelector('[data-library-filters]');
+    if (!form || form.dataset.enhanced) return;
+    form.dataset.enhanced='true'; form.querySelector('.library-filter-apply').hidden=true;
+    form.addEventListener('submit',event=>{event.preventDefault();applyLibraryFilters(form);});
+    form.addEventListener('change',event=>{if(event.target.tagName==='SELECT')applyLibraryFilters(form);});
+    form.querySelector('[name="q"]').addEventListener('input',()=>{
+      clearTimeout(filterTimer); filterTimer=setTimeout(()=>applyLibraryFilters(form),300);
+    });
+  };
+  document.addEventListener('click',event=>{
+    document.querySelectorAll('.library-filter-menu[open]').forEach(menu=>{
+      if(!menu.contains(event.target))menu.open=false;
+    });
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape')document.querySelectorAll('.library-filter-menu[open]')
+      .forEach(menu=>{menu.open=false;});
+  });
+  initLibraryFilters();
   initInfiniteLibrary();
   document.addEventListener('submit', async event => {
     const form = event.target;
@@ -689,7 +903,7 @@ JAVASCRIPT = r"""
         }
         const target = new URL(response.url);
         if (next && target.origin === location.origin && target.pathname === '/manage/artwork') {
-          current.replaceWith(next);
+          current.replaceWith(next); initLibraryFilters();
           next.querySelectorAll('[data-artwork-id]').forEach(item => {
             const details = item.querySelector('.artwork-remove-options');
             if (details && expanded.includes(item.dataset.artworkId)) details.open = true;
@@ -741,8 +955,6 @@ JAVASCRIPT = r"""
   });
 })();
 """
-CSS += EVENT_CSS
-
 ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
 
 

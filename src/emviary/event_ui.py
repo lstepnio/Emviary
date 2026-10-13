@@ -56,6 +56,13 @@ EVENT_SCRIPT = """<script>
     editor.querySelector('[name=label]').focus({preventScroll:true});
   });
   document.addEventListener('change', event => {
+    if (event.target.matches('[name=date_rule]')) {
+      const form = event.target.form, recurring = event.target.value === 'nth_weekday';
+      const repeat = form.querySelector('[data-event-repeat]');
+      repeat.disabled = recurring; if (recurring) repeat.checked = true;
+      form.querySelector('[data-event-rule-repeat]').disabled = !recurring;
+      return;
+    }
     const input = event.target.closest('[data-event-toggle]');
     if (!input) return;
     const form = input.form, desired = input.checked, previous = !desired;

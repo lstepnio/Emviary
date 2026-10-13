@@ -99,7 +99,7 @@ def test_bulk_import_preserves_customization_and_year_specific_dates():
     holidays = import_presets([], "holidays", 2026)
     assert len(holidays) == 17
     thanksgiving = next(d for d in holidays if d["label"] == "Thanksgiving")
-    assert thanksgiving["date"] == "2026-11-26" and not thanksgiving["annual"]
+    assert thanksgiving["date"] == "2026-11-26" and thanksgiving["annual"]
     holidays[0]["enabled"] = False
     holidays[0]["message"] = "Our own greeting"
     assert import_presets(holidays, "holidays", 2026) == holidays

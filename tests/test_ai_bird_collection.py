@@ -17,7 +17,9 @@ def test_every_catalogue_species_has_one_original_active_variant():
     originals = collection["artworks"]
     species = [a["scientific_name"] for a in originals]
     assert len(species) == len(set(species)) == 63
-    assert set(species) == {a["scientific_name"] for a in catalog}
+    assert set(species) == {
+        a["scientific_name"] for a in catalog if a.get("category", "bird") == "bird"
+    }
     active = {a["id"]: a for a in catalog}
     for a in originals:
         assert active[a["id"]]["approved"]
