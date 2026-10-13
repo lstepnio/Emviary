@@ -41,7 +41,7 @@ if(panel) {
     return request(url,{method:'POST',body:new URLSearchParams({csrf,...fields}),signal});
   };
   const close=async()=>{if(uart){await uart.close();uart=null;}};
-  const openUart=async signal=>{if(!uart){uart=new RecoveryTransport(port);await uart.open({signal});}return uart;};
+  const openUart=async signal=>{if(uart?.closed)await close();if(!uart){uart=new RecoveryTransport(port);await uart.open({signal});}return uart;};
   const reset=async signal=>{
     await close();const link=await openUart(signal);
     const check=()=>{if(signal?.aborted)throw signal.reason;};
@@ -163,7 +163,7 @@ if(panel) {
         catch(restorationError){if(!cancelRequested)onEvent({state:'needs_attention',error:{code:restorationError.code||'configuration_required',message:restorationError.message}});}
       }
       else if(!cancelRequested&&error.code!=='cancelled'&&(!controller||controller.state!=='needs_attention'&&controller.state!=='paused'&&controller.state!=='cancelled'))onEvent({state:'needs_attention',error:{code:error.code||'operation_failed',message:error.message}});}
-    finally{busy=false;releaseLock?.();releaseLock=null;update();}
+    finally{if(['paused','needs_attention','cancelled'].includes(controller?.state))clearInterval(renewTimer);busy=false;releaseLock?.();releaseLock=null;update();}
   };
   const choose=async()=>{
     if(busy||preparing||!supported)return;

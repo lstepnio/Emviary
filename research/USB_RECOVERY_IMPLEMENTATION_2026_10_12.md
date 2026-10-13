@@ -18,6 +18,8 @@ Recovery UART commands, temporary leases and bounded checkpoints are specific to
 
 ## Release and evidence
 
-Candidate service: 0.15.0. Candidate firmware: v0.8.5, source `0c4ffbbb93c53a4412ee829c6f7f912d9880ea07`, official ESP-IDF v6.0 build [38349079866](https://github.com/lstepnio/Emviary-firmware/actions/runs/38349079866). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
+Service: 0.15.1. Candidate firmware: v0.8.5, source `0c4ffbbb93c53a4412ee829c6f7f912d9880ea07`, official ESP-IDF v6.0 build [38349079866](https://github.com/lstepnio/Emviary-firmware/actions/runs/38349079866). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
 
-270 backend tests and 86 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
+270 backend tests and 87 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
+
+The first live v0.15.0 check exposed closed UART reuse after a timeout, before any firmware writes. v0.15.1 recreates closed UART transports automatically, with a real timeout regression test. Terminal failed/paused flows release their browser renewal timer so the server lease expires when idle.
