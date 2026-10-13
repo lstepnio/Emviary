@@ -82,5 +82,5 @@ collection, and the USB installer downloading and verifying v0.8.3 before USB ac
 Public gallery and Settings also passed 390 CSS-pixel overflow checks. No live
 artwork mutations were needed for these checks. The USB browser flow has not been
 physically flashed and the new five-second hold has not been physically verified.
-The release is available through normal OTA; installation is independently checked
+The saved automatic/all-channel policy has a one-day rollout delay, which remains intact. The latest physical telemetry reports v0.8.1 with rollback support. v0.8.3 becomes eligible after that delay; installation is independently checked
 through device telemetry rather than inferred from release publication.
