@@ -202,3 +202,9 @@ test('missing optional speed decoration cannot invalidate a verified write', () 
   showTransferSummary({querySelector: () => element}, 460800, 12);
   assert.match(element.textContent, /12 seconds/);
 });
+
+test('fresh contact from another firmware stops waiting without requesting a Wi-Fi reset', async () => {
+  await assert.rejects(waitForFrame(async () => ({ok:true, async json() {
+    return {connected:false, fresh_contact:true, reported_firmware:'v0.8.3', expected_firmware:'v0.8.4'};
+  }}), '/status', () => {}), /Wi-Fi settings do not need resetting/);
+});

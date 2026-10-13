@@ -79,6 +79,12 @@ def install_routes(app, require, service, checked_form):
         return JSONResponse(
             {
                 "checked_at": now.isoformat(),
+                "last_contact": latest["recorded_at"] if latest else None,
+                "reported_firmware": latest["firmware"] if latest else None,
+                "expected_firmware": recovery_manifest()["version"],
+                "fresh_contact": bool(
+                    since and latest and datetime.fromisoformat(latest["recorded_at"]) > cutoff
+                ),
                 "connected": connected,
                 "cloud_ready": bool(available and service.cache_path(available["path"]).is_file()),
                 "firmware": latest["firmware"] if connected else None,

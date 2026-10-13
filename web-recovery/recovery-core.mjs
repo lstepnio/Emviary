@@ -101,11 +101,17 @@ export async function waitForFrame(fetcher, url, report, duration = 120000,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), now = () => Date.now()) {
   const end = now() + duration;
   while (now() < end) {
+    let observed;
     try {
       const response = await fetcher(url, {cache: 'no-store', signal: AbortSignal.timeout(7000)});
       if (response.status === 401) throw new RecoveryTargetError('Sign in to verify the frame.');
       if (response.ok) {
         const result = await response.json();
+        observed = result;
+        if (result.fresh_contact && result.reported_firmware && !result.connected) {
+          throw new RecoveryTargetError("The frame connected using " + result.reported_firmware +
+            ", but recovery expects " + result.expected_firmware + ". Keep USB connected and retry firmware recovery; Wi-Fi settings do not need resetting.");
+        }
         if (result.cloud_ready === false) throw new RecoveryTargetError(
           "The cloud artwork is not ready. The firmware is restored; check Emviary again shortly.");
         if (result.connected) return result;
@@ -114,7 +120,7 @@ export async function waitForFrame(fetcher, url, report, duration = 120000,
       if (error instanceof RecoveryTargetError) throw error;
       // A brief service/network failure cannot undo verified flash writes.
     }
-    report(Math.max(0, Math.ceil((end - now()) / 1000)));
+    report(Math.max(0, Math.ceil((end - now()) / 1000)), observed);
     await sleep(2500);
   }
   return null;

@@ -11,7 +11,7 @@ if (panel) {
   const progress = panel.querySelector('progress');
   const frame = panel.dataset.frame;
   const supported = window.isSecureContext && 'serial' in navigator;
-  let bundle, port, busy = false, since, connected;
+  let bundle, port, busy = false, since, connected, connectionBegan;
   const digest = crypto.subtle.digest.bind(crypto.subtle);
   const resumeKey = 'emviary-usb-verified:' + frame;
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -45,13 +45,17 @@ if (panel) {
     panel.querySelector('[data-usb-finish]').hidden = false;
     setStatus('Your frame is connected to Emviary and fetching its picture. ' +
       'Check the display before disconnecting USB.');
-    start.textContent = 'Run recovery again';
+    start.hidden = true;
   };
   const waitOnline = async (duration = 120000) => {
     step('connect'); progress.hidden = true;
-    const result = await waitForFrame(fetch, statusUrl(), seconds => {
-      setStatus('Firmware restored. Waiting for the frame to connect and fetch its picture. ' +
-        'Keep USB connected. Checking for up to ' + seconds + ' more seconds.');
+    connectionBegan ??= performance.now();
+    const result = await waitForFrame(fetch, statusUrl(), (seconds, observed) => {
+      const elapsed = Math.floor((performance.now() - connectionBegan) / 1000);
+      const state = observed?.last_contact ? 'Last frame contact: ' +
+        new Date(observed.last_contact).toLocaleTimeString() + '. ' : 'No new frame contact yet. ';
+      setStatus('Step 3 of 4: reconnecting to Emviary. ' + elapsed + ' seconds elapsed. ' +
+        state + 'Firmware is verified. Keep USB connected; no button press is needed yet.');
     }, duration);
     if (result) { verifiedConnection(result); return true; }
     return false;
@@ -75,15 +79,19 @@ if (panel) {
     fresh.hidden = false;
     setStatus(message, true);
   };
-  const afterWrite = async restarted => {
-    if (!restarted) setStatus('Firmware verified. Restarting the frame.');
-    if (!restarted) await restart().catch(() => {});
+  const afterWrite = async () => {
+    connectionBegan = performance.now();
+    setStatus('Step 3 of 4: firmware verified. Restarting your frame and reconnecting to Wi-Fi. Keep USB connected.');
+    // Reassert released control lines after the flasher closes the serial port.
+    // A successful write/reset command does not prove the board actually booted.
+    await restart().catch(() => {});
     if (await waitOnline()) return;
-    setStatus('The frame has not connected yet. Trying one more restart.');
+    setStatus('Firmware is verified, but no new cloud connection has been confirmed. Automatically restarting once more; the firmware will not be rewritten.');
     await restart().catch(() => {});
     if (await waitOnline(60000)) return;
-    escalate('Firmware is restored, but the frame has not connected. ' +
-      'Press the green wake button once. If its saved Wi-Fi no longer works, restore settings from the cloud below.');
+    escalate('Firmware was written and verified, but we could not confirm a new cloud connection after three minutes. ' +
+      'Next: press the green wake button once, then choose I pressed the green button. Do not run recovery again. ' +
+      'If that still fails, use Restore settings from the cloud below to confirm its Wi-Fi.');
   };
   const flash = async files => {
     step('restore'); progress.hidden = false; progress.value = 0;
@@ -136,16 +144,15 @@ if (panel) {
       if (!baseline.ok) throw new Error('Sign in again before recovering the frame.');
       since = (await baseline.json()).checked_at;
       window.addEventListener('beforeunload', preventLeave);
-      let restarted;
       try {
         const files = nvs ? [...bundle.files.slice(0, 2), nvs, ...bundle.files.slice(2)] : bundle.files;
-        restarted = await flash(files);
+        await flash(files);
       } finally {
         window.removeEventListener('beforeunload', preventLeave);
         nvs?.data.fill(0);
       }
       written = true; progress.value = 100;
-      await afterWrite(restarted);
+      await afterWrite();
     } catch (error) {
       if (error instanceof RecoveryTargetError) {
         setStatus(error.message, true);
@@ -172,7 +179,7 @@ if (panel) {
   });
   retryWake.addEventListener('click', async () => {
     if (busy || !since) return;
-    busy = true; update();
+    busy = true; connectionBegan = performance.now(); update();
     try {
       if (!await waitOnline(60000)) escalate('The frame still has not connected. ' +
         'Restore its saved cloud settings below, or try a different USB data cable.');
