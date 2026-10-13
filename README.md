@@ -14,13 +14,13 @@ Raspberry Pi or online image generation is required for this POC.
   source credits and per-asset provenance retained.
 - 800×480 Spectra6 conversion through pinned `epaper-image-convert`, producing
   validated EPDGZ files. Rendering happens before the frame fetches.
-- Preparation at 02:30 and frame wake at 03:15 America/Denver, including DST.
+- Daily preparation and frame wake configured in web management, using America/Denver and DST. Emily’s saved wake is 04:15.
 - Individual bearer tokens, saved configuration headers and ETag caching.
 - SQLite registry and persisted jobs; retries reuse the chosen art and inputs.
 - Provider outages retain the last good image; stale forecasts are omitted.
 - Thirty-day image history, fourteen-day provider snapshots, seven daily
   consistent database/art/config backups; active images survive retention.
-- Authenticated management for location, sources, bird selection, appearance,
+- Authenticated management for location, sources, artwork rotation, appearance,
   refresh schedule, frame provisioning and owner credentials.
 - Stage additional Wi-Fi networks in [Settings](https://emviary.majjix.com/manage/settings).
   The frame supports five saved networks total; cloud additions preserve its
@@ -130,7 +130,7 @@ Management includes an authenticated image-history gallery and artwork rotation 
 
 Weather appears on one header line. Icon, condition words and high/low temperatures each have an independent management toggle, enabled by default, under the master weather control. Date-mismatched forecasts remain omitted.
 
-Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is reviewed before assignment. The [AI-generated occasion collection](art/occasions/README.md) contains 22 reviewed illustrations for the 28 configured holiday and season entries plus a reusable birthday image, with prompts and source hashes preserved. Birthday setup was cleared for the new collection workflow.
+Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is automatically ready to assign from the combined Special days panel. The [AI-generated occasion collection](art/occasions/README.md) contains 22 reviewed illustrations for the 28 configured holiday and season entries plus a reusable birthday image, with prompts and source hashes preserved. Birthday setup was cleared for the new collection workflow.
 
 Owner-only battery history shows voltage, USB/charging state, low-battery alerts and a cautious time-to-charge estimate after enough discharge readings. Notifications currently appear only in web management. Firmware v0.6.0 removes SD startup, Home Assistant work and duplicate update checks from the E1002 cloud profile while preserving recovery, image handling and OTA. These changes have not established a battery endurance figure.
 
@@ -139,14 +139,12 @@ Owner-only battery history shows voltage, USB/charging state, low-battery alerts
 The public home mirrors the last delivered image. Owner management uses focused pages:
 
 - **Overview:** delivered and prepared images, daily wake, battery, last contact and local controls.
-- **Appearance:** composition, bird selection, weather details, panel treatment and firmware preferences.
-- **Special days:** expandable event editors and disabled-by-default holiday/season imports.
-- **Your images:** saved/removed filters, per-frame history and restore until files expire. The delivered image stays protected.
-- **Artwork library:** search, status filters, sorting and pagination for rotation controls.
-- **Special-day art:** upload, source credit, review and approval before event assignment.
+- **Appearance:** composition, weather details, panel treatment, firmware preferences and opt-in device logging.
+- **Special days:** dates, greetings, artwork selection, uploads and disabled-by-default holiday/season imports in one configuration panel.
+- **Artwork library:** search, status filters, sorting and scrolling artwork loading for rotation controls.
 - **Battery:** observed readings, alerts and cautious charging estimates.
 - **Settings:** locality, data sources, staged Wi-Fi, public sharing and account controls.
-- **Recovery:** local addresses, setup hotspot and private configuration downloads.
+- **Recovery:** guided browser USB firmware repair, local addresses, setup hotspot and private configuration downloads.
 
 Desktop navigation becomes a collapsible menu on mobile. Forms use visible labels, keyboard focus and save feedback; saving retains the current section. No JavaScript framework or external asset dependency is required.
 
@@ -190,15 +188,18 @@ shows a waiting state until it supplies diagnostics.
 
 ### Interface and reliability review
 
-Application 0.12.1 preserves selected-frame context, previews unsaved appearance
+Application 0.13.0 preserves selected-frame context, previews unsaved appearance
 settings, and can save and queue the exact reviewed image. Failed forms retain
 entries, sign-in expiry can recover in another tab, and stale editors cannot
 silently overwrite newer settings. The overview emphasizes last-delivered artwork
 and distinguishes the daily and next-button buffers. Both artwork galleries use
 bounded cached thumbnails; frame rendering continues to use original masters.
-The artwork library uses compact cards with secondary management controls.
-Frame history is accessible from Overview; provenance stays in source records
-and documentation rather than the UI. See [UX_REVIEW.md](UX_REVIEW.md) for
+The artwork library uses compact cards with secondary removal controls. Species-selection and
+panel-review workflows have been removed. Frame history is no longer a web destination;
+the frame still uses backend history for previous/next navigation. Special-day uploads
+are ready immediately and share a panel with the calendar. Provenance stays in source
+records and documentation rather than the UI. The Recovery page includes a self-hosted
+USB installer for the E1002; see [USB recovery](web-recovery/README.md). See [UX_REVIEW.md](UX_REVIEW.md) for
 findings, acceptance checks and validation limits.
 
 Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).
@@ -208,7 +209,7 @@ See [prepared-image freshness](research/REFRESH_FRESHNESS.md) for scheduling, ca
 Application 0.11.0 adds firmware release channels, rollout delays and blocked
 versions; schedule-aware management alerts; verified offline backup restoration
 and independent Mac backups; recurring weekday special days and conflict priority;
-and artwork bulk actions, catalog filters and physical-panel review tracking.
+and artwork bulk actions and catalog filters. The former physical-panel review tracking was removed in 0.13.0.
 See [reliability upgrades](research/RELIABILITY_UPGRADES.md) and
 [independent backups](tools/BACKUPS.md). Existing rotation, image processing,
 automatic firmware preference and nightly wake remain in place.

@@ -129,44 +129,6 @@ def test_validation_error_is_accessible_and_does_not_echo_credentials(
     assert json.loads(service.store.frame(frame[0])["policy"]) == before
 
 
-def test_gallery_removal_restore_retains_context_and_confirms_result(
-    service, frame, tmp_path, monkeypatch
-):
-    first = service.prepare(frame[0], "2026-10-08", offline=True)
-    service.prepare(frame[0], "2026-10-08", force=True, offline=True)
-    client, csrf = sign_in(service, tmp_path, monkeypatch)
-    context = "/manage/images?frame=test-frame&removed=false&offset=24"
-    response = client.post(
-        f"/manage/images/{first['id']}/remove",
-        data={"csrf": csrf, "return": context},
-        follow_redirects=False,
-    )
-    assert response.status_code == 303
-    assert parse_qs(urlsplit(response.headers["location"]).query) == {
-        "frame": ["test-frame"],
-        "removed": ["false"],
-        "offset": ["24"],
-        "result": ["removed"],
-    }
-    result = client.get(response.headers["location"])
-    assert "Image removed from navigation" in result.text
-    assert 'role="status"' in result.text
-    assert client.get(f"/manage/images/{first['id']}/preview").status_code == 404
-    response = client.post(
-        f"/manage/images/{first['id']}/restore",
-        data={"csrf": csrf, "return": context.replace("false", "true")},
-        follow_redirects=False,
-    )
-    assert parse_qs(urlsplit(response.headers["location"]).query) == {
-        "frame": ["test-frame"],
-        "removed": ["true"],
-        "offset": ["24"],
-        "result": ["restored"],
-    }
-    assert "Image restored to navigation" in client.get(response.headers["location"]).text
-    assert client.get(f"/manage/images/{first['id']}/preview").status_code == 200
-
-
 def test_special_day_html_queue_confirms_service_state_and_keeps_jpeg_compatibility(
     service, frame, tmp_path, monkeypatch
 ):

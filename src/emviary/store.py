@@ -86,6 +86,11 @@ class Store:
                     csrf TEXT NOT NULL,
                     expires_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS frame_network_contacts (
+                    frame_id TEXT PRIMARY KEY REFERENCES frames(id) ON DELETE CASCADE,
+                    public_ip TEXT NOT NULL,
+                    authenticated_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS image_refills (
                     frame_id TEXT PRIMARY KEY REFERENCES frames(id),
                     consumed_image_id INTEGER NOT NULL,
@@ -97,11 +102,6 @@ class Store:
                 CREATE TABLE IF NOT EXISTS excluded_artworks (id TEXT PRIMARY KEY);
                 CREATE TABLE IF NOT EXISTS deleted_artworks (
                     id TEXT PRIMARY KEY, deleted_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS artwork_reviews (
-                    id TEXT PRIMARY KEY, status TEXT NOT NULL
-                        CHECK(status IN ('unreviewed','on-panel-approved','needs-changes')),
-                    updated_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS bird_render_counts (
                     scientific_name TEXT PRIMARY KEY, common_name TEXT NOT NULL,
@@ -188,21 +188,6 @@ class Store:
         with self.connect() as db:
             return {r[0] for r in db.execute("SELECT id FROM excluded_artworks")}
 
-    def artwork_reviews(self):
-        with self.connect() as db:
-            return {r["id"]: r["status"] for r in db.execute("SELECT * FROM artwork_reviews")}
-
-    def set_artwork_review(self, identifier, status):
-        if status not in {"unreviewed", "on-panel-approved", "needs-changes"}:
-            raise ValueError("Unknown panel review status")
-        with self.connect() as db:
-            db.execute(
-                "INSERT INTO artwork_reviews VALUES(?,?,?) "
-                "ON CONFLICT(id) DO UPDATE SET status=excluded.status, "
-                "updated_at=excluded.updated_at",
-                (identifier, status, utcnow()),
-            )
-
     def slot_state(self, frame_id, purpose):
         with self.connect() as db:
             row = db.execute(
@@ -275,6 +260,34 @@ class Store:
     def frames(self):
         with self.connect() as db:
             return [dict(r) for r in db.execute("SELECT * FROM frames ORDER BY id")]
+
+    def record_frame_network(self, frame_id, public_ip, authenticated_at):
+        """Keep only the latest authenticated network, with at most hourly repeat writes."""
+        refresh_before = (authenticated_at - timedelta(hours=1)).isoformat()
+        with self.connect() as db:
+            db.execute(
+                """INSERT INTO frame_network_contacts(frame_id,public_ip,authenticated_at)
+                   SELECT ?,?,? WHERE EXISTS(SELECT 1 FROM frames WHERE id=?)
+                   ON CONFLICT(frame_id) DO UPDATE SET
+                   public_ip=excluded.public_ip,authenticated_at=excluded.authenticated_at
+                   WHERE frame_network_contacts.public_ip<>excluded.public_ip
+                   OR frame_network_contacts.authenticated_at<=?""",
+                (frame_id, public_ip, authenticated_at.isoformat(), frame_id, refresh_before),
+            )
+
+    def frame_network_contacts(self):
+        with self.connect() as db:
+            return [
+                dict(row)
+                for row in db.execute(
+                    "SELECT n.*,f.policy FROM frame_network_contacts n "
+                    "JOIN frames f ON f.id=n.frame_id ORDER BY n.frame_id"
+                )
+            ]
+
+    def clear_frame_network(self, frame_id):
+        with self.connect() as db:
+            db.execute("DELETE FROM frame_network_contacts WHERE frame_id=?", (frame_id,))
 
     def add_frame(self, frame_id, policy):
         token = secrets.token_urlsafe(32)

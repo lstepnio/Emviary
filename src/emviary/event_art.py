@@ -179,7 +179,7 @@ class EventArt:
             "source": attribution,
             "source_url": "owner-upload",
             "license": "Owner-Provided",
-            "approved": False,
+            "approved": True,
             "event_only": True,
             "kind": "event",
             "depicted_birds": 0,
@@ -193,13 +193,13 @@ class EventArt:
             raise
         return entry
 
-    def review(self, identifier, approved):
+    def approve_existing(self):
+        """One-time compatibility migration for uploads from the manual review workflow."""
         entries = self.entries()
-        entry = next((e for e in entries if e["id"] == identifier), None)
-        if not entry:
-            raise ValueError("Unknown event artwork")
-        entry["approved"] = approved
-        self.save(entries)
+        if any(not e.get("approved") for e in entries):
+            for entry in entries:
+                entry["approved"] = True
+            self.save(entries)
 
     def remove(self, identifier):
         entries = self.entries()

@@ -13,3 +13,5 @@ firmware/
 *.elf
 .DS_Store
 experiments/generated/
+
+!src/emviary/recovery_assets/*/*.bin

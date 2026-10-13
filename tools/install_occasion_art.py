@@ -108,7 +108,6 @@ def install(service, root):
                 )
                 service.event_art.save(entries)
                 added += 1
-            service.event_art.review(art["id"], True)
             mappings[item["label"]] = art["id"]
         for frame in service.store.frames():
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()

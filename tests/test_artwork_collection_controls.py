@@ -1,8 +1,4 @@
-from fastapi.testclient import TestClient
 from test_owner import sign_in
-
-from emviary.api import create_app
-from emviary.store import Store
 
 
 def test_catalog_filters_and_pagination_preserve_new_context(service, tmp_path, monkeypatch):
@@ -21,42 +17,10 @@ def test_catalog_filters_and_pagination_preserve_new_context(service, tmp_path, 
     assert 'name="style"' in result.text and 'name="pose"' in result.text
     assert "Pose not recorded" in result.text
     result = client.get("/manage/artwork?season=winter&review=unreviewed&sort=least")
-    assert "season=winter&amp;review=unreviewed" in result.text
+    assert "season=winter" in result.text
+    assert 'name="review"' not in result.text
     assert "Least rendered" in result.text
-    assert "Panel review records your own physical-screen assessment" in result.text
-
-
-def test_panel_review_private_persistent_and_independent_of_rotation(
-    service, tmp_path, monkeypatch
-):
-    client, csrf = sign_in(service, tmp_path, monkeypatch)
-    artwork = next(a for a in service.settings.artworks if a["approved"])
-    url = "/manage/artwork/" + artwork["id"] + "/review"
-    anonymous = TestClient(create_app(service, schedule=False))
-    assert anonymous.post(url, data={"review": "on-panel-approved"}).status_code == 401
-    assert (
-        client.post(url, data={"csrf": "wrong", "review": "on-panel-approved"}).status_code == 403
-    )
-    assert client.post(url, data={"csrf": csrf, "review": "invented"}).status_code == 400
-    before = (service.settings.art_dir / artwork["asset"]).read_bytes()
-    result = client.post(
-        url,
-        data={
-            "csrf": csrf,
-            "review": "needs-changes",
-            "return": "/manage/artwork?style=foo&season=winter&review=unreviewed&p=2",
-        },
-        follow_redirects=False,
-    )
-    assert result.status_code == 303
-    assert "season=winter&review=unreviewed" in result.headers["location"]
-    assert "p=2" in result.headers["location"]
-    assert Store(service.settings.db_path).artwork_reviews()[artwork["id"]] == "needs-changes"
-    assert artwork["id"] not in service.store.excluded_artworks()
-    assert (service.settings.art_dir / artwork["asset"]).read_bytes() == before
-    result = client.get("/manage/artwork?review=needs-changes")
-    assert "1 artworks match" in result.text
-    assert artwork["common_name"] in result.text
+    assert "Panel review" not in result.text
 
 
 def test_selected_bulk_rotation_and_delete_are_atomic_and_guarded(

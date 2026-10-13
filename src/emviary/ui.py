@@ -15,7 +15,6 @@ NAVIGATION = (
     ("appearance", "/manage/appearance", "Appearance"),
     ("events", "/manage/events", "Special days"),
     ("artwork", "/manage/artwork", "Artwork library"),
-    ("event-art", "/manage/event-art", "Special-day art"),
     ("battery", "/manage/battery", "Device health"),
     ("settings", "/manage/settings", "Settings"),
     ("recovery", "/manage/recovery", "Recovery"),
@@ -374,16 +373,7 @@ gap:10px;flex-wrap:wrap}
 .artwork-card .compact-action{font-size:13px;padding:8px 10px;min-height:44px}
 .artwork-actions .compact-action{background:transparent;border:0;padding-right:0;
 padding-left:0;text-decoration:underline;text-underline-offset:3px}
-.artwork-card .artwork-options{margin:8px 0 0;background:transparent;border:0;
-border-top:1px solid var(--line);border-radius:0;font-size:13px}
-.artwork-options>summary{padding:10px 0;font-size:13px;min-height:44px}
-.artwork-options[open]>summary{margin-bottom:12px}
-.artwork-card .artwork-options> :not(summary){margin-left:0;margin-right:0}
-.artwork-card .artwork-options> :last-child{margin-bottom:0}
-.artwork-options p{margin-bottom:12px}
-.artwork-options label{font-size:13px;margin:12px 0 8px}
-.artwork-remove{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
-.frame-history-link{margin:22px 0 0}
+.special-day-art{margin-top:24px}.special-day-art>.card-grid{margin-top:24px}
 .collection-filter-options{flex:1 1 100%;margin:0}
 .collection-filter-options .fields{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 #artwork-bulk{border-top:1px solid var(--line);padding:12px 0;margin:12px 0 16px}
@@ -413,13 +403,6 @@ JAVASCRIPT = r"""
     const update = () => { group.hidden = !toggle.checked; };
     toggle.addEventListener('change', update); update();
   });
-  document.querySelectorAll('[data-species-choice]').forEach(button => {
-    button.addEventListener('click', () => {
-      button.closest('form').querySelectorAll('input[name^="species_"][type="checkbox"]')
-        .forEach(input => { input.checked = button.dataset.speciesChoice === 'all'; });
-      button.closest('form').dispatchEvent(new Event('input', {bubbles: true}));
-    });
-  });
   const updateSelection = () => {
     const bulk = document.getElementById('artwork-bulk');
     if (!bulk) return;
@@ -427,7 +410,7 @@ JAVASCRIPT = r"""
       input.name.startsWith('selected_') && !input.disabled);
     const count = choices.filter(input => input.checked).length;
     const output = document.querySelector('[data-selection-count]');
-    if (output) output.textContent = count + ' selected on this page';
+    if (output) output.textContent = count + ' selected';
     const actions = bulk.querySelector('[data-selection-actions]');
     if (actions) actions.hidden = count === 0;
     bulk.querySelectorAll('button[type="submit"], button:not([type])').forEach(button => {
@@ -437,7 +420,7 @@ JAVASCRIPT = r"""
     if (select) {
       select.hidden = false;
       select.textContent = count === choices.length && count > 0 ?
-        'Clear selection' : 'Select this page';
+        'Clear selection' : 'Select loaded artwork';
     }
   };
   document.addEventListener('click', event => {
@@ -475,6 +458,97 @@ JAVASCRIPT = r"""
     }
   }
   let pendingForm = null;
+  let libraryObserver;
+  let libraryRequest;
+  const readLibrary = async response => {
+    const target = new URL(response.url);
+    const expectedPath = document.getElementById('artwork-library')?.dataset.libraryPath ||
+      '/manage/artwork';
+    if (!response.ok || target.origin !== location.origin ||
+        target.pathname !== expectedPath) {
+      throw new Error('Artwork could not be loaded. Sign in again if needed, then retry.');
+    }
+    const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+    const section = doc.getElementById('artwork-library');
+    if (!section) throw new Error('The artwork response was incomplete. Try again.');
+    return section;
+  };
+  const appendLibraryPage = (current, next) => {
+    const seen = new Set([...current.querySelectorAll('[data-artwork-id]')]
+      .map(item => item.dataset.artworkId));
+    const grid = current.querySelector('.artwork-grid');
+    next.querySelectorAll('[data-artwork-id]').forEach(card => {
+      if (!seen.has(card.dataset.artworkId)) grid.append(card);
+    });
+    current.dataset.lastPage = next.dataset.lastPage;
+    current.dataset.totalPages = next.dataset.totalPages;
+    current.querySelector('[data-artwork-pagination]')?.remove();
+    const pagination = next.querySelector('[data-artwork-pagination]');
+    if (pagination) current.querySelector('.library-help').before(pagination);
+  };
+  const initInfiniteLibrary = () => {
+    libraryObserver?.disconnect();
+    const current = document.getElementById('artwork-library');
+    if (!current) return;
+    current.querySelector('.library-loader')?.remove();
+    const pagination = current.querySelector('[data-artwork-pagination]');
+    if (pagination) pagination.hidden = true; // Native pagination remains the no-JS fallback.
+    const url = pagination?.querySelector('[data-artwork-next]')?.href;
+    const loader = document.createElement('div'); loader.className = 'library-loader';
+    const message = document.createElement('p');
+    message.className = 'quiet'; message.setAttribute('role', 'status');
+    message.setAttribute('aria-live', 'polite');
+    const count = current.querySelectorAll('[data-artwork-id]').length;
+    message.textContent = count + (url ? ' artworks loaded' :
+      ' artworks loaded · End of collection');
+    loader.append(message); current.querySelector('.library-help').before(loader);
+    if (!url) return;
+    const button = document.createElement('button'); button.type = 'button';
+    button.className = 'secondary'; button.textContent = 'Load more artwork';
+    loader.prepend(button);
+    const more = async () => {
+      if (libraryRequest || pendingForm || !current.isConnected) return;
+      libraryRequest = new AbortController(); const controller = libraryRequest;
+      button.disabled = true; message.textContent = 'Loading artwork…';
+      try {
+        const response = await fetch(url, {credentials: 'same-origin', signal: controller.signal});
+        const next = await readLibrary(response);
+        if (controller.signal.aborted || !current.isConnected) return;
+        appendLibraryPage(current, next); updateSelection(); initInfiniteLibrary();
+      } catch (error) {
+        if (error.name !== 'AbortError' && current.isConnected) {
+          message.textContent = error.message; button.disabled = false;
+          libraryObserver?.disconnect(); // Retry is explicit, not an endless failing loop.
+        }
+      } finally {
+        if (libraryRequest === controller) libraryRequest = undefined;
+        if (controller.signal.aborted || !current.isConnected) initInfiniteLibrary();
+      }
+    };
+    button.addEventListener('click', more);
+    if ('IntersectionObserver' in window) {
+      libraryObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) more();
+      }, {rootMargin: '180px'});
+      libraryObserver.observe(loader);
+    }
+  };
+  const refreshLibraryRange = async (response, current) => {
+    const initial = await readLibrary(response);
+    const url = new URL(response.url);
+    const start = Math.min(Number(current.dataset.firstPage), Number(initial.dataset.totalPages));
+    const end = Math.min(Number(current.dataset.lastPage), Number(initial.dataset.totalPages));
+    let next;
+    for (let page = start; page <= end; page++) {
+      url.searchParams.set('p', page);
+      const part = Number(initial.dataset.firstPage) === page ? initial :
+        await readLibrary(await fetch(url, {credentials: 'same-origin'}));
+      if (!next) next = part;
+      else appendLibraryPage(next, part);
+    }
+    return next;
+  };
+  initInfiniteLibrary();
   document.addEventListener('submit', async event => {
     const form = event.target;
     const action = new URL(form.getAttribute('action') || location.href, location.href);
@@ -491,6 +565,8 @@ JAVASCRIPT = r"""
     form.querySelectorAll('[data-server-invalid]').forEach(input => {
       input.removeAttribute('aria-invalid'); input.removeAttribute('data-server-invalid');
     });
+    libraryRequest?.abort();
+    libraryObserver?.disconnect();
     form.dataset.busy = 'true'; form.setAttribute('aria-busy', 'true'); pendingForm = form;
     // Capture values first, then freeze all forms so later edits cannot disappear on redirect.
     const locked = [...new Set([...document.forms].flatMap(item => [...item.elements]))]
@@ -585,7 +661,7 @@ JAVASCRIPT = r"""
         const current = document.getElementById('artwork-library');
         const card = form.closest('[data-artwork-id]');
         const cards = [...current.querySelectorAll('[data-artwork-id]')];
-        const expanded = cards.filter(item => item.querySelector('.artwork-options')?.open)
+        const expanded = cards.filter(item => item.querySelector('.artwork-remove-options')?.open)
           .map(item => item.dataset.artworkId);
         const selected = form.id === 'artwork-bulk' ? [] :
           [...current.querySelectorAll('input[form="artwork-bulk"]:checked')]
@@ -594,20 +670,27 @@ JAVASCRIPT = r"""
         const top = (card || form).getBoundingClientRect().top;
         const keys = [card?.dataset.artworkId, cards[index + 1]?.dataset.artworkId,
           cards[index - 1]?.dataset.artworkId];
-        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
-        const next = doc.getElementById('artwork-library');
+        let next;
+        try { next = await refreshLibraryRange(response, current); }
+        catch {
+          announceError('Your change was saved, but the library could not reload. ' +
+            'Reload this page to see the current collection.');
+          return;
+        }
         const target = new URL(response.url);
         if (next && target.origin === location.origin && target.pathname === '/manage/artwork') {
           current.replaceWith(next);
           next.querySelectorAll('[data-artwork-id]').forEach(item => {
-            const details = item.querySelector('.artwork-options');
+            const details = item.querySelector('.artwork-remove-options');
             if (details && expanded.includes(item.dataset.artworkId)) details.open = true;
           });
           next.querySelectorAll('input[form="artwork-bulk"]').forEach(input => {
             input.checked = selected.includes(input.name);
           });
           updateSelection();
+          target.searchParams.set('p', next.dataset.firstPage);
           history.replaceState(null, '', target.pathname + target.search);
+          initInfiniteLibrary();
           const freshCards = [...next.querySelectorAll('[data-artwork-id]')];
           const anchor = keys.map(key => freshCards.find(item => item.dataset.artworkId === key))
             .find(Boolean) || freshCards[0];
@@ -639,6 +722,7 @@ JAVASCRIPT = r"""
       delete form.dataset.busy; form.removeAttribute('aria-busy'); pendingForm = null;
       locked.forEach(control => { control.disabled = false; });
       updateSelection();
+      initInfiniteLibrary();
       if (submitter) {
         submitter.disabled = false; submitter.removeAttribute('aria-busy');
         submitter.textContent = original;
@@ -664,8 +748,8 @@ def local_time(value):
 def _navigation(active, frame=None):
     groups = (
         ("Your frame", NAVIGATION[:3]),
-        ("Collection", NAVIGATION[3:5]),
-        ("Setup & health", NAVIGATION[5:]),
+        ("Collection", NAVIGATION[3:4]),
+        ("Setup & health", NAVIGATION[4:]),
     )
     sections = []
     for label, items in groups:

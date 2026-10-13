@@ -12,3 +12,6 @@ tests
 *.elf
 
 experiments
+
+# Recovery binaries are an intentional part of the application image.
+!src/emviary/recovery_assets/*/*.bin

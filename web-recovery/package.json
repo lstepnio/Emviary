@@ -1,0 +1,10 @@
+{
+  "name": "emviary-usb-recovery",
+  "private": true,
+  "scripts": {
+    "build": "esbuild recovery.js --bundle --format=esm --minify --legal-comments=linked --outfile=../src/emviary/recovery_assets/recovery.js",
+    "test": "node --test recovery.test.mjs"
+  },
+  "dependencies": {"esptool-js": "0.7.0", "spark-md5": "3.0.2"},
+  "devDependencies": {"esbuild": "0.25.12"}
+}

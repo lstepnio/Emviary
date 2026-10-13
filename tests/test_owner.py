@@ -134,7 +134,7 @@ def test_owner_add_and_provision_keep_tokens_private(service, tmp_path, monkeypa
     assert "a-new-test-ebird-key" not in client.get("/manage").text
 
 
-def test_review_remove_and_exclude_artwork(service, frame, tmp_path, monkeypatch):
+def test_queued_preview_and_exclude_artwork(service, frame, tmp_path, monkeypatch):
     import json
 
     frame_id, token = frame
@@ -144,21 +144,6 @@ def test_review_remove_and_exclude_artwork(service, frame, tmp_path, monkeypatch
     client, csrf = sign_in(service, tmp_path, monkeypatch)
     assert client.get("/manage/images").status_code == 200
     assert client.get(f"/manage/images/{next_image['id']}/preview").status_code == 200
-    assert (
-        client.post(f"/manage/images/{first['id']}/remove", data={"csrf": csrf}).status_code == 409
-    )
-    assert (
-        client.post(f"/manage/images/{next_image['id']}/remove", data={"csrf": "wrong"}).status_code
-        == 403
-    )
-    assert (
-        client.post(
-            f"/manage/images/{next_image['id']}/remove", data={"csrf": csrf}, follow_redirects=False
-        ).status_code
-        == 303
-    )
-    assert client.get(f"/manage/images/{next_image['id']}/preview").status_code == 404
-    assert service.store.frame(frame_id)["active_image_id"] != next_image["id"]
     assert service.delivered_image(service.store.frame(frame_id))["body_hash"] == first["body_hash"]
     active = service.store.active_image(service.store.frame(frame_id))
     artwork = json.loads(active["manifest"])["artworks"][0]["id"]

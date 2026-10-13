@@ -26,6 +26,8 @@
       EMVIARY_ART_DIR: /art
       EMVIARY_BACKUP_DIR: /backups
       EMVIARY_PORT: "8080"
+      # Pin the actual Caddy TCP peer; never trust the whole shared Docker subnet.
+      EMVIARY_TRUSTED_PROXY_IPS: "172.18.0.5/32"
       EMVIARY_EBIRD_API_KEY_FILE: /run/secrets/ebird-api-key
     volumes:
       - /docker/appdata/emviary/config:/config:ro

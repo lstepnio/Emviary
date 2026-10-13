@@ -240,11 +240,11 @@ dated entries are preserved. Review any overlap before enabling a collection. Me
 December 1. Edit dates and disable annual repeat for an exact local equinox or
 solstice in a chosen year.
 
-Open `/manage/event-art` to upload PNG, JPEG or WebP art with a title. Review and approve the art before selecting it for an event. Occasion
+Open `/manage/events` and expand **Artwork collection** to upload PNG, JPEG or WebP art with a title. Valid uploads are ready to assign immediately. Occasion
 art can be a landscape, abstract design, photograph or other nonbird image and
 never joins ordinary bird rotation. Assign the image, greeting and date, then
 enable the event. Preview it before use. Artwork selected by an event must be
-unassigned before it can be removed or returned to review.
+unassigned before it can be removed.
 
 ## Battery history and charging alerts
 
@@ -303,10 +303,9 @@ breaks ties). Exact original movable presets acquire recurring rules on load;
 customized dates are retained. Identical year copies share runtime precedence
 without deleting saved entries. Overlapping customized events show a warning.
 
-Artwork Library supports style, pose, season and panel-review filters and bulk
-rotation/delete controls for selected entries on the current page. Deletion remains
-recoverable. Panel review is an owner assessment; every image starts unreviewed
-until physically checked. Filters and pagination survive actions.
+Artwork Library supports style, pose and season filters and bulk rotation/delete
+controls for selected entries across the loaded collection. Deletion remains recoverable.
+Filters, loaded images and scroll position survive actions. There is no manual panel-review workflow.
 
 New backups contain streamed file hashes, SQLite integrity checks and a complete
 offline clone restore rehearsal. COMPLETE is published only after successful
@@ -322,11 +321,63 @@ In Appearance, **Preview changes** uses unsaved values without changing the fram
 makes the exact reviewed image available on the next online fetch. Previews are
 temporary. If one expires or settings change elsewhere, reload and preview again.
 
-Artwork cards expose selection and rotation directly. Open **Manage artwork** for
-panel-review status or recoverable deletion. Extra filters and whole-library
-cleanup are secondary. **Frame history** is available from its Overview disclosure
-for reviewing or removing generated compositions and restoring retained images.
+Artwork cards expose selection and rotation directly. Open **Remove artwork** for
+recoverable deletion. Extra filters and whole-library cleanup are secondary.
+The web Frame history interface and its removal/restore handlers have been removed.
+Image retention, queued previews and physical previous/next navigation remain.
+Legacy `/manage/images` bookmarks redirect to Overview; `/manage/event-art` bookmarks
+redirect to the combined Special days panel with Artwork collection expanded.
 
 If sign-in expires, keep the open form, sign in in another tab and retry. A stale
 settings form cannot overwrite newer edits: compare the saved configuration and
 reload before applying the intended change. No credentials are saved in browser storage.
+
+## Browser USB firmware recovery
+
+Open **Recovery** on a laptop using Chrome or Edge. Download the existing frame
+recovery import file, attach a USB data cable, and use **Prepare USB installer**.
+Preparation downloads and verifies the fixed E1002 recovery bundle without opening USB.
+Confirm the device model and choose **Connect and restore firmware**. Normal repair
+preserves NVS and LittleFS on the Emviary partition layout. **Start fresh** explicitly
+erases local settings and requires Wi-Fi setup plus the private import file afterward.
+Neither option deletes cloud artwork or calendar settings. Keep USB connected until
+verification completes. Retry the same installer after an interrupted transfer.
+
+The browser uses self-hosted esptool-js with no device-log upload and no third-party
+runtime requests. Firmware and bootloader are the matching published build, with the
+E1002 partition table and blank OTA selector. See [bundle validation](web-recovery/README.md).
+Physical browser flashing still requires a controlled hardware acceptance test.
+
+Device debug logging is off by default. Enable it in Appearance only while diagnosing
+a problem and turn it off afterward. The setting reaches the frame on its next normal
+image fetch; it adds no polling or wake events. Flash core dumps stay disabled in the
+quiet E1002 firmware build. Firmware/SDK output is silent by default; immutable
+ESP32 ROM startup output may still occur. This project does not burn eFuses to
+suppress ROM text. Existing bootloader output remains until USB recovery installs
+the quiet bootloader. Battery and refresh-status telemetry remain available.
+
+## Trusted network management
+
+Settings contains an explicit password-free management option for each frame. It
+trusts everyone sharing that frame's public IP, including guests and shared-NAT
+neighbors. A matching source must have been recorded by an authenticated frame
+image fetch within 48 hours. The server rechecks each request and never creates a
+portable password-free cookie. Changes of frame WAN take effect on its next normal
+fetch; stale trust otherwise expires after 48 hours. No extra wake is requested.
+Owner password changes still require password sign-in. Disable the option to
+require password access again. New frames default to password-only access.
+
+Production pins Caddy's TCP peer using EMVIARY_TRUSTED_PROXY_IPS=172.18.0.5/32.
+Uvicorn proxy_headers is explicitly false. Incoming forwarding headers from other
+peers are ignored; do not widen the allowlist to the shared Docker subnet. If
+Caddy's container address changes, update this explicit peer and recreate only
+Emviary. Missing or incorrect proxy trust fails closed to password authentication.
+
+## Artwork scrolling
+
+Artwork library loads 24 cards per batch as the end approaches. Load more remains
+an explicit keyboard/error-retry control. Filters and sorting reset the result set;
+rotation/removal actions reload the already loaded range, preserving scroll anchor
+and selections. Bulk selection applies to loaded artworks, capped at 500 per request.
+Without JavaScript, ordinary paged links still work. No rendering or frame wakes
+are caused by scrolling. Original master images remain unchanged.

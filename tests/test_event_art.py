@@ -22,7 +22,6 @@ def test_occasion_preview_queues_exact_panel_with_current_weather(
     from zoneinfo import ZoneInfo
 
     entry = service.event_art.upload(image_bytes(), "Fall", "Owner")
-    service.event_art.review(entry["id"], True)
     policy = FramePolicy(
         seasonal_themes=False,
         special_days=[
@@ -124,11 +123,10 @@ def test_event_art_validation_and_persistence(tmp_path):
     with pytest.raises(ValueError):
         library.upload(transparent.getvalue(), "Fall", "Owner")
     entry = library.upload(image_bytes(), "Fall", "Owner")
-    assert not entry["approved"] and entry["event_only"]
+    assert entry["approved"] and entry["event_only"]
     assert EventArt(tmp_path).entries() == [entry]
     with pytest.raises(ValueError):
         library.path({"asset": "../escape.png"})
-    library.review(entry["id"], True)
     assert library.entries()[0]["approved"]
     library.remove(entry["id"])
     assert not library.entries() and not library.path(entry).exists()
@@ -136,7 +134,6 @@ def test_event_art_validation_and_persistence(tmp_path):
 
 def test_nonbird_event_override_and_ordinary_rotation_isolation(service, frame, tmp_path):
     entry = service.event_art.upload(image_bytes(), "Fall landscape", "Owner")
-    service.event_art.review(entry["id"], True)
     policy = service.settings.config.frame_defaults.model_dump()
     policy["special_days"] = [
         SpecialDay(
@@ -169,7 +166,9 @@ def test_nonbird_event_override_and_ordinary_rotation_isolation(service, frame, 
     assert all(not a.get("event_only") for a in disabled["artworks"])
 
 
-def test_owner_upload_review_select_remove_and_bulk_csrf(service, frame, tmp_path, monkeypatch):
+def test_owner_upload_autoapprove_select_remove_and_bulk_csrf(
+    service, frame, tmp_path, monkeypatch
+):
     client, csrf = sign_in(service, tmp_path, monkeypatch)
     url = "/manage/event-art/upload"
     data = {"csrf": csrf, "title": "Autumn", "attribution": "My own photo"}
@@ -183,7 +182,7 @@ def test_owner_upload_review_select_remove_and_bulk_csrf(service, frame, tmp_pat
     )
     assert client.post(url, data=data, files=files, follow_redirects=False).status_code == 303
     art = service.event_art.entries()[0]
-    assert not art["approved"]
+    assert art["approved"]
     assert client.get(f"/manage/event-art/{art['id']}/image").status_code == 200
     event = {
         "csrf": csrf,
@@ -194,14 +193,7 @@ def test_owner_upload_review_select_remove_and_bulk_csrf(service, frame, tmp_pat
         "artwork_id": art["id"],
     }
     event_url = "/manage/frames/test-frame/special-days"
-    assert client.post(event_url, data=event).status_code == 400
     review_url = f"/manage/event-art/{art['id']}"
-    assert (
-        client.post(
-            review_url, data={"csrf": csrf, "action": "approve"}, follow_redirects=False
-        ).status_code
-        == 303
-    )
     assert client.post(event_url, data=event, follow_redirects=False).status_code == 303
     assert client.post(review_url, data={"csrf": csrf, "action": "remove"}).status_code == 400
     stored = json.loads(service.store.frame(frame[0])["policy"])["special_days"]

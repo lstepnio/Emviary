@@ -30,6 +30,7 @@ from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, specia
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
 from .store import RevisionConflict, token_hash
+from .trusted_network import network_session, source_public_ip
 from .ui import local_time
 
 COOKIE = "emviary_owner"
@@ -84,7 +85,6 @@ def page(title, body, **kwargs):
 
     keys = {
         "Manage your frame": "login",
-        "Image history": "images",
         "Artwork rotation": "artwork",
         "Occasion artwork": "event-art",
         "Special-day artwork": "event-art",
@@ -301,7 +301,7 @@ def attach_owner(app, service):
                 "SELECT * FROM owner_sessions WHERE token_hash=? AND expires_at>?",
                 (token_hash(request.cookies.get(COOKIE, "")), datetime.now(UTC).isoformat()),
             ).fetchone()
-        return dict(row) if row else None
+        return dict(row) if row else network_session(request, service)
 
     def require(request):
         value = session(request)
@@ -317,6 +317,9 @@ def attach_owner(app, service):
         return JSONResponse({"csrf": value["csrf"]}, headers={"Cache-Control": "no-store"})
 
     install_battery_routes(app, service, require, escape, page)
+    from .usb_recovery import install_routes as install_usb_routes
+
+    install_usb_routes(app, require)
 
     async def checked_form(request):
         value = require(request)
@@ -388,7 +391,7 @@ def attach_owner(app, service):
         nonce = request.cookies.get("emviary_login", "")
         if not nonce or not hmac.compare_digest(nonce, data.get("csrf", "")):
             raise HTTPException(403, "Invalid sign-in form")
-        peer = request.headers.get("x-forwarded-for", request.client.host).split(",")[-1].strip()
+        peer = source_public_ip(request) or request.client.host
         now = time.monotonic()
         recent = [t for t in failures.get(peer, []) if t > now - 900]
         if len(recent) >= 5:
@@ -635,14 +638,6 @@ def attach_owner(app, service):
                     )
                     + "</div>"
                 )
-                body += (
-                    '<details class="frame-history-link"><summary>Frame history</summary>'
-                    "<p>Review earlier compositions, remove unwanted images from button browsing, "
-                    "or restore removed images. The artwork library manages the source art.</p>"
-                    '<a class="button secondary" href="/manage/images?frame='
-                    + identifier
-                    + '">Review frame history</a></details>'
-                )
             if view == "appearance":
                 body += '<section class="card"><h2>Composition & display</h2>'
                 body += (
@@ -751,7 +746,18 @@ def attach_owner(app, service):
                 )
                 body += (
                     '<p class="quiet">A chosen version limits updates to that release. '
-                    "Older versions are never installed automatically.</p></details>"
+                    "Older versions are never installed automatically.</p>"
+                )
+                body += checkbox(
+                    "firmware_debug_logging",
+                    "Enable device debug logging",
+                    policy.get("firmware_debug_logging", False),
+                )
+                body += (
+                    '<p class="quiet">Off by default. Enable only while troubleshooting, '
+                    "then turn it off again to reduce device activity and flash writes. "
+                    "Battery and refresh status remain available while debug logging is off. "
+                    "Applies on the next online artwork fetch.</p></details>"
                 )
                 body += "<fieldset><legend>Artwork details</legend>"
                 body += checkbox(
@@ -785,24 +791,7 @@ def attach_owner(app, service):
                 body += checkbox("season", "Seasonal details", policy["seasonal_themes"])
                 body += "</fieldset>"
                 body += (
-                    "<details><summary>Birds to include</summary>"
-                    '<input type="hidden" name="species_controls" value="1">'
-                    '<div class="actions"><button class="secondary" type="button" '
-                    'data-species-choice="all">Select all birds</button>'
-                    '<button class="secondary" type="button" '
-                    'data-species-choice="none">Clear bird selection</button></div>'
-                )
-                species = sorted(
-                    {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
-                )
-                for index, name in enumerate(species):
-                    artwork = next(
-                        a for a in service.settings.artworks if a["scientific_name"] == name
-                    )
-                    selected = not policy["allowed_species"] or name in policy["allowed_species"]
-                    body += checkbox("species_" + str(index), artwork["common_name"], selected)
-                body += (
-                    '</details><section data-appearance-preview-result tabindex="-1" '
+                    '<section data-appearance-preview-result tabindex="-1" '
                     "hidden><h3>Unsaved preview</h3>"
                     '<img class="preview" data-appearance-preview-image alt="Draft '
                     'artwork with your unsaved display settings" width="800" '
@@ -822,6 +811,24 @@ def attach_owner(app, service):
                 )
                 body += "</section>"
             if view == "settings":
+                body += (
+                    '<section class="card"><h2>Management access</h2>'
+                    '<form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/management-access">'
+                    + hidden(csrf)
+                    + checkbox(
+                        "management_trusted_wan",
+                        "Allow password-free management from this frame’s internet connection",
+                        policy.get("management_trusted_wan", False),
+                    )
+                    + '<p class="quiet">This trusts everyone sharing the public IP, including '
+                    "guests. Uses a frame connection authenticated within the last 48 hours. "
+                    "Access is checked on every request; another network still needs the "
+                    "owner password. If the frame has not contacted this service since this "
+                    "feature was enabled, wait for its next wake or refresh it.</p>"
+                    "<button>Save management access</button></form></section>"
+                )
                 body += (
                     '<section class="card" id="wifi-networks" aria-labelledby="wifi-heading">'
                     '<h2 id="wifi-heading">Saved Wi-Fi networks</h2><p class="quiet">'
@@ -904,12 +911,10 @@ def attach_owner(app, service):
                     '<p class="notice">Add or open a special day below, choose its date '
                     "and greeting, then save it with Enabled turned on. Seasonal bird art "
                     "is selected automatically unless you choose featured artwork. "
-                    "To use your own illustration, upload and approve it first.</p><p><a "
-                    'class="button secondary" href="/manage/event-art?frame='
-                    + escape(identifier)
-                    + '">Manage '
-                    "special-day art</a></p><details><summary>Add holiday or season "
-                    "collections</summary>"
+                    "Upload your own illustration in the Artwork collection below, "
+                    "then choose it for a day. Uploaded art is ready to use immediately.</p>"
+                    + event_art_panel(request, csrf, frame["id"])
+                    + "<details><summary>Add holiday or season collections</summary>"
                     '<form method="post" action="/manage/frames/'
                     + identifier
                     + '/special-days/import">'
@@ -1044,16 +1049,15 @@ def attach_owner(app, service):
                             + "</option>"
                         )
                     for art in service.event_art.entries():
-                        if art["approved"]:
-                            body += (
-                                '<option value="'
-                                + escape(art["id"])
-                                + '" '
-                                + ("selected" if day["artwork_id"] == art["id"] else "")
-                                + ">"
-                                + escape("Occasion art / " + art["common_name"])
-                                + "</option>"
-                            )
+                        body += (
+                            '<option value="'
+                            + escape(art["id"])
+                            + '" '
+                            + ("selected" if day["artwork_id"] == art["id"] else "")
+                            + ">"
+                            + escape("Special-day art / " + art["common_name"])
+                            + "</option>"
+                        )
                     body += "</select></label></div>"
                     rule = day.get("recurrence") or {}
                     body += '<label>Date rule<br><select name="date_rule">'
@@ -1156,6 +1160,9 @@ def attach_owner(app, service):
                     body += "</details>"
                 body += "</section>"
             if view == "recovery":
+                from .usb_recovery import panel as usb_recovery_panel
+
+                body += usb_recovery_panel(frame["id"])
                 body += (
                     '<a class="quiet" href="/manage/frames/'
                     + identifier
@@ -1212,7 +1219,8 @@ def attach_owner(app, service):
                 "<p>An ordinary reboot keeps saved settings. On firmware v0.5.0 or later, "
                 "the left white button requests the previous image and the right white "
                 "button requests the next image. Neither clears the panel. "
-                "These buttons do not factory-reset "
+                "Hold LEFT for five seconds for a local diagnostic snapshot on v0.8.3 or later. "
+                "Green returns to artwork. These buttons do not factory-reset "
                 "Emviary firmware.</p></details>"
                 "<details><summary>Reconnect after a factory reset</summary>"
                 "<p>A factory reset from local Settings erases saved Wi-Fi, the cloud token, "
@@ -1250,7 +1258,8 @@ def attach_owner(app, service):
                 "SSID and password. Then wake it, open local Settings, and add the new "
                 "network or deliberately factory-reset it using the procedure above.</p>"
                 "<p>If you cannot recreate any saved network or reach local controls, "
-                "contact the maintainer for USB recovery. Replacing firmware with stock "
+                'use <a href="#usb-recovery">Restore firmware over USB</a> above. '
+                "Replacing firmware with stock "
                 "firmware requires reinstalling Emviary first; a configuration import "
                 "alone does not restore our firmware features.</p></details></section>"
             )
@@ -1379,23 +1388,31 @@ def attach_owner(app, service):
                 + "</select></label><button>Add frame</button></form></details>"
             )
         if view == "settings":
-            body += (
-                '<section><h2>Owner password</h2><form method="post" action="/manage/password">'
-                + hidden(csrf)
-                + field(
-                    "password",
-                    "New password (at least 16 characters)",
-                    "",
-                    "password",
-                    'required minlength="16" maxlength="256" autocomplete="new-password"',
+            if auth.get("network_access"):
+                body += (
+                    "<section><h2>Owner password</h2><p>Network access is checked on each request. "
+                    "Changing the owner password requires a password sign-in.</p>"
+                    '<a class="button secondary" href="/manage/login?return=%2Fmanage%2Fsettings">'
+                    "Sign in with owner password</a></section>"
                 )
-                + "<button>Change password and sign out</button></form></section>"
-            )
-            body += (
-                '<form method="post" action="/manage/logout">'
-                + hidden(csrf)
-                + "<button>Sign out</button></form>"
-            )
+            else:
+                body += (
+                    '<section><h2>Owner password</h2><form method="post" action="/manage/password">'
+                    + hidden(csrf)
+                    + field(
+                        "password",
+                        "New password (at least 16 characters)",
+                        "",
+                        "password",
+                        'required minlength="16" maxlength="256" autocomplete="new-password"',
+                    )
+                    + "<button>Change password and sign out</button></form></section>"
+                )
+                body += (
+                    '<form method="post" action="/manage/logout">'
+                    + hidden(csrf)
+                    + "<button>Sign out</button></form>"
+                )
         if not frames and view != "settings":
             body += (
                 '<p class="empty-state">Add your first frame from the overview to '
@@ -1409,146 +1426,13 @@ def attach_owner(app, service):
         )
 
     @app.get("/manage/images")
-    def image_gallery(
-        request: Request, frame: str | None = None, offset: int = 0, removed: bool = False
-    ):
-        from urllib.parse import urlencode
-
-        auth = require(request)
+    def retired_image_gallery(request: Request, frame: str = ""):
+        require(request)
         if frame:
             service.store.frame(frame)
-        offset = max(0, offset)
-        with service.store.connect() as db:
-            records = db.execute(
-                "SELECT * FROM images WHERE hidden=?"
-                + (" AND frame_id=?" if frame else "")
-                + " ORDER BY id DESC LIMIT 25 OFFSET ?",
-                (int(removed), frame, offset) if frame else (int(removed), offset),
-            ).fetchall()
-        if not records and offset:
-            with service.store.connect() as db:
-                count = db.execute(
-                    "SELECT count(*) FROM images WHERE hidden=?"
-                    + (" AND frame_id=?" if frame else ""),
-                    (int(removed), frame) if frame else (int(removed),),
-                ).fetchone()[0]
-            params = {"removed": str(removed).lower(), "offset": max(0, ((count - 1) // 24) * 24)}
-            if frame:
-                params["frame"] = frame
-            if request.query_params.get("result") in {"removed", "restored"}:
-                params["result"] = request.query_params["result"]
-            return RedirectResponse("/manage/images?" + urlencode(params), status_code=303)
-        body = (
-            '<header class="page-header"><h1>Frame history</h1><p class="page-description">'
-            "Revisit saved compositions. Removing an image takes it out of navigation; "
-            "you can restore it until normal history cleanup expires its files.</p></header>"
-            '<form class="toolbar" method="get" action="/manage/images">'
-            '<label>Frame<select name="frame"><option value="">All frames</option>'
+        return RedirectResponse(
+            "/manage" + ("?" + urlencode({"frame": frame}) if frame else ""), status_code=303
         )
-        frames = service.store.frames()
-        delivered = {f["id"]: service.delivered_image(f) for f in frames}
-        for item in frames:
-            body += (
-                '<option value="'
-                + escape(item["id"])
-                + '"'
-                + (" selected" if frame == item["id"] else "")
-                + ">"
-                + escape(item["id"])
-                + "</option>"
-            )
-        body += (
-            '</select></label><label>Collection<select name="removed">'
-            '<option value="false"'
-            + (" selected" if not removed else "")
-            + ">Saved images</option>"
-            '<option value="true"' + (" selected" if removed else "") + ">Removed images</option>"
-            '</select></label><button>Apply filters</button></form><div class="card-grid">'
-        )
-        notices = {
-            "removed": "Image removed from navigation. You can restore it from Removed images.",
-            "restored": "Image restored to navigation.",
-        }
-        if request.query_params.get("result") in notices:
-            body = (
-                '<p class="notice success" role="status">'
-                + notices[request.query_params["result"]]
-                + "</p>"
-                + body
-            )
-        for record in records[:24]:
-            current = delivered.get(record["frame_id"])
-            current = current and current["id"] == record["id"]
-            plan = json.loads(record["manifest"])
-            birds = ", ".join(a["common_name"] for a in plan.get("artworks", [plan["artwork"]]))
-            body += (
-                '<article class="card library-card"><img class="preview" loading="lazy" '
-                'src="/manage/images/'
-                + str(record["id"])
-                + "/preview"
-                + ("?removed=true" if removed else "")
-                + '" alt="'
-                + escape(birds)
-                + '">'
-                "<h2>"
-                + escape(birds)
-                + '</h2><p class="quiet">'
-                + escape(record["frame_id"])
-                + " · "
-                + escape(record["local_date"])
-                + " · Version "
-                + str(record["revision"])
-                + "</p>"
-            )
-            if current:
-                body += (
-                    '<p class="pill">Last delivered to the frame</p><p class="quiet">'
-                    "Advance the frame before removing this image.</p>"
-                )
-            else:
-                body += (
-                    '<form method="post" action="/manage/images/'
-                    + str(record["id"])
-                    + ("/restore" if removed else "/remove")
-                    + '">'
-                    + hidden(auth["csrf"])
-                    + '<input type="hidden" name="return" value="'
-                    + escape(request.url.path + "?" + request.url.query)
-                    + '">'
-                    + '<button class="secondary">'
-                    + ("Restore to history" if removed else "Remove from history")
-                    + "</button></form>"
-                )
-            body += "</article>"
-        body += "</div>"
-        if not records:
-            body += (
-                '<section class="empty-state"><h2>'
-                + ("No removed images" if removed else "No saved images yet")
-                + "</h2><p>"
-                + (
-                    "Removed images appear here while their files are retained."
-                    if removed
-                    else "Prepared artwork will appear here, ready to revisit on the frame."
-                )
-                + "</p></section>"
-            )
-        parameters = {"removed": str(removed).lower(), **({"frame": frame} if frame else {})}
-        body += '<nav class="toolbar" aria-label="Image history pages">'
-        if offset:
-            body += (
-                '<a class="button secondary" href="/manage/images?'
-                + escape(urlencode({**parameters, "offset": max(0, offset - 24)}))
-                + '">Newer images</a>'
-            )
-        if len(records) > 24:
-            body += (
-                '<a class="button secondary" href="/manage/images?'
-                + escape(urlencode({**parameters, "offset": offset + 24}))
-                + '">Older images</a>'
-            )
-        body += "</nav>"
-        return page("Frame history", body, active="overview")
 
     @app.get("/manage/images/{image_id}/review")
     def queued_review(image_id: int, request: Request):
@@ -1595,11 +1479,11 @@ def attach_owner(app, service):
         return page("Special-day preview", body, active="events")
 
     @app.get("/manage/images/{image_id}/preview")
-    def history_preview(image_id: int, request: Request, removed: bool = False):
+    def queued_image_preview(image_id: int, request: Request):
         require(request)
         with service.store.connect() as db:
             record = db.execute(
-                "SELECT * FROM images WHERE id=? AND hidden=?", (image_id, int(removed))
+                "SELECT * FROM images WHERE id=? AND hidden=0", (image_id,)
             ).fetchone()
         if not record or not service.cache_path(record["preview_path"]).is_file():
             raise HTTPException(404, "Image unavailable")
@@ -1608,53 +1492,6 @@ def attach_owner(app, service):
             media_type="image/jpeg",
             headers={"Cache-Control": "no-store"},
         )
-
-    def history_return(data, result):
-        target = safe_return(data.get("return"))
-        parts = urlsplit(target)
-        if parts.path != "/manage/images":
-            parts = urlsplit("/manage/images")
-        values = parse_qs(parts.query)
-        params = {k: values[k][-1] for k in ("frame", "removed", "offset") if k in values}
-        return "/manage/images?" + urlencode({**params, "result": result})
-
-    @app.post("/manage/images/{image_id}/remove")
-    async def remove_image(image_id: int, request: Request):
-        data = await checked_form(request)
-        with preparation_lock(service.settings.data_dir):
-            with service.store.connect() as db:
-                record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
-                if not record:
-                    raise HTTPException(404, "Unknown image")
-                frame = service.store.frame(record["frame_id"])
-                displayed = service.delivered_image(frame)
-                if displayed and displayed["id"] == image_id:
-                    raise HTTPException(
-                        409, "Advance the frame before removing its displayed image"
-                    )
-                db.execute("UPDATE images SET hidden=1 WHERE id=?", (image_id,))
-            if frame["active_image_id"] == image_id:
-                service.store.request_refill(frame["id"], image_id)
-        return RedirectResponse(
-            history_return(data, "removed"),
-            status_code=303,
-            background=BackgroundTask(service.refill_pending),
-        )
-
-    @app.post("/manage/images/{image_id}/restore")
-    async def restore_image(image_id: int, request: Request):
-        data = await checked_form(request)
-        with preparation_lock(service.settings.data_dir):
-            with service.store.connect() as db:
-                record = db.execute("SELECT * FROM images WHERE id=?", (image_id,)).fetchone()
-                if not record:
-                    raise HTTPException(404, "Unknown image")
-                if not all(
-                    service.cache_path(record[key]).is_file() for key in ("path", "preview_path")
-                ):
-                    raise HTTPException(409, "This image has expired from storage")
-                db.execute("UPDATE images SET hidden=0 WHERE id=?", (image_id,))
-        return RedirectResponse(history_return(data, "restored"), status_code=303)
 
     @app.get("/manage/artwork")
     def artwork_management(
@@ -1666,14 +1503,12 @@ def attach_owner(app, service):
         style: str = "",
         pose: str = "",
         season: str = "",
-        review: str = "",
     ):
         from urllib.parse import urlencode
 
         auth = require(request)
         excluded = service.store.excluded_artworks()
         counts = service.store.bird_counts()
-        reviews = service.store.artwork_reviews()
         catalog = service.settings.source_catalog["artworks"]
         styles = sorted({a.get("style", "") for a in catalog} - {""})
         poses = sorted({a.get("pose", "") for a in catalog} - {""})
@@ -1686,12 +1521,6 @@ def attach_owner(app, service):
             "autumn": {9, 10, 11},
         }
         season = season if season in seasons else ""
-        review_labels = {
-            "unreviewed": "Unreviewed",
-            "on-panel-approved": "On-panel approved",
-            "needs-changes": "Needs changes",
-        }
-        review = review if review in review_labels else ""
         q = q.strip()[:200]
         status = status if status in {"rotation", "excluded", "reference", "deleted"} else ""
         sort = sort if sort in {"name", "most", "least"} else "name"
@@ -1709,7 +1538,6 @@ def attach_owner(app, service):
             and (not style or a.get("style") == style)
             and (not pose or (not a.get("pose") if pose == "missing" else a.get("pose") == pose))
             and (not season or bool(set(a.get("months", [])) & seasons[season]))
-            and (not review or reviews.get(a["id"], "unreviewed") == review)
             and (
                 not status
                 or status == "deleted"
@@ -1743,7 +1571,6 @@ def attach_owner(app, service):
             "style": style,
             "pose": pose,
             "season": season,
-            "review": review,
         }
         return_url = "/manage/artwork?" + urlencode({k: v for k, v in context.items() if v != ""})
         if str(p) != request.query_params.get("p", "1"):
@@ -1753,7 +1580,8 @@ def attach_owner(app, service):
             '<p class="page-description">Choose which illustrations can appear in future '
             "compositions. Exclusions leave the artwork already on the frame "
             "unchanged.</p></header>"
-            '<section id="artwork-library" aria-label="Artwork choices">'
+            f'<section id="artwork-library" aria-label="Artwork choices" '
+            f'data-first-page="{p}" data-last-page="{p}" data-total-pages="{pages}">'
             ""
             '<p data-library-feedback role="status" aria-live="polite"></p>'
             '<form class="toolbar" method="get" action="/manage/artwork"><label>Search'
@@ -1769,7 +1597,7 @@ def attach_owner(app, service):
                     ("", "All artwork"),
                     ("rotation", "In rotation"),
                     ("excluded", "Excluded"),
-                    ("reference", "References and review"),
+                    ("reference", "Reference artwork"),
                     ("deleted", "Deleted artwork"),
                 ],
                 status,
@@ -1793,17 +1621,11 @@ def attach_owner(app, service):
                 [("", "All seasons")] + [(v, v.title()) for v in seasons],
                 season,
             ),
-            (
-                "review",
-                "Panel review",
-                [("", "All review states")] + list(review_labels.items()),
-                review,
-            ),
         ):
             if name == "style":
                 body += (
                     '<details class="collection-filter-options"'
-                    + (" open" if any((style, pose, season, review)) else "")
+                    + (" open" if any((style, pose, season)) else "")
                     + '><summary>More filters</summary><div class="fields">'
                 )
             body += "<label>" + label + '<select name="' + name + '">'
@@ -1818,7 +1640,7 @@ def attach_owner(app, service):
                     + "</option>"
                 )
             body += "</select></label>"
-            if name == "review":
+            if name == "season":
                 body += "</div></details>"
         if frame_context:
             body += '<input type="hidden" name="frame" value="' + escape(frame_context) + '">'
@@ -1947,34 +1769,10 @@ def attach_owner(app, service):
                     + '">'
                     '<button class="secondary compact-action">Restore artwork</button></form>'
                 )
-            body += '</div><details class="artwork-options"><summary>Manage artwork</summary>'
-            body += (
-                '<form method="post" data-library-action '
-                'data-library-message=" panel review saved." action="/manage/artwork/'
-                + art_id
-                + '/review">'
-                + hidden(auth["csrf"])
-                + '<input type="hidden" name="return" value="'
-                + escape(return_url)
-                + '">'
-                '<label>Panel review<select name="review">'
-            )
-            for value, text in review_labels.items():
-                body += (
-                    '<option value="'
-                    + value
-                    + '"'
-                    + (" selected" if reviews.get(art["id"], "unreviewed") == value else "")
-                    + ">"
-                    + text
-                    + "</option>"
-                )
-            body += (
-                '</select></label><button class="secondary compact-action">Save panel review'
-                "</button></form>"
-            )
+            body += "</div>"
             if status != "deleted":
                 body += (
+                    '<details class="artwork-remove-options"><summary>Remove artwork</summary>'
                     '<form class="artwork-remove" method="post" data-library-action '
                     'data-library-message=" deleted from the library." '
                     'action="/manage/artwork/'
@@ -1985,9 +1783,9 @@ def attach_owner(app, service):
                     + escape(return_url)
                     + '">'
                     '<p class="quiet">Removed artwork stays available in Deleted artwork.</p>'
-                    '<button class="danger compact-action">Delete artwork</button></form>'
+                    '<button class="danger compact-action">Delete artwork</button></form></details>'
                 )
-            body += "</details></article>"
+            body += "</article>"
         body += "</div>"
         if not works:
             body += (
@@ -1995,11 +1793,13 @@ def attach_owner(app, service):
                 "<p>Try another search or reset your filters.</p></section>"
             )
         if pages > 1:
-            body += '<nav class="toolbar" aria-label="Artwork pages">'
+            body += '<nav class="toolbar" aria-label="Artwork pages" data-artwork-pagination>'
             for number, label in ((p - 1, "Previous"), (p + 1, "Next")):
                 if 1 <= number <= pages:
                     body += (
-                        '<a class="button secondary" href="/manage/artwork?'
+                        '<a class="button secondary" '
+                        + ("data-artwork-next " if label == "Next" else "")
+                        + 'href="/manage/artwork?'
                         + escape(
                             urlencode(
                                 {k: v for k, v in {**context, "p": number}.items() if v != ""}
@@ -2014,9 +1814,7 @@ def attach_owner(app, service):
             '<details class="library-help"><summary>Collection help & cleanup</summary>'
             "<p>Delete moves artwork to Deleted artwork, where it can be restored. "
             "The current frame image and rendered history are preserved.</p>"
-            "<p>Panel review records your own physical-screen assessment. "
-            "It does not change rotation approval. "
-            "Season filters use catalog month eligibility.</p>" + cleanup + "</details>"
+            "<p>Season filters use catalog month eligibility.</p>" + cleanup + "</details>"
             ""
         )
         body += "</section>"
@@ -2029,7 +1827,7 @@ def attach_owner(app, service):
             values = parse_qs(parts.query)
             params = {
                 k: values[k][-1]
-                for k in ("q", "status", "sort", "p", "style", "pose", "season", "review", "frame")
+                for k in ("q", "status", "sort", "p", "style", "pose", "season", "frame")
                 if k in values
             }
             if "p" in params:
@@ -2080,8 +1878,8 @@ def attach_owner(app, service):
             for key, value in data.items()
             if key.startswith("selected_") and value == "1"
         }
-        if not identifiers or len(identifiers) > 24:
-            raise HTTPException(400, "Select between 1 and 24 artworks on this page")
+        if not identifiers or len(identifiers) > 500:
+            raise HTTPException(400, "Select between 1 and 500 artworks")
         action = data.get("action")
         if action == "delete":
             try:
@@ -2095,17 +1893,6 @@ def attach_owner(app, service):
         return RedirectResponse(
             artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
         )
-
-    @app.post("/manage/artwork/{artwork_id}/review")
-    async def artwork_panel_review(artwork_id: str, request: Request):
-        data = await checked_form(request)
-        if not any(a["id"] == artwork_id for a in service.settings.source_catalog["artworks"]):
-            raise HTTPException(404, "Unknown artwork")
-        try:
-            service.store.set_artwork_review(artwork_id, data.get("review"))
-        except ValueError as exc:
-            raise HTTPException(400, str(exc)) from None
-        return RedirectResponse(artwork_return(data), status_code=303)
 
     @app.post("/manage/artwork/bulk-delete")
     async def delete_unused_artworks(request: Request):
@@ -2232,6 +2019,7 @@ def attach_owner(app, service):
                 firmware_rotate_cron=cron_for(data["wake"]),
                 max_birds=int(data["max_birds"]),
                 firmware_updates=data.get("firmware_updates", policy["firmware_updates"]),
+                firmware_debug_logging=data.get("firmware_debug_logging") == "on",
                 firmware_channel=data.get("firmware_channel", policy["firmware_channel"]),
                 firmware_rollout_days=int(
                     data.get("firmware_rollout_days", policy["firmware_rollout_days"])
@@ -2258,25 +2046,10 @@ def attach_owner(app, service):
                 show_dated_weather_text=data.get("forecast_text") == "on",
                 seasonal_themes=data.get("season") == "on",
             )
-            if data.get("species_controls"):
-                species = sorted(
-                    {a["scientific_name"] for a in service.settings.artworks if a["approved"]}
-                )
-                selected = [
-                    name
-                    for index, name in enumerate(species)
-                    if data.get("species_" + str(index)) == "on"
-                ]
-                if not selected:
-                    raise ValueError("Choose at least one species")
-                policy["allowed_species"] = selected
             validated = FramePolicy.model_validate(policy)
         except (ValueError, KeyError) as error:
             message = (
-                "Choose at least one bird to include."
-                if str(error) == "Choose at least one species"
-                else "Check the daily wake time, bird count and processing settings. "
-                "Nothing was saved."
+                "Check the daily wake time, bird count and processing settings. Nothing was saved."
             )
             names = {
                 "wake_local_time": "wake",
@@ -2290,10 +2063,20 @@ def attach_owner(app, service):
                 if isinstance(error, ValidationError)
                 else []
             )
-            if str(error) == "Choose at least one species":
-                fields = ["species_controls"]
             raise HTTPException(400, {"message": message, "fields": fields}) from None
         return validated
+
+    @app.post("/manage/frames/{identifier}/management-access")
+    async def management_access(identifier: str, request: Request):
+        data = await checked_form(request)
+        policy = FramePolicy.model_validate_json(service.store.frame(identifier)["policy"])
+        policy = policy.model_copy(
+            update={"management_trusted_wan": data.get("management_trusted_wan") == "on"}
+        )
+        service.store.set_policy(identifier, policy, expected_revision=expected_revision(data))
+        return RedirectResponse(
+            "/manage/settings?" + urlencode({"frame": identifier, "saved": "1"}), status_code=303
+        )
 
     @app.post("/manage/frames/{identifier}/appearance-preview")
     async def draft_appearance_preview(identifier: str, request: Request):
@@ -2445,53 +2228,48 @@ def attach_owner(app, service):
         service.store.set_policy(identifier, validated, expected_revision=expected_revision(data))
         return redirect(request)
 
-    @app.get("/manage/event-art")
-    def event_art_collection(request: Request, frame: str = ""):
-        csrf = require(request)["csrf"]
-        frame = frame if any(f["id"] == frame for f in service.store.frames()) else ""
-        context = "?" + urlencode({"frame": frame}) if frame else ""
+    def event_art_panel(request, csrf, frame):
         body = (
-            '<header class="page-header"><h1>Special-day art</h1><p class="page-description">'
-            "Make holidays, seasons and personal occasions your own. These images stay "
-            "out of everyday bird rotation.</p></header>"
-            '<section><h2>Add an illustration</h2><form method="post" '
-            'action="/manage/event-art/upload" '
+            '<details id="special-day-art" class="special-day-art">'
+            "<summary>Artwork collection</summary>"
+            '<p class="quiet">These illustrations are used only on the special days '
+            "you assign them to. "
+            "They stay out of everyday bird rotation.</p>"
+        )
+        notices = {
+            "uploaded": (
+                "Artwork added and ready to use. Choose it under Featured artwork on a day above."
+            ),
+            "remove": "Uploaded artwork removed.",
+        }
+        if request.query_params.get("result") in notices:
+            body += (
+                '<p class="notice success" role="status">'
+                + notices[request.query_params["result"]]
+                + "</p>"
+            )
+        body += (
+            '<h3>Add artwork</h3><form method="post" action="/manage/event-art/upload" '
             'enctype="multipart/form-data">'
             + hidden(csrf)
             + '<input type="hidden" name="frame" value="'
             + escape(frame)
             + '">'
-            + '<div class="fields">'
             + field("title", "Artwork title", "", extra='maxlength="80" required')
-            + '</div><label>Image<input type="file" name="image" '
+            + '<label>Image<input type="file" name="image" '
             'accept="image/png,image/jpeg,image/webp" required></label><p class="quiet">'
-            "PNG, JPEG or WebP, up to 10 MB. Images are saved as still PNG files. "
-            "Review the illustration before approving it for a special day.</p>"
-            "<button>Upload for review</button></form></section>"
+            "PNG, JPEG or WebP, up to 10 MB. Images are saved as still PNG files and are "
+            "ready to use immediately.</p><button>Add artwork</button></form>"
         )
-        body += '<p><a class="button secondary" href="/manage/events' + escape(context)
-        body += '">Back to special days</a></p>'
-        notices = {
-            "uploaded": "Artwork uploaded. Review it below, then approve it for special days.",
-            "approve": "Artwork approved. Choose it on a special day to use it.",
-            "unapprove": "Artwork returned to review.",
-            "remove": "Uploaded artwork permanently removed.",
-        }
-        if request.query_params.get("result") in notices:
-            body += '<p class="notice success" role="status">'
-            body += notices[request.query_params["result"]] + "</p>"
         entries = service.event_art.entries()
         if not entries:
             body += (
-                '<section class="empty-state"><h2>Your special-day collection starts here.</h2>'
-                "<p>Upload an illustration, approve it, then choose it on a special day.</p>"
-                '<a class="button secondary" href="/manage/events'
-                + escape(context)
-                + '">Plan a special day</a></section>'
+                '<p class="empty-state">No special-day artwork yet. Add an illustration above.</p>'
             )
         else:
-            body += '<div class="card-grid">'
+            body += '<div class="card-grid artwork-grid">'
             for art in entries:
+                art_id, title = escape(art["id"]), escape(art["common_name"])
                 uses = [
                     (f["id"], d)
                     for f in service.store.frames()
@@ -2499,59 +2277,66 @@ def attach_owner(app, service):
                     if d.artwork_id == art["id"]
                 ]
                 body += (
-                    '<article class="card library-card artwork-card"><a href="/manage/event-art/'
-                    + escape(art["id"])
-                    + '/image" aria-label="Open full illustration: '
-                    + escape(art["common_name"])
-                    + '"><img class="artwork-thumb" loading="lazy" src="/manage/event-art/'
-                    + escape(art["id"])
+                    '<article class="card library-card artwork-card"><div class="artwork-media">'
+                    '<a href="/manage/event-art/' + art_id + '/image" target="_blank" '
+                    'rel="noopener" aria-label="Open full ' + title + ' illustration">'
+                    '<img class="artwork-thumb" loading="lazy" src="/manage/event-art/'
+                    + art_id
                     + '/thumbnail" alt="'
-                    + escape(art["common_name"])
-                    + '"></a><h2>'
-                    + escape(art["common_name"])
-                    + '</h2><p class="pill">'
-                    + ("Approved for special days" if art["approved"] else "Awaiting review")
-                    + "</p>"
-                )
-                body += (
-                    '<details class="artwork-options"'
-                    + (" open" if not art["approved"] else "")
-                    + "><summary>Manage artwork</summary>"
+                    + title
+                    + '"></a></div><h3>'
+                    + title
+                    + "</h3>"
                 )
                 if uses:
-                    body += '<p class="quiet">Used by special days:</p><ul>'
+                    body += '<p class="quiet">Assigned to:</p><ul>'
                     for frame_id, day in uses:
-                        body += '<li><a href="/manage/events?frame=' + escape(frame_id)
-                        body += "#event-" + escape(day.id) + '">' + escape(day.label) + "</a></li>"
-                    body += '</ul><p class="quiet">Choose another artwork on these special days '
-                    body += "before returning this artwork to review or removing it.</p>"
+                        body += (
+                            '<li><a href="/manage/events?'
+                            + escape(urlencode({"frame": frame_id, "focus": "event-" + day.id}))
+                            + "#event-"
+                            + escape(day.id)
+                            + '">'
+                            + escape(day.label)
+                            + "</a></li>"
+                        )
+                    body += (
+                        '</ul><p class="quiet">Choose another artwork for these days '
+                        "before removing it.</p>"
+                    )
+                else:
+                    body += '<p class="quiet">Not assigned to a special day.</p>'
                 body += (
                     '<form method="post" action="/manage/event-art/'
-                    + escape(art["id"])
+                    + art_id
                     + '">'
                     + hidden(csrf)
                     + '<input type="hidden" name="frame" value="'
                     + escape(frame)
                     + '">'
-                    + '<div class="actions"><button class="secondary" name="action" value="'
-                    + ("unapprove" if art["approved"] else "approve")
-                    + ('" disabled>' if uses and art["approved"] else '">')
-                    + ("Return to review" if art["approved"] else "Approve for special days")
-                    + "</button>"
-                    "</div><details><summary>Remove artwork</summary>"
-                    "<p>Removal deletes the uploaded artwork. Choose another image on any "
-                    'special days using it first.</p><button class="danger" '
-                    'name="action" value="remove"' + (" disabled" if uses else "") + ">"
-                    "Permanently remove artwork</button></details></form></details></article>"
+                    '<button class="danger compact-action" name="action" value="remove"'
+                    + (" disabled" if uses else "")
+                    + ">Remove artwork</button></form></article>"
                 )
             body += "</div>"
-        return page("Special-day art", body, active="event-art")
+        return body + "</details>"
+
+    @app.get("/manage/event-art")
+    def retired_event_art_collection(request: Request, frame: str = ""):
+        require(request)
+        params = {"focus": "special-day-art"}
+        if frame:
+            service.store.frame(frame)
+            params["frame"] = frame
+        return RedirectResponse(
+            "/manage/events?" + urlencode(params) + "#special-day-art", status_code=303
+        )
 
     def event_art_return(data, result):
-        params = {"result": result}
+        params = {"result": result, "focus": "special-day-art"}
         if any(f["id"] == data.get("frame") for f in service.store.frames()):
             params["frame"] = data["frame"]
-        return "/manage/event-art?" + urlencode(params)
+        return "/manage/events?" + urlencode(params) + "#special-day-art"
 
     @app.get("/manage/event-art/{artwork_id}/image")
     def event_art_image(artwork_id: str, request: Request):
@@ -2639,11 +2424,11 @@ def attach_owner(app, service):
         return RedirectResponse(event_art_return(data, "uploaded"), status_code=303)
 
     @app.post("/manage/event-art/{artwork_id}")
-    async def review_event_art(artwork_id: str, request: Request):
+    async def remove_event_art(artwork_id: str, request: Request):
         data = await checked_form(request)
         try:
             with preparation_lock(service.settings.data_dir):
-                if data.get("action") in {"remove", "unapprove"}:
+                if data.get("action") == "remove":
                     # Require detaching first so a saved event never silently loses its artwork.
                     if any(
                         any(
@@ -2655,8 +2440,6 @@ def attach_owner(app, service):
                         raise ValueError("Choose another artwork on its special days first")
                 if data.get("action") == "remove":
                     service.event_art.remove(artwork_id)
-                elif data.get("action") in {"approve", "unapprove"}:
-                    service.event_art.review(artwork_id, data["action"] == "approve")
                 else:
                     raise ValueError("Unknown artwork action")
         except ValueError as error:
@@ -2753,7 +2536,7 @@ def attach_owner(app, service):
                     raise HTTPException(
                         400,
                         {
-                            "message": "Choose approved special-day art, bird art "
+                            "message": "Choose special-day art, bird art "
                             "eligible for this "
                             "month, or seasonal selection. Your other changes are still here.",
                             "fields": ["artwork_id"],
@@ -2905,6 +2688,8 @@ def attach_owner(app, service):
     @app.post("/manage/password")
     async def password(request: Request):
         data = await checked_form(request)
+        if require(request).get("network_access"):
+            raise HTTPException(403, "Sign in with the owner password before changing credentials")
         try:
             set_password(data.get("password", ""))
         except ValueError:

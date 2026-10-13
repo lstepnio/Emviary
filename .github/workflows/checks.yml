@@ -12,3 +12,16 @@ jobs:
       - run: uv run ruff check src tests tools
       - run: uv run ruff format --check src tests tools
       - run: uv run pytest -q
+  usb-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web-recovery/package-lock.json
+      - run: npm ci --prefix web-recovery
+      - run: npm test --prefix web-recovery
+      - run: npm run build --prefix web-recovery
+      - run: git diff --exit-code -- src/emviary/recovery_assets/recovery.js src/emviary/recovery_assets/recovery.js.LEGAL.txt

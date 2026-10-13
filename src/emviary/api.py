@@ -17,6 +17,7 @@ from .firmware_updates import FirmwareUpdates
 from .service import Service
 from .settings import FramePolicy
 from .store import stable_json
+from .trusted_network import record_frame_network
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def config_payload(frame):
         "rotation_mode": "url",
         "deep_sleep_enabled": True,
         "display_orientation": policy["panel"]["orientation"],
+        "debug_log_enabled": policy.get("firmware_debug_logging", False),
     }
     if policy.get("wifi_networks") is not None:
         config["wifi_networks"] = policy["wifi_networks"]
@@ -154,6 +156,7 @@ def create_app(service=None, schedule=True):
     def image(request: Request):
         frame = authenticated(request, service)
         check_geometry(request, frame)
+        record_frame_network(request, service, frame)
         direction = request.headers.get("x-image-navigation", "latest")
         if direction not in {"latest", "previous", "next"}:
             raise HTTPException(400, "Unknown image navigation direction")
@@ -373,6 +376,8 @@ def create_app(service=None, schedule=True):
         active_count = sum(a["approved"] for a in artworks)
         species_count = len({a["scientific_name"] for a in artworks if a["approved"]})
         body = (
+            '<section id="artwork-library" data-library-path="/library" '
+            f'data-first-page="{p}" data-last-page="{p}" data-total-pages="{total_pages}">'
             '<header class="page-header"><p class="eyebrow">The collection</p>'
             '<h1>Artwork library</h1><p class="intro">Explore the bird illustrations '
             "from the frame.</p></header>"
@@ -442,7 +447,9 @@ def create_app(service=None, schedule=True):
                     + '"></a>'
                 )
             cards.append(
-                '<article class="card library-card artwork-card"><div class="artwork-media">'
+                '<article class="card library-card artwork-card" data-artwork-id="'
+                + escape(artwork["id"], quote=True)
+                + '"><div class="artwork-media">'
                 '<a href="/art/'
                 + escape(artwork["id"], quote=True)
                 + '" target="_blank" rel="noopener"><img class="artwork-thumb" '
@@ -467,7 +474,7 @@ def create_app(service=None, schedule=True):
                 + "</article>"
             )
         body += (
-            '<div class="card-grid">' + "".join(cards) + "</div>"
+            '<div class="card-grid artwork-grid">' + "".join(cards) + "</div>"
             if cards
             else '<section class="empty-state"><h2>No artwork matches</h2>'
             "<p>Try a different bird name or broaden the filters.</p>"
@@ -475,11 +482,16 @@ def create_app(service=None, schedule=True):
         )
         if total_pages > 1:
             parameters = {"q": q, "sort": sort, "kind": kind, "status": status, "style": style}
-            body += '<nav class="toolbar pagination" aria-label="Library pages">'
+            body += (
+                '<nav class="toolbar pagination" aria-label="Library pages" '
+                "data-artwork-pagination>"
+            )
             for number, label in ((p - 1, "Previous"), (p + 1, "Next")):
                 if 1 <= number <= total_pages:
                     body += (
-                        '<a class="button secondary" href="/library?'
+                        '<a class="button secondary" '
+                        + ("data-artwork-next " if label == "Next" else "")
+                        + 'href="/library?'
                         + escape(urlencode({**parameters, "p": number}), quote=True)
                         + '">'
                         + label
@@ -488,6 +500,7 @@ def create_app(service=None, schedule=True):
             body += (
                 '<span class="quiet">Page ' + str(p) + " of " + str(total_pages) + "</span></nav>"
             )
+        body += '<div class="library-help" hidden></div></section>'
         return page(
             "Artwork library",
             body,

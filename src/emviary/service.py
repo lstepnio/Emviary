@@ -38,6 +38,8 @@ class Service:
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
         self.event_art = EventArt(self.settings.data_dir)
+        with preparation_lock(self.settings.data_dir):
+            self.event_art.approve_existing()
         # Keep the read-only source catalog as recovery data, while the active
         # catalog excludes persistent owner deletions in SQLite.
         if not hasattr(self.settings, "source_catalog"):

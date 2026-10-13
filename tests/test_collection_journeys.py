@@ -27,7 +27,8 @@ def test_event_art_keeps_frame_context_and_explains_dependencies(
     )
     assert response.status_code == 303
     query = parse_qs(urlsplit(response.headers["location"]).query)
-    assert query == {"result": ["uploaded"], "frame": [frame[0]]}
+    assert query == {"result": ["uploaded"], "frame": [frame[0]], "focus": ["special-day-art"]}
+    assert urlsplit(response.headers["location"]).path == "/manage/events"
     artwork = service.event_art.entries()[0]
     original = service.event_art.path(artwork).read_bytes()
     thumbnail = client.get("/manage/event-art/" + artwork["id"] + "/thumbnail")
@@ -41,11 +42,6 @@ def test_event_art_keeps_frame_context_and_explains_dependencies(
         == 304
     )
     assert service.event_art.path(artwork).read_bytes() == original
-    response = client.post(
-        "/manage/event-art/" + artwork["id"],
-        data={"csrf": csrf, "action": "approve", "frame": frame[0]},
-    )
-    assert "Artwork approved. Choose it on a special day" in response.text
     policy = service.settings.config.frame_defaults.model_dump()
     policy["special_days"] = [
         SpecialDay(
@@ -54,9 +50,9 @@ def test_event_art_keeps_frame_context_and_explains_dependencies(
     ]
     service.store.set_policy(frame[0], FramePolicy.model_validate(policy))
     html = client.get("/manage/event-art?frame=" + frame[0]).text
-    assert 'href="/manage/events?frame=test-frame#event-winter"' in html
+    assert 'href="/manage/events?frame=test-frame&amp;focus=event-winter#event-winter"' in html
     assert re.search(r'<button[^>]+value="remove"[^>]+disabled', html)
-    assert re.search(r'<button[^>]+value="unapprove"[^>]+disabled', html)
+    assert 'value="unapprove"' not in html
     assert (
         client.post(
             "/manage/event-art/" + artwork["id"], data={"csrf": csrf, "action": "remove"}
@@ -104,21 +100,6 @@ def test_saved_event_returns_to_its_frame_and_heading(service, frame, tmp_path, 
     assert response.status_code == 400
     assert 'data-error-fields="[&quot;date&quot;]"' in response.text
     assert json.loads(service.store.frame(frame[0])["policy"])["special_days"][0] == event
-
-
-def test_history_empty_last_page_returns_to_available_page(service, frame, tmp_path, monkeypatch):
-    client, csrf = sign_in(service, tmp_path, monkeypatch)
-    response = client.get(
-        "/manage/images?frame=test-frame&offset=24&removed=true&result=removed",
-        follow_redirects=False,
-    )
-    assert response.status_code == 303
-    assert parse_qs(urlsplit(response.headers["location"]).query) == {
-        "frame": ["test-frame"],
-        "removed": ["true"],
-        "offset": ["0"],
-        "result": ["removed"],
-    }
 
 
 def test_library_bulk_actions_make_visible_page_scope_explicit(service, tmp_path, monkeypatch):

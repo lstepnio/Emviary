@@ -79,6 +79,6 @@ def test_library_filters_empty_state_and_escape(service):
     assert "Web reference only" in reference.text
     assert "0 generated compositions" in reference.text
     first = client.get("/library")
-    assert first.text.count('<article class="card library-card artwork-card">') == 24
+    assert first.text.count('<article class="card library-card artwork-card"') == 24
     assert "Page 1 of " in first.text
     assert client.get("/library?p=-4").status_code == 200

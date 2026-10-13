@@ -66,6 +66,7 @@ def main():
             factory=True,
             workers=1,
             access_log=False,
+            proxy_headers=False,
         )
         return
     if args.command == "verify-backup":
