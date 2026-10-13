@@ -15,5 +15,5 @@
   "rollback_bootloader_sha256": "9def921d717a351abf6a3f839a8d564a3c122b1490db159882dbb7a5e9dae5a5",
   "rollback_bootloader_size_bytes": 15232,
   "rollback_validation": "Hardware rollback from unconfirmed candidate to v0.7.7; v0.8.0 offline confirmation; v0.8.1 GitHub OTA and offline confirmation; capability/inventory confirmed by cloud and physical panel accepted",
-  "release_validation": "259 firmware host tests, local SDK and official ESP-IDF 6 CI passed; 297 backend tests passed; v0.8.9 hardware weather-free fallback verified and revealed cache persistence bug, now regression-tested; v0.8.10 deployment/OTA/outage retest pending"
+  "release_validation": "259 firmware host tests, local SDK and official ESP-IDF 6 CI passed; 297 backend tests and service CI passed; service 0.16.1 deployed with unchanged 512 MiB limit; v0.8.10 installed by OTA and confirmed locally and by cloud, two saved Wi-Fi networks retained and rollback ready; post-wake cache persistence confirmed; owner confirmed weather-free fallback, RIGHT different cached picture and LEFT prior picture; reconnect telemetry confirmed offline mode, two rotations and five cached pictures; subsequent normal cloud check-in at 18:22:23 UTC reported offline false and six retained cached pictures"
 }
