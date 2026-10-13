@@ -15,5 +15,5 @@
   "rollback_bootloader_sha256": "11e9281d6693079e6dad224a2762c1d6a4f320377cf4959f674d22f40ba9bd56",
   "rollback_bootloader_size_bytes": 15232,
   "rollback_validation": "Hardware rollback from unconfirmed candidate to v0.7.7; v0.8.0 offline confirmation; v0.8.1 GitHub OTA and offline confirmation; capability/inventory confirmed by cloud and physical panel accepted",
-  "release_validation": "251 firmware host tests and ESP-IDF 6 CI passed; actual renderer QR decoded in landscape, portrait and rotated previews; OTA and physical acceptance pending"
+  "release_validation": "251 firmware host tests and ESP-IDF 6 CI passed; actual renderer QR decoded in landscape, portrait and rotated previews; 282 backend tests and service CI passed; service 0.15.7 deployed with verified recovery regions and unchanged 512 MiB limit; device confirmed v0.8.8 after Wi-Fi update, rollback ready, both saved Wi-Fi profiles retained, cloud artwork 224 delivered; physical status screen and QR acceptance pending"
 }
