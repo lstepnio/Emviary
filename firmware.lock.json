@@ -15,5 +15,5 @@
   "rollback_bootloader_sha256": "57f4b520e90ee9f98d7ea72434d5932505082a241904cfc44a8784e67d11f829",
   "rollback_bootloader_size_bytes": 15232,
   "rollback_validation": "Hardware rollback from unconfirmed candidate to v0.7.7; v0.8.0 offline confirmation; v0.8.1 GitHub OTA and offline confirmation; capability/inventory confirmed by cloud and physical panel accepted",
-  "release_validation": "274 backend tests, 102 browser/controller tests, 246 firmware host tests and ESP-IDF v6.0 CI passed; immutable recovery bundle hashes verified; v0.8.7 physical recovery qualification pending"
+  "release_validation": "274 backend tests, 102 browser/controller tests, 246 firmware host tests and ESP-IDF v6.0 CI passed; v0.8.7 browser USB regions verified; service0.15.5 same-port startup and correlated boot/image/cloud/panel proof passed; owner confirmed visible stable picture; recovery session completed"
 }
