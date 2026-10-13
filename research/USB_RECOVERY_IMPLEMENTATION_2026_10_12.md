@@ -39,3 +39,11 @@ The E1002 enables automatic light sleep, which gates peripheral interrupts unles
 Live service 0.15.4 verified all firmware regions for v0.8.7, but browser application startup was not established. A same-port direct serial probe received valid v0.8.7 HELLO replies at 1.3, 5.4 and 12.3 seconds after reset; those frames pass the browser CRC/parser. The browser reset settled for 350 ms and closed/reopened on a missing HELLO reply, potentially resetting before a delayed listener could answer. Service 0.15.5 keeps a completed read-only HELLO request on the same UART for bounded re-probes and uses a one-second reset settle. This source defect is confirmed; the startup timing hypothesis still needs hardware qualification.
 
 The controller HELLO outer deadline is longer than the transport reply deadline, allowing the transport to preserve a completed read-only request before any outer cancellation. The actual browser-entrypoint regression drops the first startup command, waits the genuine four-second reply deadline, and succeeds on the same open bridge without reset or ROM writes.
+
+## Live qualification, 2026-10-13
+
+Service 0.15.5 (`emviary:poc-059`, source `41cc9995f7be842896df875cf7757cce26e09843`) passed deployment health checks with the unchanged 512 MiB container limit. Saved frame policies and collection counts matched the usual independent pre-deployment backup. Firmware v0.8.7 was installed and all public recovery regions verified through the browser. A subsequent check skipped firmware writing and reached the physical-picture confirmation screen.
+
+The correlated boot requested artwork at 06:51:01 UTC, verified its body at 06:51:06 UTC, and acknowledged panel refresh at 06:51:37 UTC. Cloud telemetry reports v0.8.7 and two saved Wi-Fi profiles with password presence. Bounded same-session cloud verification retries completed without another reset or firmware write. The owner has been asked to confirm the visible picture; physical acceptance and final session completion remain pending.
+
+Validation: 274 full backend tests, 29 scoped recovery tests after the final service patch, 102 browser/controller/transport tests, 246 firmware host tests, and both official GitHub CI runs passed. This does not establish sleep-current or battery-life measurements.
