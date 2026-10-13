@@ -13,8 +13,10 @@ path. The browser must allow the user's explicit serial-port selection.
 3. Prepare the installer. All four parts must pass their size and SHA-256 checks.
 4. Confirm E1002, click Connect and restore firmware, and select its USB port.
 5. Leave the tab and cable in place through writing and per-part flash MD5 verification.
-6. Confirm restart, picture and updated Last contact. If setup appears, join the
-   PhotoFrame hotspot, configure 2.4 GHz Wi-Fi, and import the saved recovery file.
+6. Confirm restart and picture. Green wakes the local management interface; press
+   RIGHT once to fetch new artwork, then confirm updated Last contact and the
+   physical picture. If setup appears, join the PhotoFrame hotspot, configure
+   2.4 GHz Wi-Fi, and import the saved recovery file.
 
 Normal repair preserves NVS (Wi-Fi and settings) and LittleFS on the Emviary
 partition layout. Start fresh is an explicit full-erase choice with confirmation;
@@ -66,8 +68,9 @@ Sources: [Espressif esptool-js](https://github.com/espressif/esptool-js),
 [Seeed E1002 guide](https://wiki.seeedstudio.com/getting_started_with_reterminal_e1002/),
 [ESP-IDF OTA boot selection](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/system/ota.html).
 Dependency licenses are saved alongside the npm project. These browser recovery
-paths have automated and browser download/UI coverage; a physical Web Serial
-write-and-reboot test must be recorded separately before claiming hardware acceptance.
+paths have automated coverage and a [physical two-slot failure recovery test](../research/USB_RECOVERY_HARDWARE_2026_10_12.md). That test qualifies normal
+repair on the E1002 used; interrupted flashing and full erase/reprovisioning are
+separate, untested scenarios.
 
 Maintainers can package the verified release download with:
 

@@ -84,3 +84,5 @@ artwork mutations were needed for these checks. The USB browser flow has not bee
 physically flashed and the new five-second hold has not been physically verified.
 The saved automatic/all-channel policy has a one-day rollout delay, which remains intact. The latest physical telemetry reports v0.8.1 with rollback support. v0.8.3 becomes eligible after that delay; installation is independently checked
 through device telemetry rather than inferred from release publication.
+
+Subsequent [physical USB acceptance](USB_RECOVERY_HARDWARE_2026_10_12.md) passed recovery from both corrupted application slots, with two Wi-Fi profiles retained and a physically confirmed new, stable bird image. The earlier release-time hardware limits above describe the state before that test.

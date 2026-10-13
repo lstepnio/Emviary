@@ -381,3 +381,5 @@ rotation/removal actions reload the already loaded range, preserving scroll anch
 and selections. Bulk selection applies to loaded artworks, capped at 500 per request.
 Without JavaScript, ordinary paged links still work. No rendering or frame wakes
 are caused by scrolling. Original master images remain unchanged.
+
+Physical normal-repair acceptance is recorded in [the two-slot recovery test](research/USB_RECOVERY_HARDWARE_2026_10_12.md). Green wake opens management; press RIGHT once to verify a new cloud image after recovery. An unchanged e-ink image alone is not a boot check.
