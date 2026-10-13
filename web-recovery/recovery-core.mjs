@@ -154,3 +154,20 @@ export function showTransferSummary(panel, rate, seconds) {
   if (element) element.textContent = 'Verified USB transfer: ' + rate.toLocaleString() +
     ' baud, ' + seconds + ' seconds.';
 }
+
+export async function recoveryPort(serial, known) {
+  if (known) return known;
+  const ports = (await serial.getPorts()).filter(port => port.getInfo().usbVendorId === 0x1a86);
+  return ports.length === 1 ? ports[0] : serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
+}
+
+export async function restartFrame(port, sleep = ms => new Promise(resolve => setTimeout(resolve, ms))) {
+  let opened = false;
+  try {
+    await port.open({baudRate: 115200}); opened = true;
+    await port.setSignals({dataTerminalReady: false, requestToSend: true});
+    await sleep(120);
+    await port.setSignals({dataTerminalReady: false, requestToSend: false});
+    await sleep(120);
+  } finally { if (opened) await port.close(); }
+}

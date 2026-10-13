@@ -1,6 +1,6 @@
 import {ESPLoader, Transport} from 'esptool-js';
 import SparkMD5 from 'spark-md5';
-import {loadRecovery, recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError, transferProgress, showTransferSummary} from './recovery-core.mjs';
+import {loadRecovery, recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError, transferProgress, showTransferSummary, recoveryPort, restartFrame} from './recovery-core.mjs';
 
 const panel = document.querySelector('[data-usb-recovery]');
 if (panel) {
@@ -55,27 +55,18 @@ if (panel) {
       const state = observed?.last_contact ? 'Last frame contact: ' +
         new Date(observed.last_contact).toLocaleTimeString() + '. ' : 'No new frame contact yet. ';
       setStatus('Step 3 of 4: reconnecting to Emviary. ' + elapsed + ' seconds elapsed. ' +
-        state + 'Firmware is verified. Keep USB connected; no button press is needed yet.');
+        state + 'Checking the installed firmware and a fresh picture request. Keep USB connected; no button press is needed yet.');
     }, duration);
     if (result) { verifiedConnection(result); return true; }
     return false;
   };
-  const restart = async () => {
-    let opened = false;
-    try {
-      await port.open({baudRate: 115200}); opened = true;
-      // Simultaneous signals avoid the inter-signal gap that can enter download mode.
-      await port.setSignals({dataTerminalReady: false, requestToSend: true});
-      await sleep(120);
-      await port.setSignals({dataTerminalReady: false, requestToSend: false});
-      await sleep(120);
-    } finally { if (opened) await port.close().catch(() => {}); }
-  };
+  const restart = () => restartFrame(port, sleep);
   const escalate = message => {
     const wake = panel.querySelector('[data-usb-wake-panel]');
     wake.hidden = false;
     wake.querySelector('p').textContent = 'Press the green wake button once, keeping USB connected.';
     retryWake.textContent = 'I pressed the green button';
+    retryWake.dataset.pollOnly = 'true';
     fresh.hidden = false;
     setStatus(message, true);
   };
@@ -159,7 +150,8 @@ if (panel) {
         if (written) {
           const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
           wake.querySelector('p').textContent = 'Firmware is verified. Check the cloud connection again when Emviary is ready.';
-          retryWake.textContent = 'Check connection again';
+          retryWake.textContent = 'Wake frame and verify';
+          retryWake.dataset.pollOnly = 'false';
         }
       } else if (written) escalate(error.message);
       else setStatus(error.message + ' Check that USB is connected and other serial apps are closed, then retry.', true);
@@ -178,13 +170,24 @@ if (panel) {
     }
   });
   retryWake.addEventListener('click', async () => {
-    if (busy || !since) return;
+    if (busy || !bundle) return;
     busy = true; connectionBegan = performance.now(); update();
     try {
-      if (!await waitOnline(60000)) escalate('The frame still has not connected. ' +
-        'Restore its saved cloud settings below, or try a different USB data cable.');
-    } catch (error) { setStatus(error.message, true); }
-    finally { busy = false; update(); }
+      if (retryWake.dataset.pollOnly !== 'true') {
+        setStatus('Waking your frame over USB. If a port picker appears, select USB Serial and click Connect. No firmware will be written.');
+        port = await recoveryPort(navigator.serial, port);
+        const baseline = await fetch('/manage/usb-recovery/status/' + encodeURIComponent(frame), {cache: 'no-store'});
+        if (!baseline.ok) throw new Error('Sign in again before checking your frame.');
+        since = (await baseline.json()).checked_at;
+        await restart();
+      }
+      if (!await waitOnline(90000)) escalate('USB verification did not receive a new image request. ' +
+        'Press the green wake button once, then choose I pressed the green button. Your firmware has not been rewritten.');
+    } catch (error) {
+      setStatus(error.name === 'NotFoundError' ? 'No USB port selected. Choose Wake frame and verify, select USB Serial, then Connect.' :
+        'The USB wake or connection check could not finish. ' + error.message +
+        ' Close other recovery tabs and serial apps, keep the power switch on, then try Wake frame and verify again.', true);
+    } finally { busy = false; update(); }
   });
   fresh.addEventListener('submit', async event => {
     event.preventDefault(); event.stopPropagation();
@@ -250,8 +253,9 @@ if (panel) {
         if (saved?.version === bundle.manifest.version && Date.now() - Date.parse(saved.since) < 86400000) {
           since = saved.since;
           const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
-          wake.querySelector('p').textContent = 'Firmware was already verified. Continue checking its connection without flashing again.';
-          retryWake.textContent = 'Check connection again';
+          wake.querySelector('p').textContent = 'Keep the power switch on and USB connected. Choose Wake frame and verify to restart the frame and check a fresh cloud connection. No firmware is written.';
+          retryWake.textContent = 'Wake frame and verify';
+          retryWake.dataset.pollOnly = 'false';
           setStatus('Firmware verified. Check the connection to finish recovery.');
         }
       } catch {}
@@ -259,8 +263,9 @@ if (panel) {
       if (!since) {
         since = new Date(Date.now() - 600000).toISOString();
         const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
-        wake.querySelector('p').textContent = 'Already restored the firmware? Check its connection without writing it again.';
-        retryWake.textContent = 'Check connection again';
+        wake.querySelector('p').textContent = 'Already restored the firmware? Keep USB connected and the power switch on. Wake frame and verify restarts it over USB and checks a fresh cloud connection without rewriting firmware.';
+        retryWake.textContent = 'Wake frame and verify';
+          retryWake.dataset.pollOnly = 'false';
       }
       update();
     }).catch(error => setStatus(error.message + ' Reload this page to try again.', true));

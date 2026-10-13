@@ -208,3 +208,26 @@ test('fresh contact from another firmware stops waiting without requesting a Wi-
     return {connected:false, fresh_contact:true, reported_firmware:'v0.8.3', expected_firmware:'v0.8.4'};
   }}), '/status', () => {}), /Wi-Fi settings do not need resetting/);
 });
+
+import {recoveryPort, restartFrame} from './recovery-core.mjs';
+test('wake check reuses one authorized USB adapter and releases reset without writing', async () => {
+  const calls = [];
+  const port = {getInfo:()=>({usbVendorId:0x1a86}),
+    async open(options) {calls.push(['open', options.baudRate]);},
+    async setSignals(value) {calls.push(['signals',value]);},
+    async close() {calls.push(['close']);}};
+  const serial = {async getPorts() {return [port];}, async requestPort() {throw new Error('unnecessary prompt');}};
+  assert.equal(await recoveryPort(serial), port);
+  await restartFrame(port, async () => {});
+  assert.deepEqual(calls, [['open',115200], ['signals',{dataTerminalReady:false,requestToSend:true}],
+    ['signals',{dataTerminalReady:false,requestToSend:false}], ['close']]);
+  port.setSignals = async () => {throw new Error('USB detached');};
+  await assert.rejects(restartFrame(port, async () => {}), /USB detached/);
+  assert.deepEqual(calls.at(-1), ['close']);
+});
+test('ambiguous USB adapters require selection and known ports avoid another prompt', async () => {
+  const port = {getInfo:()=>({usbVendorId:0x1a86})}; let prompts = 0;
+  const serial = {async getPorts() {return [port,port];}, async requestPort() {prompts++;return port;}};
+  assert.equal(await recoveryPort(serial),port); assert.equal(prompts,1);
+  assert.equal(await recoveryPort(serial,port),port); assert.equal(prompts,1);
+});
