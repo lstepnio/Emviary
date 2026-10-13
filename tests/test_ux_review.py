@@ -195,7 +195,7 @@ def test_unsaved_special_day_summary_does_not_claim_saved_enabled_state(
     client, _ = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage/events")
     summary = re.search(r'id="event-new"><summary>(.*?)</summary>', page.text).group(1)
-    assert "Add a special day" in summary and "New event" in summary
+    assert "Add a special day" in summary
     assert "Enabled" not in summary and "Disabled" not in summary
 
 

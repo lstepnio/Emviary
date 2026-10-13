@@ -85,8 +85,10 @@ def test_saved_event_returns_to_its_frame_and_heading(service, frame, tmp_path, 
         + event["id"]
     )
     html = client.get(response.headers["location"]).text
-    assert "1 special days: 1 enabled, 0 disabled" in html
-    assert "Queue saved day on frame" in html and "Save changes above first" in html
+    assert "Winter" in html and "data-event-toggle" in html
+    assert re.search(r'<input[^>]*name="enabled"[^>]*data-event-toggle[^>]*checked', html)
+    assert "/special-days/" + event["id"] + "/preview" in html
+    assert "Test on frame" in html
     response = client.post(
         "/manage/frames/test-frame/special-days",
         data={

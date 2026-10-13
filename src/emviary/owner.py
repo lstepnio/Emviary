@@ -511,7 +511,8 @@ def attach_owner(app, service):
         for frame in selected_frames:
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
             status = statuses[frame["id"]]
-            body += management_alerts_section(service, frame, escape)
+            if view != "events":
+                body += management_alerts_section(service, frame, escape)
             identifier = escape(frame["id"])
             site_timezone = service.settings.config.site(frame["site_id"]).timezone
             timezone_label = site_timezone.rsplit("/", 1)[-1].replace("_", " ")
@@ -943,68 +944,27 @@ def attach_owner(app, service):
                 )
                 body += "</section>"
             if view == "events":
-                body += '<section class="card"><h2>Occasions & seasons</h2><p class="quiet">'
+                from .event_ui import EVENT_SCRIPT, card_start
+
+                body += '<section class="special-days"><div class="event-toolbar">'
+                body += '<p class="special-days-intro">Choose the days your frame celebrates.</p>'
                 body += (
-                    "Your chosen occasion art and greeting replace the usual layout "
-                    "on the matching local date. Higher priority wins; ties use saved order. "
-                    "Annual February 29 entries appear only in leap years.</p>"
-                )
-                body += (
-                    '<p class="notice">Add or open a special day below, choose its date '
-                    "and greeting, then save it with Enabled turned on. Seasonal bird art "
-                    "is selected automatically unless you choose featured artwork. "
-                    "Upload your own illustration in the Artwork collection below, "
-                    "then choose it for a day. Uploaded art is ready to use immediately.</p>"
-                    + event_art_panel(request, csrf, frame["id"])
-                    + "<details><summary>Add holiday or season collections</summary>"
-                    '<form method="post" action="/manage/frames/'
-                    + identifier
-                    + '/special-days/import">'
-                    + hidden(csrf)
-                    + '<label>Add a collection<br><select name="group">'
-                    '<option value="holidays">US holidays and celebrations</option>'
-                    '<option value="seasons">Meteorological seasons</option></select></label>'
-                    + field(
-                        "year",
-                        "Calendar year",
-                        datetime.now().year,
-                        "number",
-                        'min="2020" max="2100" required',
-                    )
-                    + '<p class="quiet">Existing entries are kept. '
-                    "Fixed holidays and seasons repeat yearly. "
-                    "Movable holidays apply to the chosen year. Seasons start March 1, June 1, "
-                    "September 1 and December 1 (meteorological seasons). Edit dates and turn "
-                    "yearly repeat off for a chosen year's local equinox or solstice. "
-                    "New entries start disabled. Review dates and choose artwork, then enable "
-                    "the events you want below.</p>"
-                    "<button>Add collection</button></form></details>"
+                    '<a class="button secondary" href="#event-new" data-event-add>'
+                    "Add a day</a></div>"
                 )
                 today = datetime.now(ZoneInfo("America/Denver")).date()
 
                 def occasion_date(event):
                     return next_special_day_date(event, today)
 
-                conflicts = special_day_conflicts(policy["special_days"], today)
-                if conflicts:
-                    body += '<div class="notice"><strong>Overlapping special days</strong>'
-                    body += "<p>Higher priority wins. Equal priorities use saved list order. "
-                    body += "Upcoming overlaps over the next five years:</p><ul>"
-                    for when, matches in conflicts:
-                        body += "<li>" + escape(when.strftime("%b %-d, %Y")) + ": "
-                        body += escape(matches[0]["label"]) + " will display instead of "
-                        body += escape(", ".join(e["label"] for e in matches[1:])) + ".</li>"
-                    body += "</ul></div>"
-
                 events = sorted(
                     policy["special_days"],
-                    key=lambda e: (not e["enabled"], occasion_date(e) < today, occasion_date(e)),
+                    key=lambda e: (occasion_date(e) < today, occasion_date(e)),
                 )
-                enabled_count = sum(event["enabled"] for event in events)
-                body += '<p class="quiet">' + str(len(events)) + " special days: "
-                body += str(enabled_count) + " enabled, " + str(len(events) - enabled_count)
-                body += " disabled. Open a heading to edit that day.</p>"
-                for event in [None, *events]:
+                artworks = {art["id"]: art for art in service.settings.artworks}
+                artworks.update({art["id"]: art for art in service.event_art.entries()})
+                body += '<div class="event-cards">'
+                for event in [*events, None]:
                     day = event or {
                         "id": "",
                         "date": "",
@@ -1015,21 +975,26 @@ def attach_owner(app, service):
                         "theme": "celebration",
                         "artwork_id": None,
                     }
-                    body += (
-                        '<details class="event-editor" id="event-'
-                        + escape(day["id"] or "new")
-                        + '"><summary>'
-                        + escape(day["label"] if event else "Add a special day")
-                        + ' <span class="quiet">'
-                        + (
-                            escape(occasion_date(day).strftime("%b %-d, %Y"))
-                            if event
-                            else "New event"
+                    if event:
+                        body += card_start(
+                            day,
+                            frame["id"],
+                            csrf,
+                            occasion_date(day),
+                            artworks.get(day.get("artwork_id")),
+                            hidden,
                         )
-                        + ((" · Enabled" if day["enabled"] else " · Disabled") if event else "")
-                        + (" · Priority " + str(day.get("priority", 0)) if event else "")
-                        + "</span></summary>"
-                    )
+                        body += (
+                            '<details class="event-editor" id="event-'
+                            + escape(day["id"])
+                            + '"><summary>Edit</summary><div class="event-editor-content">'
+                        )
+                    else:
+                        body += '</div><div class="event-secondary">'
+                        body += (
+                            '<details class="event-editor" id="event-new"><summary>'
+                            + 'Add a special day</summary><div class="event-editor-content">'
+                        )
                     body += (
                         "<h3>"
                         + escape(day["label"] if event else "Add a special day")
@@ -1102,6 +1067,7 @@ def attach_owner(app, service):
                         )
                     body += "</select></label></div>"
                     rule = day.get("recurrence") or {}
+                    body += "<details><summary>Date options</summary>"
                     body += '<label>Date rule<br><select name="date_rule">'
                     for value, label in (
                         ("fixed", "Use the date above"),
@@ -1165,7 +1131,8 @@ def attach_owner(app, service):
                         'min="0" max="100"',
                     )
                     body += "</details>"
-                    body += checkbox("annual", "Repeat the fixed date every year", day["annual"])
+                    body += checkbox("annual", "Repeat every year", day["annual"])
+                    body += "</details>"
                     body += checkbox("enabled", "Enabled", day["enabled"])
                     body += (
                         "<button>"
@@ -1173,19 +1140,6 @@ def attach_owner(app, service):
                         + "</button></form>"
                     )
                     if event:
-                        body += (
-                            '<form method="post" action="/manage/frames/'
-                            + identifier
-                            + "/special-days/"
-                            + escape(day["id"])
-                            + '/preview">'
-                            + hidden(csrf)
-                            + '<button class="secondary">Queue saved day on frame</button>'
-                            + '<p class="muted">Uses the saved event and today’s weather. '
-                            "Save changes above first. Available on the next "
-                            "refresh or right-button press; the calendar stays "
-                            "unchanged.</p></form>"
-                        )
                         body += (
                             '<form method="post" action="/manage/frames/'
                             + identifier
@@ -1199,8 +1153,49 @@ def attach_owner(app, service):
                             'and save instead.</p><button class="danger">Remove this day</button>'
                             "</details></form>"
                         )
-                    body += "</details>"
-                body += "</section>"
+                    body += "</div></details>" + ("</article>" if event else "")
+                body += (
+                    "<details><summary>Add a collection</summary>"
+                    '<form method="post" action="/manage/frames/'
+                    + identifier
+                    + '/special-days/import">'
+                    + hidden(csrf)
+                    + '<label>Add a collection<br><select name="group">'
+                    '<option value="holidays">US holidays and celebrations</option>'
+                    '<option value="seasons">Meteorological seasons</option></select></label>'
+                    + field(
+                        "year",
+                        "Calendar year",
+                        datetime.now().year,
+                        "number",
+                        'min="2020" max="2100" required',
+                    )
+                    + '<p class="quiet">New days start off. Choose the ones you want to show.</p>'
+                    "<button>Add collection</button></form></details>"
+                )
+                body += "<details><summary>Overlapping special days</summary>"
+                conflicts = special_day_conflicts(policy["special_days"], today)
+                if conflicts:
+                    body += (
+                        '<p class="quiet">If dates overlap, priority chooses the picture.</p><ul>'
+                    )
+                    for when, matches in conflicts:
+                        body += (
+                            "<li>"
+                            + escape(when.strftime("%b %-d, %Y"))
+                            + ": "
+                            + escape(matches[0]["label"])
+                            + " will display instead of "
+                            + escape(", ".join(e["label"] for e in matches[1:]))
+                            + ".</li>"
+                        )
+                    body += "</ul>"
+                else:
+                    body += '<p class="quiet">No upcoming overlaps.</p>'
+                body += '</details></div><details class="event-art-secondary">'
+                body += "<summary>Artwork collection</summary>"
+                body += event_art_panel(request, csrf, frame["id"])
+                body += "</details></section>" + EVENT_SCRIPT
             if view == "recovery":
                 from .usb_recovery import panel as usb_recovery_panel
 
@@ -2513,6 +2508,42 @@ def attach_owner(app, service):
             raise HTTPException(400, "Invalid collection: " + str(error)) from None
         return RedirectResponse(
             "/manage/events?" + urlencode({"frame": identifier, "saved": "1"}), status_code=303
+        )
+
+    @app.post("/manage/frames/{identifier}/special-days/{day_id}/enabled")
+    async def toggle_special_day(identifier: str, day_id: str, request: Request):
+        data = await checked_form(request)
+        if data.get("enabled", "no") not in {"yes", "no"}:
+            raise HTTPException(400, "Choose whether this day is on or off")
+        frame = service.store.frame(identifier)
+        policy = FramePolicy.model_validate_json(frame["policy"])
+        chosen = next((day for day in policy.special_days if day.id == day_id), None)
+        if not chosen:
+            raise HTTPException(404, "Unknown special day")
+        enabled = data.get("enabled") == "yes"
+        revision = expected_revision(data)
+        if revision is not None and revision != frame["config_revision"]:
+            raise RevisionConflict("This calendar changed. Reload it before trying again.")
+        if enabled != chosen.enabled:
+            updated = policy.model_copy(
+                update={
+                    "special_days": [
+                        day.model_copy(update={"enabled": enabled}) if day.id == day_id else day
+                        for day in policy.special_days
+                    ]
+                }
+            )
+            service.store.set_policy(
+                identifier, updated, expected_revision=frame["config_revision"]
+            )
+        saved = service.store.frame(identifier)
+        if "application/json" in request.headers.get("accept", ""):
+            return JSONResponse(
+                {"enabled": enabled, "config_revision": saved["config_revision"]},
+                headers={"Cache-Control": "no-store"},
+            )
+        return RedirectResponse(
+            "/manage/events?" + urlencode({"frame": identifier}), status_code=303
         )
 
     @app.post("/manage/frames/{identifier}/special-days")
