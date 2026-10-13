@@ -319,14 +319,14 @@ def attach_owner(app, service):
     install_battery_routes(app, service, require, escape, page)
     from .usb_recovery import install_routes as install_usb_routes
 
-    install_usb_routes(app, require)
-
     async def checked_form(request):
         value = require(request)
         data = await form(request, service.settings.config.public_base_url)
         if not hmac.compare_digest(data.get("csrf", ""), value["csrf"]):
             raise HTTPException(403, "Invalid form token")
         return data
+
+    install_usb_routes(app, require, service, checked_form)
 
     def redirect(request=None):
         target = "/manage"
@@ -1164,6 +1164,8 @@ def attach_owner(app, service):
 
                 body += usb_recovery_panel(frame["id"])
                 body += (
+                    '<details class="manual-recovery"><summary>Manual recovery and '
+                    "backups</summary>"
                     '<a class="quiet" href="/manage/frames/'
                     + identifier
                     + '/provision">Download private device configuration</a> · '
@@ -1263,6 +1265,8 @@ def attach_owner(app, service):
                 "firmware requires reinstalling Emviary first; a configuration import "
                 "alone does not restore our firmware features.</p></details></section>"
             )
+        if view == "recovery":
+            body += "</details>"
         config = service.settings.config
         if view == "settings":
             for site in config.sites:

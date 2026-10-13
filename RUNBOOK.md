@@ -383,3 +383,12 @@ Without JavaScript, ordinary paged links still work. No rendering or frame wakes
 are caused by scrolling. Original master images remain unchanged.
 
 Physical normal-repair acceptance is recorded in [the two-slot recovery test](research/USB_RECOVERY_HARDWARE_2026_10_12.md). Green wake opens management; press RIGHT once to verify a new cloud image after recovery. An unchanged e-ink image alone is not a boot check.
+
+## Guided USB recovery
+
+The main Recovery panel prepares files automatically and offers **Recover frame**.
+The user selects the USB port, leaves the cable connected, and confirms the picture.
+Retry and restart stages preserve settings. **Restore from cloud** is an explicit
+last step that replaces local settings and directly installs Wi-Fi, binding and
+schedule over USB. It does not require a setup hotspot or manual configuration
+import. See the [guided recovery design and acceptance](research/GUIDED_USB_RECOVERY_2026_10.md).

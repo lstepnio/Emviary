@@ -340,6 +340,26 @@ class Store:
                     "Reload the saved settings before trying again."
                 )
 
+    def restore_recovery_binding(self, frame, policy, token):
+        """Replace an unavailable device credential only after explicit cloud restore."""
+        with self.connect() as db:
+            changed = db.execute(
+                "UPDATE frames SET policy=?,site_id=?,token_hash=?,"
+                "config_revision=config_revision+1 WHERE id=? AND "
+                "config_revision=? AND token_hash=?",
+                (
+                    stable_json(policy.model_dump()),
+                    policy.site_id,
+                    token_hash(token),
+                    frame["id"],
+                    frame["config_revision"],
+                    frame["token_hash"],
+                ),
+            )
+            if not changed.rowcount:
+                raise RevisionConflict("Frame settings changed. Try cloud restoration again.")
+            db.execute("DELETE FROM frame_network_contacts WHERE frame_id=?", (frame["id"],))
+
     def active_image(self, frame):
         with self.connect() as db:
             row = db.execute(

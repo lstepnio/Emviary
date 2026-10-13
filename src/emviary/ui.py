@@ -391,6 +391,15 @@ caption{text-align:left;color:var(--muted);padding:0 12px 12px;font-size:13px}
 .mobile-top{min-width:0}.mobile-top .brand{min-width:0}.frame-status{gap:8px 18px}}
 @media(forced-colors:active){button,.button,input,select,textarea{border:1px solid ButtonText}
 .owner-nav a[aria-current=page]{outline:2px solid Highlight}}
+.recovery-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+list-style:none;padding:0;margin:24px 0}
+.recovery-steps li{padding:9px;border-radius:8px;background:var(--soft);color:var(--muted);
+font-size:13px;text-align:center}
+.recovery-steps [aria-current=step]{background:var(--accent);color:white;font-weight:600}
+#usb-recovery [data-usb-cloud]{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+#usb-recovery progress{width:100%;margin:16px 0 0}
+#usb-recovery [data-usb-preview]{max-width:560px;margin-top:16px}
+
 """
 
 

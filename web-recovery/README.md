@@ -8,15 +8,19 @@ path. The browser must allow the user's explicit serial-port selection.
 
 ## Repair and start fresh
 
-1. Download the existing frame's private recovery import file on Recovery.
-2. Connect USB with a data cable; power switch on. Close other serial programs.
-3. Prepare the installer. All four parts must pass their size and SHA-256 checks.
-4. Confirm E1002, click Connect and restore firmware, and select its USB port.
-5. Leave the tab and cable in place through writing and per-part flash MD5 verification.
-6. Confirm restart and picture. Green wakes the local management interface; press
-   RIGHT once to fetch new artwork, then confirm updated Last contact and the
-   physical picture. If setup appears, join the PhotoFrame hotspot, configure
-   2.4 GHz Wi-Fi, and import the saved recovery file.
+1. Connect USB with a data cable and keep the power switch on. Close other serial apps.
+2. Open Recovery in Chrome or Edge. Files prepare and verify automatically.
+3. Choose **Recover frame** and select the frame's USB port. Connection and writing
+   retry automatically, with progress and per-part MD5 checks.
+4. Wait while Emviary restarts the frame and verifies a fresh cloud connection.
+   Firmware v0.8.4 fetches artwork automatically on USB-powered startup.
+5. Confirm the physical picture appears. If offline, the flow asks for green wake
+   and offers **Restore from cloud** only as an explicit settings-replacement step.
+   Enter Wi-Fi details only when they are not already saved in cloud settings.
+   Binding and schedule are written over USB; no setup-network or import file is required.
+
+Manual instructions and private import downloads remain under optional recovery
+sections. See [escalation and validation](../research/GUIDED_USB_RECOVERY_2026_10.md).
 
 Normal repair preserves NVS (Wi-Fi and settings) and LittleFS on the Emviary
 partition layout. Start fresh is an explicit full-erase choice with confirmation;

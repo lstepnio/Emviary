@@ -1,9 +1,10 @@
 [project]
 name = "emviary"
-version = "0.13.0"
+version = "0.14.0"
 description = "A sleeping bird-art frame with curated art and prepared nightly images"
 requires-python = ">=3.13"
 dependencies = [
+  "esp-idf-nvs-partition-gen==0.1.9",
   "fastapi>=0.115,<1",
   "httpx>=0.28,<1",
   "pillow>=11,<13",

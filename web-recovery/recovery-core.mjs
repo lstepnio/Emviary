@@ -32,16 +32,29 @@ export async function loadRecovery(fetcher, digest, origin) {
   return {manifest, files};
 }
 
-export async function flashRecovery(loader, transport, files, eraseAll, md5, progress) {
+export async function flashRecovery(loader, transport, files, eraseAll, md5, progress, mode = 'default_reset') {
   try {
-    await loader.main();
+    await loader.main(mode);
     if (loader.chip?.CHIP_NAME !== 'ESP32-S3' || loader.secureDownloadMode ||
         !loader.IS_STUB || await loader.detectFlashSize() !== '32MB') {
-      throw new Error('This device does not match the E1002 chip and memory. Nothing was written.');
+      throw new RecoveryTargetError('This device does not match the E1002 chip and memory. Nothing was written.');
     }
     const security = await loader.getSecurityInfo();
     if (security.parsedFlags.SECURE_BOOT_EN || security.flashCryptCnt !== 0) {
-      throw new Error('This device uses custom boot or encryption security. Nothing was written.');
+      throw new RecoveryTargetError('This device uses custom boot or encryption security. Nothing was written.');
+    }
+    // READ_FLASH sends a final 16-byte digest after the data packets. Consume
+    // and verify it here before another command, matching Espressif's protocol.
+    // Probe public application bytes, never local credentials, before any erase.
+    if (typeof loader.readFlash === 'function') {
+      const sample = await loader.readFlash(0x20000, 16384);
+      try {
+        const rawDigest = await transport.read(3000);
+        const expected = Array.from(rawDigest).map(b => b.toString(16).padStart(2, '0')).join('');
+        if (sample.length !== 16384 || rawDigest.length !== 16 || md5(sample) !== expected) {
+          throw new Error('USB transfer check failed. Trying a steadier connection.');
+        }
+      } finally { sample.fill(0); }
     }
     await loader.writeFlash({
       fileArray: files, flashMode: 'keep', flashFreq: 'keep', flashSize: 'keep',
@@ -58,4 +71,65 @@ export async function flashRecovery(loader, transport, files, eraseAll, md5, pro
   } finally {
     await transport.disconnect().catch(() => {});
   }
+}
+
+export class RecoveryTargetError extends Error {}
+export const RECOVERY_BAUD_RATES = Object.freeze([460800, 230400, 115200]);
+
+export async function recoverWithRetries(create, files, eraseAll, md5, progress, report,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), preferredBaud = 460800) {
+  const rates = RECOVERY_BAUD_RATES.filter(rate => rate <= preferredBaud);
+  if (!rates.length) rates.push(115200);
+  let failure;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const baud = rates[Math.min(attempt, rates.length - 1)];
+    report(attempt + 1, baud);
+    const {loader, transport} = create(attempt, baud);
+    try {
+      return await flashRecovery(loader, transport, files, eraseAll, md5, progress,
+        'default_reset');
+    } catch (error) {
+      if (error instanceof RecoveryTargetError) throw error;
+      failure = error;
+      if (attempt < 2) await sleep(800);
+    }
+  }
+  throw failure;
+}
+
+export async function waitForFrame(fetcher, url, report, duration = 120000,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), now = () => Date.now()) {
+  const end = now() + duration;
+  while (now() < end) {
+    try {
+      const response = await fetcher(url, {cache: 'no-store', signal: AbortSignal.timeout(7000)});
+      if (response.status === 401) throw new RecoveryTargetError('Sign in to verify the frame.');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.cloud_ready === false) throw new RecoveryTargetError(
+          "The cloud artwork is not ready. The firmware is restored; check Emviary again shortly.");
+        if (result.connected) return result;
+      }
+    } catch (error) {
+      if (error instanceof RecoveryTargetError) throw error;
+      // A brief service/network failure cannot undo verified flash writes.
+    }
+    report(Math.max(0, Math.ceil((end - now()) / 1000)));
+    await sleep(2500);
+  }
+  return null;
+}
+
+export async function cloudSettingsFile(payload, frame, digest) {
+  if (payload.frame_id !== frame || payload.address !== 0x9000 || payload.size !== 0x6000 ||
+      typeof payload.data !== 'string' || payload.data.length !== 32768) {
+    throw new RecoveryTargetError('Cloud settings do not match this frame. Nothing was erased.');
+  }
+  const data = Uint8Array.from(atob(payload.data), c => c.charCodeAt(0));
+  const hash = Array.from(new Uint8Array(await digest('SHA-256', data)))
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  if (data.length !== payload.size || hash !== payload.sha256) {
+    throw new RecoveryTargetError('Cloud settings verification failed. Nothing was erased.');
+  }
+  return {address: 0x9000, data};
 }

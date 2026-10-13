@@ -96,3 +96,92 @@ test('download checks hashes, addresses and same-origin files before USB is requ
   manifest.parts[0].url = 'https://untrusted.example/firmware.bin';
   await assert.rejects(loadRecovery(fetcher, digest, 'https://emviary.majjix.com'), /layout/);
 });
+
+import {recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError} from './recovery-core.mjs';
+
+test('three bounded attempts recover serial interruptions without escalating to erase', async () => {
+  const calls = [], modes = [], closed = [];
+  const result = await recoverWithRetries(attempt => {
+    const f = fixture();
+    f.loader.main = async mode => { modes.push(mode); if (attempt < 2) throw new Error('Lost USB'); };
+    closed.push(f);
+    return f;
+  }, [], false, () => '', () => {}, attempt => calls.push(attempt), async () => {});
+  assert.equal(result, true);
+  assert.deepEqual(calls, [1,2,3]);
+  assert.deepEqual(modes, ['default_reset','default_reset','default_reset']);
+  assert.ok(closed.every(f => f.disconnected() === 1));
+  assert.equal(closed[2].written[0].eraseAll, false);
+});
+
+test('a wrong device is terminal and exhausted USB failures stop after three attempts', async () => {
+  let calls = 0;
+  await assert.rejects(recoverWithRetries(() => {
+    calls++; const f = fixture(); f.loader.chip.CHIP_NAME = 'ESP32'; return f;
+  }, [], false, () => '', () => {}, () => {}, async () => {}), RecoveryTargetError);
+  assert.equal(calls, 1);
+  calls = 0;
+  await assert.rejects(recoverWithRetries(() => {
+    calls++; const f = fixture(); f.loader.main = async () => { throw new Error('No cable'); }; return f;
+  }, [], false, () => '', () => {}, () => {}, async () => {}), /No cable/);
+  assert.equal(calls, 3);
+});
+
+test('cloud verification tolerates temporary failures and stops when the target connects', async () => {
+  let time = 0, calls = 0;
+  const result = await waitForFrame(async () => {
+    if (++calls === 1) throw new Error('Offline');
+    return {ok:true, async json() { return {connected:calls===3}; }};
+  }, '/status', () => {}, 10000, async ms => {time += ms;}, () => time);
+  assert.equal(result.connected, true); assert.equal(calls, 3);
+  const timeout = await waitForFrame(async () => ({ok:true, async json() {return {connected:false};}}),
+    '/status', () => {}, 5000, async ms => {time += ms;}, () => time);
+  assert.equal(timeout, null);
+  await assert.rejects(waitForFrame(async () => ({status:401}), '/status', () => {}), RecoveryTargetError);
+});
+
+test('factory settings must match the chosen frame, NVS range and content hash', async () => {
+  const data = new Uint8Array(24576).fill(0xff);
+  const digest = webcrypto.subtle.digest.bind(webcrypto.subtle);
+  const payload = {frame_id:'emily-e1002',address:0x9000,size:24576,
+    sha256:Buffer.from(await digest('SHA-256',data)).toString('hex'),
+    data:Buffer.from(data).toString('base64')};
+  const file = await cloudSettingsFile(payload, 'emily-e1002', digest);
+  assert.equal(file.address, 0x9000); assert.equal(file.data.length,24576);
+  for (const change of [{address:0x8000}, {frame_id:'other-frame'}, {sha256:'bad'}, {data:'short'}]) {
+    await assert.rejects(cloudSettingsFile({...payload,...change},'emily-e1002',digest), RecoveryTargetError);
+  }
+});
+
+test('USB speed falls back conservatively and remembers a verified slower preference', async () => {
+  const rates = [];
+  await recoverWithRetries((attempt, rate) => {
+    rates.push(rate); const f = fixture();
+    f.loader.main = async () => { if (attempt < 2) throw new Error('Serial noise'); };
+    return f;
+  }, [], false, () => '', () => {}, () => {}, async () => {});
+  assert.deepEqual(rates, [460800,230400,115200]);
+  rates.length = 0;
+  await recoverWithRetries((attempt, rate) => {
+    rates.push(rate); const f = fixture();
+    f.loader.main = async () => { if (attempt === 0) throw new Error('Packet error'); };
+    return f;
+  }, [], false, () => '', () => {}, () => {}, async () => {}, 115200);
+  assert.deepEqual(rates, [115200,115200]);
+});
+
+test('bulk read/digest probe is verified and consumed before any erase or write', async () => {
+  const f = fixture(), data = new Uint8Array(16384).fill(0xab);
+  const md5 = () => '00112233445566778899aabbccddeeff';
+  f.loader.readFlash = async (address, size) => {
+    assert.equal(address,0x20000); assert.equal(size,16384); return data;
+  };
+  f.transport.read = async () => Uint8Array.from(Buffer.from(md5(),'hex'));
+  await flashRecovery(f.loader,f.transport,[],false,md5,()=>{});
+  assert.equal(f.written.length,1); assert.ok(data.every(b=>b===0));
+  const bad = fixture();
+  bad.loader.readFlash = async () => new Uint8Array(16384);
+  bad.transport.read = async () => new Uint8Array(16);
+  await assert.rejects(flashRecovery(bad.loader,bad.transport,[],true,md5,()=>{}),/transfer check failed/);
+  assert.equal(bad.written.length,0); assert.equal(bad.disconnected(),1);
+});
