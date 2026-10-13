@@ -185,3 +185,20 @@ test('bulk read/digest probe is verified and consumed before any erase or write'
   await assert.rejects(flashRecovery(bad.loader,bad.transport,[],true,md5,()=>{}),/transfer check failed/);
   assert.equal(bad.written.length,0); assert.equal(bad.disconnected(),1);
 });
+
+import {transferProgress, showTransferSummary} from './recovery-core.mjs';
+test('writing progress weights firmware bytes, clamps callbacks, and reserves verification', () => {
+  const files = [16, 3, 8, 1500].map(length => ({data: new Uint8Array(length)}));
+  assert.ok(transferProgress(files, 2, 8, 8) < 2);
+  assert.ok(transferProgress(files, 3, 50, 100) > 49);
+  assert.ok(transferProgress(files, 3, 50, 100) < 52);
+  assert.equal(transferProgress(files, 3, 200, 100), 99);
+  assert.equal(transferProgress(files, 0, 0, 0), 0);
+  assert.equal(transferProgress(files, 0, -1, 100), 0);
+});
+test('missing optional speed decoration cannot invalidate a verified write', () => {
+  assert.doesNotThrow(() => showTransferSummary({querySelector: () => null}, 460800, 12));
+  const element = {};
+  showTransferSummary({querySelector: () => element}, 460800, 12);
+  assert.match(element.textContent, /12 seconds/);
+});

@@ -266,6 +266,7 @@ def panel(frame):
         "<details hidden><summary>Local frame access after cloud restoration</summary>"
         "<p>The frame’s local management password is <code data-usb-local-password></code>. "
         "Keep it private. Cloud management uses your existing sign-in.</p></details>"
+        '<p class="quiet" data-usb-speed></p>'
         "<details><summary>Other recovery options</summary>"
         "<p>Make sure the power switch is on. Close other serial apps and try another data cable "
         "if USB cannot connect. A charging-only cable does not work.</p>"

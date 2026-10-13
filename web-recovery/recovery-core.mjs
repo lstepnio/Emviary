@@ -133,3 +133,18 @@ export async function cloudSettingsFile(payload, frame, digest) {
   }
   return {address: 0x9000, data};
 }
+
+// Progress covers writing bytes only. Verification and connection are separate phases.
+export function transferProgress(files, index, written, total) {
+  const sizes = files.map(file => file.data.length);
+  const size = sizes.reduce((sum, value) => sum + value, 0);
+  if (!size || index < 0 || index >= files.length) return 0;
+  const fraction = Number.isFinite(written / total) ? Math.max(0, Math.min(1, written / total)) : 0;
+  return Math.min(99, 100 * (sizes.slice(0, index).reduce((sum, value) => sum + value, 0) + sizes[index] * fraction) / size);
+}
+
+export function showTransferSummary(panel, rate, seconds) {
+  const element = panel.querySelector('[data-usb-speed]');
+  if (element) element.textContent = 'Verified USB transfer: ' + rate.toLocaleString() +
+    ' baud, ' + seconds + ' seconds.';
+}

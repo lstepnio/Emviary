@@ -58,6 +58,7 @@ def test_usb_bundle_is_private_complete_and_keeps_nvs_regions_untouched(
     assert service.store.frame(frame[0])["policy"] == before
     page = client.get("/manage/recovery?frame=" + frame[0]).text
     assert "Recover your frame" in page and "Recover frame" in page
+    assert "data-usb-speed" in page
     assert "data-usb-start disabled" in page and "replace_local_settings" in page
 
 

@@ -1,6 +1,6 @@
 import {ESPLoader, Transport} from 'esptool-js';
 import SparkMD5 from 'spark-md5';
-import {loadRecovery, recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError} from './recovery-core.mjs';
+import {loadRecovery, recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError, transferProgress, showTransferSummary} from './recovery-core.mjs';
 
 const panel = document.querySelector('[data-usb-recovery]');
 if (panel) {
@@ -13,6 +13,7 @@ if (panel) {
   const supported = window.isSecureContext && 'serial' in navigator;
   let bundle, port, busy = false, since, connected;
   const digest = crypto.subtle.digest.bind(crypto.subtle);
+  const resumeKey = 'emviary-usb-verified:' + frame;
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const setStatus = (message, error = false) => {
     status.textContent = message;
@@ -47,7 +48,7 @@ if (panel) {
     start.textContent = 'Run recovery again';
   };
   const waitOnline = async (duration = 120000) => {
-    step('connect');
+    step('connect'); progress.hidden = true;
     const result = await waitForFrame(fetch, statusUrl(), seconds => {
       setStatus('Firmware restored. Waiting for the frame to connect and fetch its picture. ' +
         'Keep USB connected. Checking for up to ' + seconds + ' more seconds.');
@@ -105,13 +106,20 @@ if (panel) {
     data => SparkMD5.ArrayBuffer.hash(data.buffer.slice(data.byteOffset,
       data.byteOffset + data.byteLength)),
     (index, written, total) => {
-      progress.value = (index + written / total) / files.length * 100;
-      setStatus('Restoring your frame: ' + Math.round(progress.value) + '%. Keep USB connected.');
-    }, attempt => setStatus(attempt === 1 ? 'Checking your USB connection…' :
-      'Trying a steadier USB connection (' + attempt + ' of 3)…'), sleep, preferred);
-    try { sessionStorage.setItem(key, String(usedRate)); } catch {}
-    panel.querySelector('[data-usb-speed]').textContent = 'Verified USB transfer: ' +
-      usedRate.toLocaleString() + ' baud, ' + Math.round((performance.now() - began) / 1000) + ' seconds.';
+      progress.value = transferProgress(files, index, written, total);
+      setStatus('Writing firmware: ' + Math.round(progress.value) + '%. Keep USB connected.');
+    }, attempt => {
+      progress.value = 0;
+      setStatus(attempt === 1 ? 'Checking your USB connection…' :
+        'Trying a steadier USB connection (' + attempt + ' of 3)…');
+    }, sleep, preferred);
+    // Persist verified completion before optional UI decoration. A reload can resume
+    // the connection check without writing the firmware again.
+    try {
+      sessionStorage.setItem(key, String(usedRate));
+      sessionStorage.setItem(resumeKey, JSON.stringify({since, version: bundle.manifest.version}));
+    } catch {}
+    try { showTransferSummary(panel, usedRate, Math.round((performance.now() - began) / 1000)); } catch {}
     return result;
   };
   const preventLeave = event => { event.preventDefault(); event.returnValue = ''; };
@@ -205,6 +213,7 @@ if (panel) {
     if (!connected) return;
     setStatus('Recovery complete. You can disconnect USB. Your frame will follow its saved schedule.');
     panel.querySelector('[data-usb-finish]').hidden = true;
+    try { sessionStorage.removeItem(resumeKey); } catch {}
   });
   panel.querySelector('[data-usb-not-yet]').addEventListener('click', () => {
     escalate('The frame is connected. Give its color display a minute to finish refreshing. ' +
@@ -228,6 +237,23 @@ if (panel) {
         .forEach(name => { const option = document.createElement('option'); option.value = name; options.append(option); });
       fresh.querySelector('[name="ssid"]').value = metadata.suggested_network || metadata.network_names[0] || '';
       setStatus('Ready. Connect your reTerminal E1002 with a USB data cable, then choose Recover frame.');
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(resumeKey));
+        if (saved?.version === bundle.manifest.version && Date.now() - Date.parse(saved.since) < 86400000) {
+          since = saved.since;
+          const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
+          wake.querySelector('p').textContent = 'Firmware was already verified. Continue checking its connection without flashing again.';
+          retryWake.textContent = 'Check connection again';
+          setStatus('Firmware verified. Check the connection to finish recovery.');
+        }
+      } catch {}
+      // Also allow checking an installation completed by an older recovery page.
+      if (!since) {
+        since = new Date(Date.now() - 600000).toISOString();
+        const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
+        wake.querySelector('p').textContent = 'Already restored the firmware? Check its connection without writing it again.';
+        retryWake.textContent = 'Check connection again';
+      }
       update();
     }).catch(error => setStatus(error.message + ' Reload this page to try again.', true));
   }
