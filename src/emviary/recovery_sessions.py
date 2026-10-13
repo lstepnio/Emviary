@@ -65,6 +65,20 @@ class RecoverySessions:
         self.store = store
         self.clock = now or (lambda: datetime.now(UTC))
 
+    @staticmethod
+    def picture_verified(session, evidence):
+        return (
+            all(
+                evidence.get(phase)
+                for phase in ("booted", "cloud_requested", "image_verified", "panel_refreshed")
+            )
+            and not evidence.get("error")
+            and bool(BOOT_ID.fullmatch(session.get("boot_id") or ""))
+            and bool(DEVICE_ID.fullmatch(session.get("device_id") or ""))
+            and session.get("image_id") is not None
+            and bool(re.fullmatch(r"[a-f0-9]{64}", session.get("image_sha256") or ""))
+        )
+
     def _session(self, db, session_id, frame_id=None, active=True):
         row = db.execute("SELECT * FROM recovery_sessions WHERE id=?", (session_id,)).fetchone()
         if not row or frame_id is not None and row["frame_id"] != frame_id:
@@ -188,6 +202,7 @@ class RecoverySessions:
                     (session_id,),
                 )
             ]
+        evidence = json.loads(row["evidence"])
         return {
             "session_id": row["id"],
             "nonce": row["nonce"],
@@ -200,7 +215,12 @@ class RecoverySessions:
             "lease_expires_at": row["lease_expires_at"],
             "expires_at": row["expires_at"],
             "state": row["state"],
-            "evidence": json.loads(row["evidence"]),
+            "evidence": evidence,
+            "verification": "verified"
+            if self.picture_verified(row, evidence)
+            else "failed"
+            if evidence.get("error")
+            else "pending",
             "image_id": row["image_id"],
             "image_sha256": row["image_sha256"],
             "events": events,
@@ -515,6 +535,9 @@ class RecoverySessions:
                     raise HTTPException(400, "Invalid recovery error code")
                 evidence.pop("panel_refreshed", None)
                 evidence["error"] = error
+            elif phase == "panel_refreshed":
+                evidence.pop("failed", None)
+                evidence.pop("error", None)
             evidence[phase] = self.clock().isoformat()
             db.execute(
                 "UPDATE recovery_sessions SET device_id=?,boot_id=?,evidence=? WHERE id=?",
@@ -522,16 +545,36 @@ class RecoverySessions:
             )
         return {"accepted": True, "phase": phase}
 
-    def finish(self, frame_id, session_id, physical_confirmed=False, cancel=False):
+    def finish(self, frame_id, session_id, physical_confirmed=False, cancel=False, expected=None):
         with self.store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             session = self._session(db, session_id, frame_id, active=False)
+            if (
+                not cancel
+                and expected is not None
+                and any(
+                    not expected.get(key) or str(expected[key]) != str(session[key])
+                    for key in ("boot_id", "image_id", "image_sha256")
+                )
+            ):
+                raise HTTPException(
+                    409,
+                    {
+                        "code": "picture_changed",
+                        "message": (
+                            "The verified boot or picture changed. "
+                            "Verify its current picture before finishing."
+                        ),
+                    },
+                )
             if session["state"] == ("cancelled" if cancel else "completed"):
                 return self.get(frame_id, session_id)
             if session["state"] != "active" or session["expires_at"] <= self.clock().isoformat():
                 raise HTTPException(409, "Recovery session already ended")
             evidence = json.loads(session["evidence"])
-            if not cancel and (not physical_confirmed or "panel_refreshed" not in evidence):
+            if not cancel and (
+                not physical_confirmed or not self.picture_verified(session, evidence)
+            ):
                 raise HTTPException(
                     409, "Verify the picture and confirm its physical appearance first"
                 )
@@ -656,8 +699,16 @@ def install_routes(app, require, service, checked_form):
     @app.post(base + "/{session_id}/complete")
     async def complete(identifier: str, session_id: str, request: Request):
         data = await checked_form(request)
+        proof_keys = ("boot_id", "image_id", "image_sha256")
+        expected = (
+            {key: data.get(key) for key in proof_keys}
+            if any(key in data for key in proof_keys)
+            else None
+        )
         return response(
-            sessions.finish(identifier, session_id, data.get("physical_confirmed") == "yes")
+            sessions.finish(
+                identifier, session_id, data.get("physical_confirmed") == "yes", expected=expected
+            )
         )
 
     @app.post(base + "/{session_id}/cancel")

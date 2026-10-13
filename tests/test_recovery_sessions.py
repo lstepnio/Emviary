@@ -527,3 +527,86 @@ def test_first_owner_hello_tentatively_identifies_unknown_frame_until_authentica
         sessions.transition_boot(
             frame[0], value["session_id"], dict(data, device_id="aabbcc009999")
         )
+
+
+@pytest.mark.parametrize("missing", ["booted", "cloud_requested", "image_verified"])
+def test_finish_refuses_partial_proof_even_with_panel_checkpoint(service, frame, sessions, missing):
+    value = session(sessions, frame)
+    data = challenge(value)
+    sessions.image_requested(
+        service.store.frame(frame[0]), data, {"id": 1, "body_hash": "b" * 64}, frame[1]
+    )
+    for phase in ("image_verified", "panel_refreshed"):
+        sessions.acknowledge(
+            service.store.frame(frame[0]), dict(data, phase=phase, image_sha256="b" * 64)
+        )
+    with service.store.connect() as db:
+        proof = json.loads(
+            db.execute(
+                "SELECT evidence FROM recovery_sessions WHERE id=?", (value["session_id"],)
+            ).fetchone()[0]
+        )
+        proof.pop(missing)
+        db.execute(
+            "UPDATE recovery_sessions SET evidence=? WHERE id=?",
+            (json.dumps(proof), value["session_id"]),
+        )
+    assert sessions.get(frame[0], value["session_id"])["verification"] == "pending"
+    with pytest.raises(HTTPException) as caught:
+        sessions.finish(frame[0], value["session_id"], True)
+    assert caught.value.status_code == 409
+
+
+def test_verification_failure_and_successful_retry_are_explicit(service, frame, sessions):
+    value = session(sessions, frame)
+    data = challenge(value)
+    current = service.store.frame(frame[0])
+    sessions.image_requested(current, data, {"id": 1, "body_hash": "b" * 64}, frame[1])
+    assert sessions.get(frame[0], value["session_id"])["verification"] == "pending"
+    sessions.acknowledge(current, dict(data, phase="image_verified", image_sha256="b" * 64))
+    sessions.acknowledge(current, dict(data, phase="failed", error="display_failed"))
+    assert sessions.get(frame[0], value["session_id"])["verification"] == "failed"
+    with pytest.raises(HTTPException):
+        sessions.finish(frame[0], value["session_id"], True)
+    sessions.acknowledge(current, dict(data, phase="panel_refreshed", image_sha256="b" * 64))
+    assert sessions.get(frame[0], value["session_id"])["verification"] == "verified"
+    completed = sessions.finish(frame[0], value["session_id"], True)
+    assert completed["state"] == "completed"
+    assert "error" not in completed["evidence"]
+    assert sessions.finish(frame[0], value["session_id"], True)["state"] == "completed"
+
+
+@pytest.mark.parametrize(
+    "changed",
+    [
+        {"boot_id": "0123456789abcdee"},
+        {"image_id": "2"},
+        {"image_sha256": "c" * 64},
+        {"image_id": None},
+    ],
+)
+def test_physical_confirmation_is_bound_to_exact_boot_and_picture(
+    service, frame, sessions, changed
+):
+    value = session(sessions, frame)
+    data = challenge(value)
+    current = service.store.frame(frame[0])
+    sessions.image_requested(current, data, {"id": 1, "body_hash": "b" * 64}, frame[1])
+    for phase in ("image_verified", "panel_refreshed"):
+        sessions.acknowledge(current, dict(data, phase=phase, image_sha256="b" * 64))
+    expected = {"boot_id": data["boot_id"], "image_id": "1", "image_sha256": "b" * 64}
+    with pytest.raises(HTTPException) as caught:
+        sessions.finish(frame[0], value["session_id"], True, expected=expected | changed)
+    assert caught.value.status_code == 409
+    assert caught.value.detail["code"] == "picture_changed"
+    assert sessions.get(frame[0], value["session_id"])["state"] == "active"
+    assert (
+        sessions.finish(frame[0], value["session_id"], True, expected=expected)["state"]
+        == "completed"
+    )
+    assert (
+        sessions.finish(frame[0], value["session_id"], True, expected=expected)["state"]
+        == "completed"
+    )
+    with pytest.raises(HTTPException):
+        sessions.finish(frame[0], value["session_id"], True, expected=expected | changed)

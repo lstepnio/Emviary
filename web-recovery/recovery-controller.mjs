@@ -26,7 +26,7 @@ export async function boundedOperation(work, ms, {signal, clock = defaultClock, 
   finally { clock.clearTimeout(timer); signal?.removeEventListener('abort', listener); }
 }
 const owners = new Map();
-const budgets = {prepare: 30000, hello: 5000, identify: 10000, verifyFirmware: 30000, repair: 300000, reset: 5000, begin: 5000, status: 5000, cloud: 10000, end: 5000, release: 3000};
+const budgets = {prepare: 30000, hello: 5000, identify: 10000, verifyFirmware: 30000, repair: 300000, reset: 5000, begin: 5000, status: 5000, cloud: 10000, end: 50000, release: 3000};
 const safeEvidence = value => {
   // Protocol status contains only these non-secret fields. Never serialize traces,
   // injected configuration objects, credentials or transport internals.
@@ -79,8 +79,8 @@ export class RecoveryController {
     this.running = this.execute(repair).finally(async () => {
       // Abort first so late writes/readers cannot advance state after a timeout.
       this.abort.abort();
-      if(this.operations.release) try {await boundedOperation(signal => this.operations.release({port:this.port,signal}),this.deadlines.release,{clock:this.clock,operation:'release'});} catch {}
-      this.activeMs = this.elapsed(); this.began = null; owners.delete(this.frameId); this.running = null;
+      if(this.operations.release) try {await boundedOperation(signal => this.operations.release({port:this.port,signal,state:this.state}),this.deadlines.release,{clock:this.clock,operation:'release'});} catch {}
+      this.activeMs = this.elapsed(); this.began = null; if(this.state!=='physical_confirmation')owners.delete(this.frameId); this.running = null;
       try {this.storage?.setItem(this.key,JSON.stringify(this.snapshot()));} catch {}
     });
     return this.running;
@@ -180,8 +180,21 @@ export class RecoveryController {
         await this.delay(Math.min(1500,Math.max(1,networkEnd-this.clock.now())));
       } while(this.clock.now() < networkEnd);
       if(!(status?.wifi_connected && status.cloud === 'authenticated' && status.image === 'verified' && status.panel === 'complete')) throw new RecoveryFault('network_timeout','The connection or picture could not be verified. Firmware remains verified.',{retryable:false});
-      cloud = await this.op('cloud',{bootId:this.verified.boot,imageSha256:status.image_sha256,imageId:status.image_id},Math.max(1,networkEnd-this.clock.now()));
-      if(cloud?.session_verified !== true || cloud?.connected !== true) throw new RecoveryFault('cloud_unverified','Emviary has not acknowledged this recovery session.',{retryable:false});
+      // A pending server acknowledgment retries only the read request. It must
+      // never restart an already downloaded and physically refreshed picture.
+      while(true) {
+        try {
+          cloud = await this.op('cloud',{bootId:this.verified.boot,imageSha256:status.image_sha256,imageId:status.image_id},Math.max(1,networkEnd-this.clock.now()));
+          if(cloud?.session_verified !== true || cloud?.connected !== true) throw new RecoveryFault('cloud_unverified','Emviary has not acknowledged this recovery session.',{retryable:false});
+          break;
+        } catch(error) {
+          const fault=classifyRecoveryError(error);
+          if(!['cloud_unverified','service_error','timeout','operation_failed'].includes(fault.code)||this.clock.now()>=networkEnd)throw fault;
+          this.emit('connecting','cloud_pending',status,fault);
+          await this.delay(Math.min(1500,Math.max(1,networkEnd-this.clock.now())));
+          if(this.clock.now()>=networkEnd)throw fault;
+        }
+      }
       break;
       } catch(error) {
         const fault=classifyRecoveryError(error);
@@ -195,16 +208,26 @@ export class RecoveryController {
         await this.op('begin',{},Math.max(1,networkEnd-this.clock.now()));
       }
       }
-      this.verified.cloud = true; this.verified.panel = true; this.emit('physical_confirmation','cloud',cloud); return this.snapshot();
+      this.verified.cloud = true; this.verified.panel = true;this.verified.imageId=cloud.image_id??status.image_id;this.verified.imageSha256=cloud.image_sha256??status.image_sha256; this.emit('physical_confirmation','cloud',cloud); return this.snapshot();
     } catch(error) {const fault = classifyRecoveryError(error); this.emit(fault.code === 'usb_disconnected' ? 'paused' : fault.code === 'cancelled' ? 'cancelled' : 'needs_attention',fault.operation || 'recovery',null,fault); throw fault;}
   }
   delay(ms) {
     return boundedOperation(signal => new Promise((resolve,reject) => {const id=this.clock.setTimeout(resolve,ms);signal.addEventListener('abort',()=>{this.clock.clearTimeout(id);reject(signal.reason);},{once:true});}),ms+500,{signal:this.abort.signal,clock:this.clock});
   }
   resume(options = {}) {return this.run(options);}
-  cancel() {this.abort?.abort(new RecoveryFault('cancelled','Recovery stopped.',{retryable:false}));}
+  async pause(error = new RecoveryFault('usb_disconnected','Reconnect the same frame to continue.')) {
+    this.abort?.abort(error);this.emit('paused','disconnect',null,error);owners.delete(this.frameId);
+    if(!this.running&&this.operations.release)try{await boundedOperation(signal=>this.operations.release({port:this.port,signal,state:'paused'}),this.deadlines.release,{clock:this.clock,operation:'release'});}catch{}
+  }
+  async cancel() {
+    this.abort?.abort(new RecoveryFault('cancelled','Recovery stopped.',{retryable:false}));owners.delete(this.frameId);
+    if(!this.running){this.emit('cancelled','cancel');if(this.operations.release)try{await boundedOperation(signal=>this.operations.release({port:this.port,signal,state:'cancelled'}),this.deadlines.release,{clock:this.clock,operation:'release'});}catch{}}
+  }
   async finish(physicalConfirmed) {
     if(!physicalConfirmed || !this.verified.panel || this.state !== 'physical_confirmation') throw new RecoveryFault('physical_confirmation_required','Confirm the picture on the physical frame first.',{retryable:false});
-    this.abort = new AbortController(); await this.op('end'); this.emit('finished','end'); try {this.storage?.removeItem(this.key);} catch {}
+    this.abort = new AbortController();this.began=this.clock.now();this.emit('finishing','end');
+    try {await this.op('end');this.emit('finished','end');owners.delete(this.frameId);try {this.storage?.removeItem(this.key);} catch {}}
+    catch(error){if(this.state==='finishing')this.emit('physical_confirmation','end');throw error;}
+    finally {this.activeMs=this.elapsed();this.began=null;if(this.state!=='finished')try{this.storage?.setItem(this.key,JSON.stringify(this.snapshot()));}catch{}}
   }
 }

@@ -1,4 +1,5 @@
-import {test} from 'node:test';
+import {test,afterEach} from 'node:test';
+const controllers=[];afterEach(async()=>{for(const controller of controllers)await controller.cancel();controllers.length=0;});
 import assert from 'node:assert/strict';
 import {RecoveryController,RecoveryFault,boundedOperation} from './recovery-controller.mjs';
 import {RecoveryFrameParser,crc32,encodeRecoveryFrame,RecoveryTransport} from './recovery-transport.mjs';
@@ -16,7 +17,7 @@ function fixture(overrides={},options={}) {
   const operations={prepare:async()=>{},hello:async()=>hello,identify:async()=>hello,repair:async()=>({verified:true}),reset:async()=>{},begin:async()=>{},status:async ctx=>({...hello,session_id:ctx.sessionId,nonce:ctx.nonce,active:true,configuration_ready:true,wifi_connected:true,cloud:'authenticated',image:'verified',panel:'complete',error:'none'}),cloud:async()=>({connected:true,session_verified:true}),end:async()=>{},release:async()=>{},...overrides};
   for(const [name,op] of Object.entries(operations)) operations[name]=async ctx=>{calls.push([name,ctx]);return op(ctx);};
   const events=[];const controller=new RecoveryController({frameId:'frame',expectedIdentity:identity,expectedFirmware:'1',sessionId:'session',nonce:'nonce',operations,onEvent:e=>events.push(e),clock,...options});
-  return {controller,calls,events,clock};
+  controllers.push(controller);return {controller,calls,events,clock};
 }
 test('deadline aborts hung operation and clears timer',async()=>{const clock=new Clock();let signal;const promise=boundedOperation(s=>{signal=s;return new Promise(()=>{});},50,{clock});const rejected=assert.rejects(promise,{code:'timeout'});await clock.tick(51);await rejected;assert.equal(signal.aborted,true);assert.equal(clock.timers.size,0);});
 test('healthy app verifies without flashing and waits for physical confirmation',async()=>{const {controller,calls}=fixture();await controller.run();assert.equal(controller.state,'physical_confirmation');assert.equal(calls.some(([n])=>n==='repair'),false);await assert.rejects(controller.finish(false),{code:'physical_confirmation_required'});await controller.finish(true);assert.equal(controller.state,'finished');});
@@ -85,3 +86,7 @@ test('completed HELLO write with delayed startup reply is retried on the same po
 test('HELLO completed-write reply timeout retains the UART reader and writer for bounded startup probes',async()=>{const clock=new Clock();let closed=0;const transport=new RecoveryTransport({close:async()=>closed++},{clock,timeoutMs:10});transport.closed=false;const writer={write:async()=>{}};transport.writer=writer;const rejected=assert.rejects(transport.command('HELLO'),error=>error.code==='timeout'&&error.replyTimeout&&error.writeCompleted);await clock.tick(11);await rejected;assert.equal(transport.closed,false);assert.equal(transport.writer,writer);assert.equal(closed,0);});
 
 test('outer HELLO deadline exceeds the UART reply timeout so startup retry retains the port',async()=>{const clock=new Clock();let writes=0,closed=0;const transport=new RecoveryTransport({close:async()=>closed++},{clock,timeoutMs:4000});transport.closed=false;transport.writer={write:async()=>{if(++writes===2)transport.pending.resolve(hello);}};const {controller,calls}=fixture({hello:async ctx=>transport.command('HELLO',{}, {signal:ctx.signal})},{clock});const running=controller.run();await clock.tick(4001);assert.equal(transport.closed,false);assert.equal(closed,0);await clock.tick(1500);await running;assert.equal(controller.state,'physical_confirmation');assert.equal(writes,2);assert.equal(calls.some(([name])=>['reset','repair','identify'].includes(name)),false);});
+
+test('finish operation exceeding the old five-second deadline completes within its bounded finishing budget',async()=>{const clock=new Clock();const {controller}=fixture({end:async()=>new Promise(resolve=>clock.setTimeout(resolve,12000))},{clock});await controller.run();const finishing=controller.finish(true);await clock.tick(5001);assert.equal(controller.state,'finishing');await clock.tick(7000);await finishing;assert.equal(controller.state,'finished');assert.equal(controller.activeMs,12000);});
+
+test('cancelling or pausing an in-flight finish preserves its stopped state rather than restoring the picture prompt',async()=>{for(const stopped of ['cancelled','paused']){const clock=new Clock();const {controller}=fixture({end:async()=>new Promise(()=>{})},{clock});await controller.run();const rejected=assert.rejects(controller.finish(true));await clock.tick(1);assert.equal(controller.state,'finishing');if(stopped==='cancelled')await controller.cancel();else await controller.pause();await clock.tick(1);await rejected;assert.equal(controller.state,stopped);}});

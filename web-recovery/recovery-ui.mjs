@@ -1,6 +1,6 @@
 const steps = {preparing:'prepare',identifying:'prepare',identified:'prepare',repairing:'restore',
   firmware_verified:'restore',booting:'connect',application_booted:'connect',connecting:'connect',
-  physical_confirmation:'finish',finished:'finish',application_busy:'connect',repairing_settings:'restore',display_prepare:'finish',display_test:'finish',restoring_picture:'finish'};
+  physical_confirmation:'finish',finishing:'finish',finish_pending:'finish',finished:'finish',application_busy:'connect',repairing_settings:'restore',display_prepare:'finish',display_test:'finish',restoring_picture:'finish'};
 const copy = {
   idle:['Connect your frame','Plug in a USB data cable and turn the power switch on. We’ll guide you from here.'],
   preparing:['Getting everything ready','Checking the recovery files and your saved settings.'],
@@ -17,6 +17,8 @@ const copy = {
   application_booted:['Your frame has started','Connecting using its saved Wi-Fi settings.'],
   connecting:['Reconnecting your frame','Waiting for your frame to connect and request its picture. Keep USB connected.'],
   physical_confirmation:['Check your picture','Your frame completed its picture refresh. Compare its display with the picture below.'],
+  finishing:['Finishing recovery','Saving your picture confirmation and returning the frame to its normal schedule. Keep USB connected.'],
+  finish_pending:['Saving your confirmation','Your picture and completed checks are kept. Choose Retry finishing to save your confirmation.'],
   finished:['Your frame is ready','You can unplug USB. Your frame will follow its saved schedule.'],
   paused:['USB disconnected','Reconnect the same frame. Recovery will continue from its last verified step.'],
   cancelled:['Checking stopped','Completed repairs are kept. Choose Continue recovery when you’re ready.'],
@@ -25,11 +27,13 @@ export function recoveryCopy(event) {
   const state=event.state || 'idle'; let [title,message]=copy[state] || ['Let’s finish recovery','Keep USB connected.'];
   if(state==='connecting') {
     const e=event.evidence || {};
-    if(event.operation==='retry_pipeline') [title,message]=['Trying the connection again','Retrying the picture and connection check. Completed repairs and your saved settings are kept.'];
+    if(event.operation==='cloud_pending') [title,message]=['Confirming with Emviary','Your frame finished its picture refresh. Waiting for Emviary to record the confirmation.'];
+    else if(event.operation==='retry_pipeline') [title,message]=['Trying the connection again','Retrying the picture and connection check. Completed repairs and your saved settings are kept.'];
     else
     if(e.image==='verified' && e.panel!=='complete') [title,message]=['Refreshing your picture','The picture is downloaded. The color display needs a little time to finish.'];
     else if(e.wifi_connected) [title,message]=['Getting your picture','Wi-Fi is connected. Waiting for a verified picture refresh.'];
   }
+  if(state==='paused'&&event.error?.code==='boot_changed')[title,message]=['Your frame restarted','Continue recovery to verify its new startup before finishing.'];
   if(state==='needs_attention') {
     const code=event.error?.code;
     [title,message]= {
@@ -49,6 +53,7 @@ export function recoveryCopy(event) {
       permission_cancelled:['Choose your frame','Select USB Serial in the browser’s picker, then click Connect.'],
       wrong_device:['This is a different device','Connect the frame selected on this page. Nothing was written to the different device.'],
       wrong_board:['Check the connected frame','This recovery is for the reTerminal E1002. Connect that frame to continue.'],
+      picture_changed:['Your frame received a new picture','Choose Continue recovery to verify the current picture before finishing.'],
       boot_changed:['Your frame restarted','Choose Continue recovery to verify its new startup before checking the display.'],
       boot_unverified:['The frame hasn’t started yet','Keep the power switch on and USB connected. We need to confirm the frame starts before continuing.'],
       configuration_required:['Let’s reconnect to Wi-Fi','The saved settings need attention. Restore this frame’s cloud settings below.'],

@@ -13,19 +13,22 @@ if(panel) {
   const base='/manage/usb-recovery/sessions/'+encodeURIComponent(frame);
   const journalKey='emviary-recovery-session:'+frame;
   const settingsAttemptKey=sessionId=>'emviary-recovery-settings-attempt:'+sessionId;
-  let bundle,metadata,job,controller,port,uart,busy=false,preparing=false,criticalWriting=false,automaticSettingsAttempted=false,displayTestUsed=false,renewTimer,csrf,releaseLock,runAbort,cancelRequested=false;
+  let bundle,metadata,job,controller,port,uart,busy=false,preparing=false,criticalWriting=false,automaticSettingsAttempted=false,displayTestUsed=false,renewTimer,csrf,releaseLock,runAbort,cancelRequested=false,idleStatusPromise,pausePromise;
   const md5=data=>SparkMD5.ArrayBuffer.hash(data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength));
   const digest=crypto.subtle.digest.bind(crypto.subtle);
   const display=event=>renderRecovery(panel,event);
   const update=()=>{
     start.disabled=!supported||preparing||busy;
-    next.disabled=!supported||preparing||busy;cancel.hidden=!busy||criticalWriting||controller?.state==='repairing';
+    next.disabled=!supported||preparing||busy;
+    panel.querySelector('[data-usb-good]').disabled=busy||controller?.state!=='physical_confirmation';
+    panel.querySelector('[data-usb-not-yet]').disabled=busy||controller?.state!=='physical_confirmation';cancel.hidden=(!busy&&controller?.state!=='physical_confirmation')||criticalWriting||controller?.state==='repairing';
     panel.querySelector('[data-usb-intro]').hidden=busy||!!controller;
     [...fresh.elements].forEach(input=>input.disabled=!supported||busy);
     panel.setAttribute('aria-busy',String(busy));
   };
   const request=async(url,options={})=>{
-    const {response,payload}=await boundedOperation(async signal=>{const response=await fetch(url,{cache:'no-store',...options,signal});return {response,payload:await response.json()};},10000,{signal:options.signal,operation:'web_request'});
+    const {timeoutMs=10000,...fetchOptions}=options;
+    const {response,payload}=await boundedOperation(async signal=>{const response=await fetch(url,{cache:'no-store',...fetchOptions,signal});return {response,payload:await response.json()};},timeoutMs,{signal:fetchOptions.signal,operation:'web_request'});
     if(!response.ok){
       const detail=payload.detail;
       const code=typeof detail==='object'&&typeof detail?.code==='string'?detail.code:
@@ -35,13 +38,15 @@ if(panel) {
     }
     return payload;
   };
-  const post=async(url,fields={},signal)=>{
+  const post=async(url,fields={},signal,timeoutMs=10000)=>{
     signal ||= runAbort?.signal;
     if(!csrf)csrf=(await request('/manage/session',{signal})).csrf;
-    return request(url,{method:'POST',body:new URLSearchParams({csrf,...fields}),signal});
+    return request(url,{method:'POST',body:new URLSearchParams({csrf,...fields}),signal,timeoutMs});
   };
   const close=async()=>{if(uart){await uart.close();uart=null;}};
-  const openUart=async signal=>{if(uart?.closed)await close();if(!uart){uart=new RecoveryTransport(port);await uart.open({signal});}return uart;};
+  const openUart=async signal=>{if(uart?.closed)await close();if(!uart){uart=new RecoveryTransport(port,{onDisconnect:error=>{
+      if(controller?.state==='physical_confirmation'&&!busy&&!pausePromise){pausePromise=stopIdle(error).catch(()=>{}).finally(()=>{pausePromise=null;});}
+    }});await uart.open({signal});}return uart;};
   const reset=async signal=>{
     await close();const link=await openUart(signal);
     const check=()=>{if(signal?.aborted)throw signal.reason;};
@@ -84,7 +89,9 @@ if(panel) {
     if(attention){start.hidden=true;next.textContent=event.state==='paused'?'Continue after reconnecting':'Continue recovery';}
     const settings=event.state==='needs_attention'&&(event.error?.code==='configuration_required'||event.error?.code==='wifi_connection_failed'||event.error?.code==='network_timeout'||event.error?.code==='wifi_password_required'||String(event.error?.code||'').includes('NVS'));
     fresh.hidden=!settings;
+    if(attention)panel.querySelector('[data-usb-finish]').hidden=true;
     if(event.state==='physical_confirmation'){
+      panel.querySelector('[data-usb-good]').textContent='Yes, finish';
       const preview=panel.querySelector('[data-usb-preview]');if(preview&&event.evidence?.image_id){preview.src='/manage/images/'+event.evidence.image_id+'/preview';preview.hidden=false;}
       start.hidden=true;panel.querySelector('[data-usb-finish]').hidden=false;
     }
@@ -92,9 +99,9 @@ if(panel) {
       panel.querySelector('[data-usb-finish]').hidden=true;
       panel.querySelector('[data-usb-wake-panel]').hidden=true;
     }
-    if(job&&event.operation&&event.operation!=='status')post(base+'/'+job.session_id+'/events',{
-      attempt_id:String(event.attempt_id),state:event.state,operation:event.operation,
-      elapsed_ms:String(Math.round(event.elapsed_ms)),...(event.error?{error:event.error.code}:{})
+    if(job&&(event.operation||event.error)&&event.operation!=='status')post(base+'/'+job.session_id+'/events',{
+      attempt_id:String(event.attempt_id??controller?.ledger?.[event.operation]??0),state:event.state,operation:event.operation||'recovery',
+      elapsed_ms:String(Math.round(event.elapsed_ms??controller?.elapsed()??0)),...(event.error?{error:event.error.code}:{})
     }).catch(()=>{});
   };
   const operations={
@@ -123,15 +130,57 @@ if(panel) {
     status:async({signal,sessionId,nonce})=>(await openUart(signal)).command('STATUS',{session_id:sessionId,nonce},{signal}),
     cloud:async({signal,bootId,imageSha256})=>{
       const result=await request(base+'/'+job.session_id,{signal});
-      if(result.boot_id!==bootId||result.expected_firmware!==bundle.manifest.version||result.device_id!==controller.identity||!result.evidence?.panel_refreshed||!result.evidence?.image_verified||imageSha256&&result.image_sha256!==imageSha256)throw new RecoveryFault('cloud_unverified','Emviary has not confirmed this boot and picture.',{retryable:false});
+      if(result.verification==='pending')throw new RecoveryFault('cloud_unverified','Emviary is still recording this picture verification.',{retryable:true});
+      if(result.verification==='failed')throw new RecoveryFault('cloud_verification_failed','Emviary reported a failed verification. Your completed picture refresh is kept.',{retryable:false});
+      if(result.boot_id!==bootId||result.expected_firmware!==bundle.manifest.version||result.device_id!==controller.identity||!result.evidence?.cloud_requested||!result.evidence?.panel_refreshed||!result.evidence?.image_verified||imageSha256&&result.image_sha256!==imageSha256)throw new RecoveryFault('cloud_unverified','Emviary has not confirmed this boot and picture.',{retryable:false});
       return {session_verified:true,connected:true,image_sha256:result.image_sha256,image_id:result.image_id};
     },
     end:async({signal,sessionId,nonce})=>{
-      try{const link=await openUart(signal);const hello=await link.command('HELLO',{}, {signal});controller.checkBoot(hello);if(hello.active)await link.command('END_RECOVERY',{session_id:sessionId,nonce},{signal});}finally{await close();}
-      await post(base+'/'+sessionId+'/complete',{physical_confirmed:'yes'},signal);
-      clearInterval(renewTimer);try{sessionStorage.removeItem(journalKey);sessionStorage.removeItem(settingsAttemptKey(sessionId));}catch{}
+      const link=await openUart(signal);let hello;
+      for(let attempt=0;attempt<3;attempt++){
+        try{hello=await link.command('HELLO',{}, {signal});break;}
+        catch(error){if(!error.replyTimeout||attempt===2)throw error;await new Promise(resolve=>setTimeout(resolve,500));}
+      }
+      controller.checkBoot(hello);
+      if(hello.boot_id!==controller.verified.boot)throw new RecoveryFault('boot_changed','Your frame restarted. Continue recovery to verify this boot before finishing.',{retryable:false});
+      if(controller.verified.imageSha256&&hello.image_sha256&&controller.verified.imageSha256!==hello.image_sha256||controller.verified.imageId&&hello.image_id&&String(controller.verified.imageId)!==String(hello.image_id))throw new RecoveryFault('picture_changed','Your frame received a different picture. Continue recovery to verify the current picture before finishing.',{retryable:false});
+      if(hello.active)await link.command('END_RECOVERY',{session_id:sessionId,nonce},{signal});
+      let completed;
+      for(let attempt=0;attempt<3;attempt++){
+        try{completed=await post(base+'/'+sessionId+'/complete',{physical_confirmed:'yes',boot_id:controller.verified.boot,image_id:String(controller.verified.imageId??''),image_sha256:controller.verified.imageSha256??''},signal,5000);if(completed.state==='completed'&&(controller.verified.imageSha256&&completed.image_sha256!==controller.verified.imageSha256||controller.verified.imageId&&String(completed.image_id)!==String(controller.verified.imageId)))throw new RecoveryFault('picture_changed','A different picture was recorded. Continue recovery to verify it before finishing.',{retryable:false});if(completed.state!=='completed')throw new RecoveryFault('completion_pending','Emviary has not saved your confirmation.',{retryable:true});break;}
+        catch(error){
+          if(['authentication','session_mismatch','wrong_device','picture_changed'].includes(error.code)||signal.aborted)throw error;
+          // A response can be lost after the server commits. Reconcile before
+          // repeating the idempotent confirmation, without restarting the frame.
+          try{const saved=await request(base+'/'+sessionId,{signal,timeoutMs:3000});if(saved.state==='completed'){if(saved.boot_id!==controller.verified.boot||saved.device_id!==controller.identity||controller.verified.imageSha256&&saved.image_sha256!==controller.verified.imageSha256||controller.verified.imageId&&String(saved.image_id)!==String(controller.verified.imageId))throw new RecoveryFault('picture_changed','A different boot or picture was confirmed. Continue recovery to verify the current picture.',{retryable:false});completed=saved;break;}}catch(checkError){if(['authentication','picture_changed'].includes(checkError.code)||signal.aborted)throw checkError;}
+          if(attempt===2)throw error;
+          await new Promise(resolve=>setTimeout(resolve,500));
+        }
+      }
+      if(completed?.state!=='completed')throw new RecoveryFault('completion_pending','Your confirmation could not be saved. Retry finishing.',{retryable:false});
+      job=completed;await close();clearInterval(renewTimer);releaseLock?.();releaseLock=null;
+      try{sessionStorage.removeItem(journalKey);sessionStorage.removeItem(settingsAttemptKey(sessionId));}catch{}
     },
-    release:async()=>close(),
+    release:async({state})=>{if(state!=='physical_confirmation')await close();},
+
+  };
+  const stopIdle = async error => {
+    clearInterval(renewTimer);releaseLock?.();releaseLock=null;
+    if(controller)await controller.pause(error);await close();
+  };
+  const renew = async()=>{
+    if(!job)return;
+    await post(base+'/'+job.session_id+'/renew').catch(()=>{});
+    if(controller?.state==='physical_confirmation'&&!busy&&uart&&!uart.closed&&!idleStatusPromise){
+      idleStatusPromise=(async()=>{
+        try{
+          const status=await uart.command('STATUS',{session_id:controller.sessionId,nonce:controller.nonce},{signal:AbortSignal.timeout(5000)});
+          controller.checkBoot(status);
+          if(status.boot_id!==controller.verified.boot)throw new RecoveryFault('boot_changed','The frame restarted. Continue recovery to verify its new boot.',{retryable:false});
+        }catch(error){if(!error.replyTimeout)await stopIdle(error);}
+      })().finally(()=>{idleStatusPromise=null;});
+      await idleStatusPromise;
+    }
   };
   const session=async()=>{
     if(job&&job.state==='active'){job=await post(base+'/'+job.session_id+'/renew');return job;}
@@ -140,10 +189,11 @@ if(panel) {
     job=await post(base);try{sessionStorage.setItem(journalKey,JSON.stringify({session_id:job.session_id}));}catch{}return job;
   };
   const execute=async selected=>{
+    if(pausePromise)await pausePromise;
     if(busy)return;port=selected;busy=true;cancelRequested=false;runAbort=new AbortController();start.hidden=true;update();
     panel.querySelector('[data-usb-finish]').hidden=true;
     try{
-      if(navigator.locks)await new Promise((resolve,reject)=>{
+      if(navigator.locks&&!releaseLock)await new Promise((resolve,reject)=>{
         navigator.locks.request('emviary-recovery:'+frame,{ifAvailable:true},async lock=>{
           if(!lock){reject(new RecoveryFault('tab_conflict','Recovery is open in another tab.',{retryable:false}));return;}
           await new Promise(done=>{releaseLock=done;resolve();});
@@ -153,7 +203,7 @@ if(panel) {
       try{automaticSettingsAttempted=sessionStorage.getItem(settingsAttemptKey(job.session_id))==='yes';}catch{}
       if(controller&&(controller.sessionId!==job.session_id||controller.nonce!==job.nonce))controller=null;
       if(runAbort.signal.aborted)throw new RecoveryFault('cancelled','Recovery stopped.');
-      clearInterval(renewTimer);renewTimer=setInterval(()=>post(base+'/'+job.session_id+'/renew').catch(()=>{}),30000);
+      clearInterval(renewTimer);renewTimer=setInterval(renew,30000);
       if(!controller)controller=new RecoveryController({frameId:frame,expectedIdentity:job.device_id||undefined,
         expectedFirmware:bundle.manifest.version,sessionId:job.session_id,nonce:job.nonce,
         operations,onEvent,storage:sessionStorage,deadlines:{repair:360000,hello:8000}});
@@ -167,25 +217,30 @@ if(panel) {
         catch(restorationError){if(!cancelRequested)onEvent({state:'needs_attention',error:{code:restorationError.code||'configuration_required',message:restorationError.message}});}
       }
       else if(!cancelRequested&&error.code!=='cancelled'&&(!controller||controller.state!=='needs_attention'&&controller.state!=='paused'&&controller.state!=='cancelled'))onEvent({state:'needs_attention',error:{code:error.code||'operation_failed',message:error.message}});}
-    finally{if(['paused','needs_attention','cancelled'].includes(controller?.state))clearInterval(renewTimer);busy=false;releaseLock?.();releaseLock=null;update();}
+    finally{if(['paused','needs_attention','cancelled'].includes(controller?.state))clearInterval(renewTimer);busy=false;if(controller?.state!=='physical_confirmation'){releaseLock?.();releaseLock=null;}update();}
   };
   const choose=async()=>{
     if(busy||preparing||!supported)return;
-    try{display({state:'identifying'});port=await recoveryPort(navigator.serial,port);if(!bundle)await prepare();if(!bundle)return;await execute(port);}
+    try{if(pausePromise)await pausePromise;display({state:'identifying'});port=await recoveryPort(navigator.serial,port);if(!bundle)await prepare();if(!bundle)return;await execute(port);}
     catch(error){onEvent({state:'needs_attention',error:{code:error.name==='NotFoundError'?'permission_cancelled':error.code||'port_busy',message:error.message}});}
   };
   start.textContent='Check and recover';
   start.addEventListener('click',choose);next.addEventListener('click',choose);
   cancel.addEventListener('click',async()=>{
-    cancelRequested=true;runAbort?.abort();controller?.cancel();clearInterval(renewTimer);
+    cancelRequested=true;runAbort?.abort();await controller?.cancel();await close();releaseLock?.();releaseLock=null;clearInterval(renewTimer);
     if(job)await post(base+'/'+job.session_id+'/cancel',{},AbortSignal.timeout(5000)).catch(()=>{});
     try{if(job)sessionStorage.removeItem(settingsAttemptKey(job.session_id));sessionStorage.removeItem(journalKey);}catch{}
     job=null;controller=null;onEvent({state:'cancelled'});
   });
-  navigator.serial?.addEventListener('connect',async()=>{if(controller?.state==='paused'&&!busy)try{const ports=await navigator.serial.getPorts();if(ports.includes(port))await execute(port);}catch{}});
+  navigator.serial?.addEventListener('connect',async()=>{if(pausePromise)await pausePromise;if(controller?.state==='paused'&&!busy)try{const ports=await navigator.serial.getPorts();if(ports.includes(port))await execute(port);}catch{}});
   panel.querySelector('[data-usb-good]').addEventListener('click',async()=>{
-    if(busy||!controller)return;busy=true;update();
-    try{await controller.finish(true);}catch(error){onEvent({state:'needs_attention',error:{code:error.code||'operation_failed',message:error.message}});}
+    if(busy||!controller||controller.state!=='physical_confirmation')return;busy=true;update();
+    try{if(idleStatusPromise)await idleStatusPromise;if(controller?.state!=='physical_confirmation')return;await controller.finish(true);}catch(error){
+      if(cancelRequested)return;
+      if(error.code==='usb_disconnected'){await stopIdle(error);return;}
+      if(['boot_changed','wrong_device','picture_changed'].includes(error.code)){await stopIdle(error);controller.verified.panel=false;controller.state='needs_attention';onEvent({state:'needs_attention',operation:'end',error:{code:error.code,message:error.message}});}
+      else{onEvent({state:'finish_pending',operation:'end',error:{code:error.code||'operation_failed',message:error.message}});panel.querySelector('[data-usb-good]').textContent='Retry finishing';}
+    }
     finally{busy=false;update();}
   });
   const restoreSettings=async(fields,{automatic=false}={})=>{
