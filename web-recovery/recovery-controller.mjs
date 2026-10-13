@@ -26,7 +26,7 @@ export async function boundedOperation(work, ms, {signal, clock = defaultClock, 
   finally { clock.clearTimeout(timer); signal?.removeEventListener('abort', listener); }
 }
 const owners = new Map();
-const budgets = {prepare: 30000, hello: 4000, identify: 10000, verifyFirmware: 30000, repair: 300000, reset: 5000, begin: 5000, status: 5000, cloud: 10000, end: 5000, release: 3000};
+const budgets = {prepare: 30000, hello: 5000, identify: 10000, verifyFirmware: 30000, repair: 300000, reset: 5000, begin: 5000, status: 5000, cloud: 10000, end: 5000, release: 3000};
 const safeEvidence = value => {
   // Protocol status contains only these non-secret fields. Never serialize traces,
   // injected configuration objects, credentials or transport internals.
@@ -66,8 +66,8 @@ export class RecoveryController {
       try{return this.checkBoot(await this.op('hello'));}
       catch(error) {
         const fault=classifyRecoveryError(error);
-        if(!['operation_busy','not_ready'].includes(fault.code)||probe>=2)throw fault;
-        this.emit('application_busy','hello',null,fault);
+        if(!(['operation_busy','not_ready'].includes(fault.code)||(fault.code==='timeout'&&fault.replyTimeout&&fault.writeCompleted))||probe>=2)throw fault;
+        this.emit(fault.code==='timeout'?'booting':'application_busy','hello',null,fault);
         await this.delay(1500);
       }
     }

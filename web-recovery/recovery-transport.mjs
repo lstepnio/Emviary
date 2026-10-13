@@ -71,9 +71,9 @@ export class RecoveryTransport {
       },timeoutMs,{signal,clock:this.clock,operation:cmd});
     } catch(error) {
       // A pending write must be released on timeout. A completed, read-only
-      // STATUS request can leave its reader open and discard a late sequence.
+      // STATUS or HELLO request can leave its reader open and discard a late sequence.
       // Cancellation or a lost device always releases streams.
-      const readonlyReplyTimeout = cmd === 'STATUS' && writeCompleted && error.code === 'timeout' && !signal?.aborted;
+      const readonlyReplyTimeout = ['STATUS','HELLO'].includes(cmd) && writeCompleted && error.code === 'timeout' && !signal?.aborted;
       if(readonlyReplyTimeout) {error.replyTimeout=true;error.writeCompleted=true;}
       else if(error.code === 'timeout' || error.code === 'cancelled' || error.code === 'usb_disconnected' || signal?.aborted) await this.close();
       throw error;

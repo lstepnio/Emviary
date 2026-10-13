@@ -52,7 +52,7 @@ if(panel) {
     }finally{await link.port.setSignals({dataTerminalReady:false,requestToSend:false});}
     // Keep the reader and port open through reset. Closing the bridge here can
     // change its control lines and lose both boot output and the first reply.
-    await new Promise(resolve=>setTimeout(resolve,350));check();
+    await new Promise(resolve=>setTimeout(resolve,1000));check();
   };
   const openLoader=()=>{
     const transport=new Transport(port,false);
