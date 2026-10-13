@@ -123,3 +123,13 @@ def test_public_gallery_hides_missing_preview_files(service, frame):
     service.cache_path(record["preview_path"]).unlink()
     assert "Next button" not in client.get("/").text
     assert client.get(f"/display/images/{record['id']}.jpg").status_code == 404
+
+
+def test_public_gallery_deduplicates_shared_prepared_picture_with_both_roles(service, frame):
+    client = public_client(service, frame)
+    ready = service.prepare(frame[0], "2026-10-08", offline=True)
+    with service.store.connect() as db:
+        service._publish_slot(db, frame[0], "scheduled", ready["id"], None)
+    home = client.get("/").text
+    assert "Daily refresh · Next button" in home
+    assert home.count(f'src="/display/images/{ready["id"]}.jpg"') == 1

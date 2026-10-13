@@ -47,7 +47,12 @@ def gallery_markup(service):
         )
 
     body = ""
-    ready = [(label, image) for label, image in upcoming.items() if usable(image)]
+    grouped = {}
+    for label, image in upcoming.items():
+        if usable(image):
+            labels, record = grouped.setdefault(image["id"], ([], image))
+            labels.append(label)
+    ready = [(" · ".join(labels), image) for labels, image in grouped.values()]
     if ready:
         body += '<section class="public-compositions"><h2>Coming up</h2>'
         body += (

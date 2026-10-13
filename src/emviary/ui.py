@@ -571,7 +571,10 @@ CSS += (
 .public-compositions figure{margin:0;padding:12px;border:1px solid var(--line);
 border-radius:14px;background:var(--surface)}
 .public-compositions figcaption{margin-top:8px;color:var(--muted);font-size:14px}
-.public-compositions .current-next{margin-top:16px}
+.public-compositions .current-next{margin-top:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.public-compositions .current-next>figure:only-child{grid-column:1/-1;width:100%;
+max-width:800px;justify-self:center;box-sizing:border-box}
+@media(max-width:640px){.public-compositions .current-next{grid-template-columns:1fr}}
 """
 )
 
