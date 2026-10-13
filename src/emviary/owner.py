@@ -327,6 +327,9 @@ def attach_owner(app, service):
         return data
 
     install_usb_routes(app, require, service, checked_form)
+    from .recovery_sessions import install_routes as install_recovery_sessions
+
+    install_recovery_sessions(app, require, service, checked_form)
 
     def redirect(request=None):
         target = "/manage"
@@ -511,7 +514,7 @@ def attach_owner(app, service):
         for frame in selected_frames:
             policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
             status = statuses[frame["id"]]
-            if view != "events":
+            if view not in {"events", "recovery"}:
                 body += management_alerts_section(service, frame, escape)
             identifier = escape(frame["id"])
             site_timezone = service.settings.config.site(frame["site_id"]).timezone

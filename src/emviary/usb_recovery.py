@@ -25,7 +25,7 @@ def recovery_manifest():
         manifest["board"] != "seeedstudio_reterminal_e1002"
         or manifest["chip"] != "ESP32-S3"
         or manifest["flash_size"] != "32MB"
-        or manifest["version"] != "v0.8.4"
+        or manifest["version"] != "v0.8.5"
         or [p["address"] for p in manifest["parts"]] != [0, 0x8000, 0xF000, 0x20000]
     ):
         raise ValueError("Unexpected USB recovery target or layout")
@@ -68,6 +68,19 @@ def install_routes(app, require, service, checked_form):
         samples = service.store.device_samples(identifier)
         latest = samples[-1] if samples else None
         metrics = json.loads(latest["metrics"]) if latest else {}
+        reported_ssid = next(
+            (
+                value
+                for sample in reversed(samples)
+                if (value := json.loads(sample["metrics"]).get("ssid"))
+            ),
+            "",
+        )
+        eligible_networks = [network for network in policy.wifi_networks or [] if network.password]
+        restore_network = next(
+            (network for network in eligible_networks if network.ssid == reported_ssid),
+            eligible_networks[0] if eligible_networks else None,
+        )
         connected = bool(
             since
             and latest
@@ -93,6 +106,8 @@ def install_routes(app, require, service, checked_form):
                 else None,
                 "network_names": [n.ssid for n in policy.wifi_networks or []],
                 "suggested_network": metrics.get("ssid", ""),
+                "automatic_restore_ssid": restore_network.ssid if restore_network else "",
+                "can_restore_without_input": restore_network is not None,
             },
             headers={"Cache-Control": "no-store"},
         )
@@ -101,26 +116,51 @@ def install_routes(app, require, service, checked_form):
     async def cloud_settings(identifier: str, request: Request):
         import asyncio
 
+        from .owner import write_private
         from .recovery_nvs import build, local_password
+        from .recovery_sessions import RecoverySessions, lease_guard
 
         data = await checked_form(request)
         if data.get("replace_local_settings") != "yes":
             raise HTTPException(400, "Confirm replacing local settings before cloud restoration")
 
+        session_id = data.get("session_id", "")
+        if not session_id:
+            raise HTTPException(400, "Start a recovery session before restoring settings")
+        sessions = RecoverySessions(service.store)
+
         def prepare():
             with preparation_lock(service.settings.data_dir):
+                with service.store.connect() as db:
+                    session = sessions._session(db, session_id, identifier)
+                    lease_guard(db, identifier, session_id)
+                    if session["lease_expires_at"] <= datetime.now(UTC).isoformat():
+                        raise HTTPException(409, "Resume recovery before restoring settings")
                 frame = service.store.frame(identifier)
                 policy = FramePolicy.model_validate_json(frame["policy"])
                 token_path = service.settings.data_dir / "provisioning" / (identifier + ".token")
-                try:
-                    previous_token = token_path.read_text()
-                    token = previous_token.strip()
-                except FileNotFoundError:
-                    previous_token, token = None, ""
-                identity = service.store.authenticate(token)
-                renew_binding = not identity or identity["id"] != identifier
-                if renew_binding:
-                    token = secrets.token_urlsafe(32)
+                pending_path = token_path.with_name(
+                    identifier + "." + session_id + ".pending.token"
+                )
+                pending_exists = pending_path.is_file()
+                token = ""
+                if pending_exists:
+                    if pending_path.stat().st_size > 130:
+                        raise HTTPException(409, "Resume the unfinished settings transfer")
+                    token = pending_path.read_text().strip()
+                    staged = sessions.authenticate(token, session_id, session["nonce"])
+                    if not staged or staged["id"] != identifier:
+                        active = service.store.authenticate(token)
+                        if not active or active["id"] != identifier:
+                            raise HTTPException(409, "Resume the unfinished settings transfer")
+                else:
+                    try:
+                        token = token_path.read_text().strip()
+                    except FileNotFoundError:
+                        pass
+                    identity = service.store.authenticate(token)
+                    if not identity or identity["id"] != identifier:
+                        token = secrets.token_urlsafe(32)
                 networks = policy.wifi_networks or []
                 ssid = data.get("ssid", "")
                 saved = next((n for n in networks if n.ssid == ssid), None)
@@ -161,25 +201,20 @@ def install_routes(app, require, service, checked_form):
                     binary = build(config)
                 except (RuntimeError, TimeoutError) as exc:
                     raise HTTPException(503, str(exc)) from None
-                if renew_binding:
-                    from .owner import write_private
-
-                    write_private(token_path, token + "\n")
-                    try:
-                        service.store.restore_recovery_binding(frame, updated, token)
-                    except Exception:
-                        if token_path.read_text().strip() == token:
-                            if previous_token is None:
-                                token_path.unlink()
-                            else:
-                                write_private(token_path, previous_token)
-                        raise
-                elif updated != policy:
-                    service.store.set_policy(
-                        identifier, updated, expected_revision=frame["config_revision"]
-                    )
+                # Save the resumable candidate privately, never replace the active token file.
+                if not pending_exists:
+                    write_private(pending_path, token + "\n")
+                try:
+                    sessions.stage_binding(frame, updated, token, session_id)
+                except Exception:
+                    if not pending_exists:
+                        pending_path.unlink(missing_ok=True)
+                    raise
             return {
                 "frame_id": identifier,
+                "session_id": session_id,
+                "config_revision": frame["config_revision"] + 1,
+                "binding_pending": True,
                 "address": 0x9000,
                 "size": len(binary),
                 "sha256": hashlib.sha256(binary).hexdigest(),
@@ -232,43 +267,43 @@ def panel(frame):
     return (
         '<section class="card" id="usb-recovery" data-usb-recovery data-frame="'
         + escape(frame)
-        + '"><h2>Recover your frame</h2>'
-        "<p>Connect your reTerminal E1002 to this laptop with a USB data cable. "
-        "We’ll restore its firmware, retry if needed, and check its connection to Emviary. "
-        "Use Chrome or Edge. Keep the cable connected until recovery finishes.</p>"
+        + '"><div class="recovery-heading"><h2>Recover your frame</h2>'
+        "<p>We’ll check your frame first, then repair only what needs fixing. "
+        "Damaged connection settings can be restored from Emviary. Keep USB connected.</p></div>"
         '<ol class="recovery-steps" aria-label="Recovery progress">'
-        '<li data-usb-step="prepare">Prepare</li><li data-usb-step="restore">Restore</li>'
-        '<li data-usb-step="connect">Connect</li><li data-usb-step="finish">Check picture</li></ol>'
-        '<ol aria-label="USB connection instructions">'
-        "<li>Turn the frame’s power switch on and connect it to this laptop with a "
-        "USB data cable. Close other apps using the frame’s USB connection.</li>"
-        "<li>Choose <strong>Recover frame</strong> below. In the browser’s port picker, "
-        "select <strong>USB Serial</strong> (its name may include <strong>usbserial</strong>, "
-        "<strong>CH340</strong> or a <strong>COM</strong> number), then click "
-        "<strong>Connect</strong>.</li>"
-        "<li>Leave USB connected and do not press the frame’s buttons while writing. "
-        "When prompted, check that the picture is visible and choose "
-        "<strong>Yes, finish recovery</strong> before unplugging.</li></ol>"
-        '<p class="quiet">No USB entry? Cancel the picker, reconnect the cable and try '
-        "another data cable or USB port. Do not select Bluetooth or a debug console.</p>"
-        '<div class="actions"><button type="button" data-usb-start disabled>'
-        "Recover frame</button></div>"
+        '<li data-usb-step="prepare"><span>1</span>Connect</li>'
+        '<li data-usb-step="restore"><span>2</span>Check &amp; repair</li>'
+        '<li data-usb-step="connect"><span>3</span>Reconnect</li>'
+        '<li data-usb-step="finish"><span>4</span>Check picture</li></ol>'
+        '<div class="recovery-stage" data-usb-stage>'
+        '<span class="recovery-orb" data-usb-orb aria-hidden="true">↻</span>'
+        "<div><h3 data-usb-heading>Getting ready</h3>"
+        '<p data-usb-status role="status">Preparing everything your frame needs.</p></div></div>'
         '<progress max="100" value="0" hidden aria-label="Firmware recovery progress"></progress>'
-        '<p data-usb-status class="notice" role="status" aria-live="polite">'
-        "Preparing recovery…</p><noscript>Enable JavaScript for USB recovery.</noscript>"
+        '<p class="quiet" data-usb-progress-label hidden></p>'
+        '<div data-usb-intro class="recovery-intro">'
+        '<ol aria-label="USB connection instructions">'
+        "<li>Connect your frame to this laptop with a <strong>USB data cable</strong>.</li>"
+        "<li>Turn the frame’s <strong>power switch on</strong>.</li>"
+        "<li>Choose <strong>Check and recover</strong>. If asked, "
+        "select <strong>USB Serial</strong> "
+        "and click <strong>Connect</strong>.</li></ol>"
+        '<p class="quiet">Use Chrome or Edge. Do not select Bluetooth or a debug console.</p></div>'
+        '<div class="actions recovery-actions"><button type="button" data-usb-start disabled>'
+        'Check and recover</button><button type="button" class="secondary" data-usb-cancel hidden>'
+        "Stop checking</button></div>"
+        "<noscript>Enable JavaScript to start recovery.</noscript>"
         '<img class="preview" width="800" height="480" data-usb-preview hidden '
         'alt="Artwork fetched by the recovered frame">'
-        "<div data-usb-finish hidden><p>Does the picture appear and stay visible?</p>"
-        '<div class="actions"><button type="button" data-usb-good>Yes, finish recovery</button>'
-        '<button type="button" class="secondary" data-usb-not-yet>Not yet</button></div></div>'
-        "<div data-usb-wake-panel hidden><p>Press the green wake button "
-        "once, keeping USB connected.</p>"
-        '<button type="button" class="secondary" data-usb-wake>I pressed the green '
-        "button</button></div>"
+        "<div data-usb-finish hidden><p>Does this picture appear and stay visible "
+        "on your frame?</p>"
+        '<div class="actions"><button type="button" data-usb-good>Yes, finish</button>'
+        '<button type="button" class="secondary" data-usb-not-yet>No, help me</button></div></div>'
+        "<div data-usb-wake-panel hidden><p></p>"
+        '<button type="button" class="secondary" data-usb-wake>Continue recovery</button></div>'
         "<form data-usb-cloud hidden><h3>Restore settings from the cloud</h3>"
-        "<p>If the saved Wi-Fi or local settings are damaged, we can replace them and reconnect "
-        "this frame to its cloud artwork and special days. No setup "
-        "network or import file is needed.</p>"
+        "<p>Choose a saved network or enter new Wi-Fi details. Your artwork and special days "
+        "stay in Emviary.</p>"
         '<label>Wi-Fi network<input name="ssid" list="usb-recovery-networks" maxlength="32" '
         'autocomplete="off" required></label><datalist id="usb-recovery-networks" '
         "data-usb-networks></datalist>"
@@ -278,14 +313,15 @@ def panel(frame):
         '<label class="check"><input type="checkbox" name="open_network">This network '
         "has no password</label>"
         '<label class="check"><input type="checkbox" name="replace_local_settings" required>'
-        "Replace local Wi-Fi settings and saved images. Keep my cloud "
+        "Replace local Wi-Fi and connection settings. Keep my cloud "
         "artwork and special days.</label>"
         '<button type="submit" class="secondary">Restore from cloud</button></form>'
         "<details hidden><summary>Local frame access after cloud restoration</summary>"
         "<p>The frame’s local management password is <code data-usb-local-password></code>. "
         "Keep it private. Cloud management uses your existing sign-in.</p></details>"
-        '<p class="quiet" data-usb-speed></p>'
-        "<details><summary>Other recovery options</summary>"
+        '<details class="recovery-details"><summary>Recovery details &amp; '
+        "troubleshooting</summary>"
+        '<p class="quiet" data-usb-speed></p><p class="quiet" data-usb-debug></p>'
         "<p>Make sure the power switch is on. Close other serial apps and try another data cable "
         "if USB cannot connect. A charging-only cable does not work.</p>"
         "<p>For older firmware or manual Wi-Fi setup, you can "

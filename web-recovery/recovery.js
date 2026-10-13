@@ -1,273 +1,274 @@
-import {ESPLoader, Transport} from 'esptool-js';
+import {ESPLoader,Transport} from 'esptool-js';
 import SparkMD5 from 'spark-md5';
-import {loadRecovery, recoverWithRetries, waitForFrame, cloudSettingsFile, RecoveryTargetError, transferProgress, showTransferSummary, recoveryPort, restartFrame} from './recovery-core.mjs';
-
-const panel = document.querySelector('[data-usb-recovery]');
-if (panel) {
-  const start = panel.querySelector('[data-usb-start]');
-  const retryWake = panel.querySelector('[data-usb-wake]');
-  const fresh = panel.querySelector('[data-usb-cloud]');
-  const status = panel.querySelector('[data-usb-status]');
-  const progress = panel.querySelector('progress');
-  const frame = panel.dataset.frame;
-  const supported = window.isSecureContext && 'serial' in navigator;
-  let bundle, port, busy = false, since, connected, connectionBegan;
-  const digest = crypto.subtle.digest.bind(crypto.subtle);
-  const resumeKey = 'emviary-usb-verified:' + frame;
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-  const setStatus = (message, error = false) => {
-    status.textContent = message;
-    status.className = error ? 'notice error' : 'notice';
-    status.setAttribute('role', error ? 'alert' : 'status');
+import {loadRecovery,repairRecoveryRegions,restoreRecoverySettings,cloudSettingsFile,recoveryPort,RecoveryTargetError,transferProgress} from './recovery-core.mjs';
+import {RecoveryController,RecoveryFault,boundedOperation} from './recovery-controller.mjs';
+import {RecoveryTransport} from './recovery-transport.mjs';
+import {renderRecovery} from './recovery-ui.mjs';
+const panel=document.querySelector('[data-usb-recovery]');
+if(panel) {
+  const frame=panel.dataset.frame,start=panel.querySelector('[data-usb-start]'),
+    next=panel.querySelector('[data-usb-wake]'),fresh=panel.querySelector('[data-usb-cloud]'),
+    cancel=panel.querySelector('[data-usb-cancel]'),progress=panel.querySelector('progress');
+  const supported=window.isSecureContext&&'serial' in navigator;
+  const base='/manage/usb-recovery/sessions/'+encodeURIComponent(frame);
+  const journalKey='emviary-recovery-session:'+frame;
+  const settingsAttemptKey=sessionId=>'emviary-recovery-settings-attempt:'+sessionId;
+  let bundle,metadata,job,controller,port,uart,busy=false,preparing=false,criticalWriting=false,automaticSettingsAttempted=false,displayTestUsed=false,renewTimer,csrf,releaseLock,runAbort,cancelRequested=false;
+  const md5=data=>SparkMD5.ArrayBuffer.hash(data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength));
+  const digest=crypto.subtle.digest.bind(crypto.subtle);
+  const display=event=>renderRecovery(panel,event);
+  const update=()=>{
+    start.disabled=!supported||preparing||busy;
+    next.disabled=!supported||preparing||busy;cancel.hidden=!busy||criticalWriting||controller?.state==='repairing';
+    panel.querySelector('[data-usb-intro]').hidden=busy||!!controller;
+    [...fresh.elements].forEach(input=>input.disabled=!supported||busy);
+    panel.setAttribute('aria-busy',String(busy));
   };
-  const step = name => {
-    panel.querySelectorAll('[data-usb-step]').forEach(item => {
-      if (item.dataset.usbStep === name) item.setAttribute('aria-current', 'step');
-      else item.removeAttribute('aria-current');
-    });
-  };
-  const update = () => {
-    start.disabled = !supported || !bundle || busy;
-    retryWake.disabled = busy;
-    [...fresh.elements].forEach(input => { input.disabled = busy; });
-    panel.setAttribute('aria-busy', String(busy));
-  };
-  const statusUrl = () => '/manage/usb-recovery/status/' + encodeURIComponent(frame) +
-    (since ? '?since=' + encodeURIComponent(since) : '');
-  const verifiedConnection = result => {
-    connected = result;
-    panel.querySelector('[data-usb-wake-panel]').hidden = true;
-    fresh.hidden = true;
-    progress.hidden = true;
-    step('finish');
-    const preview = panel.querySelector('[data-usb-preview]');
-    if (result.preview_url) { preview.src = result.preview_url; preview.hidden = false; }
-    panel.querySelector('[data-usb-finish]').hidden = false;
-    setStatus('Your frame is connected to Emviary and fetching its picture. ' +
-      'Check the display before disconnecting USB.');
-    start.hidden = true;
-  };
-  const waitOnline = async (duration = 120000) => {
-    step('connect'); progress.hidden = true;
-    connectionBegan ??= performance.now();
-    const result = await waitForFrame(fetch, statusUrl(), (seconds, observed) => {
-      const elapsed = Math.floor((performance.now() - connectionBegan) / 1000);
-      const state = observed?.last_contact ? 'Last frame contact: ' +
-        new Date(observed.last_contact).toLocaleTimeString() + '. ' : 'No new frame contact yet. ';
-      setStatus('Step 3 of 4: reconnecting to Emviary. ' + elapsed + ' seconds elapsed. ' +
-        state + 'Checking the installed firmware and a fresh picture request. Keep USB connected; no button press is needed yet.');
-    }, duration);
-    if (result) { verifiedConnection(result); return true; }
-    return false;
-  };
-  const restart = () => restartFrame(port, sleep);
-  const escalate = message => {
-    const wake = panel.querySelector('[data-usb-wake-panel]');
-    wake.hidden = false;
-    wake.querySelector('p').textContent = 'Press the green wake button once, keeping USB connected.';
-    retryWake.textContent = 'I pressed the green button';
-    retryWake.dataset.pollOnly = 'true';
-    fresh.hidden = false;
-    setStatus(message, true);
-  };
-  const afterWrite = async () => {
-    connectionBegan = performance.now();
-    setStatus('Step 3 of 4: firmware verified. Restarting your frame and reconnecting to Wi-Fi. Keep USB connected.');
-    // Reassert released control lines after the flasher closes the serial port.
-    // A successful write/reset command does not prove the board actually booted.
-    await restart().catch(() => {});
-    if (await waitOnline()) return;
-    setStatus('Firmware is verified, but no new cloud connection has been confirmed. Automatically restarting once more; the firmware will not be rewritten.');
-    await restart().catch(() => {});
-    if (await waitOnline(60000)) return;
-    escalate('Firmware was written and verified, but we could not confirm a new cloud connection after three minutes. ' +
-      'Next: press the green wake button once, then choose I pressed the green button. Do not run recovery again. ' +
-      'If that still fails, use Restore settings from the cloud below to confirm its Wi-Fi.');
-  };
-  const flash = async files => {
-    step('restore'); progress.hidden = false; progress.value = 0;
-    const info = port.getInfo();
-    const key = 'emviary-usb-rate:' + frame + ':' + (info.usbVendorId || '') + ':' + (info.usbProductId || '');
-    let preferred = 460800, usedRate;
-    try {
-      const cached = Number(sessionStorage.getItem(key));
-      if ([460800,230400,115200].includes(cached)) preferred = cached;
-    } catch {} // Learning is optional; private/managed browsers can disable storage.
-    const began = performance.now();
-    const result = await recoverWithRetries((attempt, baud) => {
-      usedRate = baud;
-      const transport = new Transport(port, false);
-      // ESPLoader always performs initial ROM sync at 115200 before changing rate.
-      const loader = new ESPLoader({transport, baudrate: baud, debugLogging: false,
-        terminal: {clean() {}, write() {}, writeLine() {}}});
-      return {loader, transport};
-    }, files, files.length === 5,
-    data => SparkMD5.ArrayBuffer.hash(data.buffer.slice(data.byteOffset,
-      data.byteOffset + data.byteLength)),
-    (index, written, total) => {
-      progress.value = transferProgress(files, index, written, total);
-      setStatus('Writing firmware: ' + Math.round(progress.value) + '%. Keep USB connected.');
-    }, attempt => {
-      progress.value = 0;
-      setStatus(attempt === 1 ? 'Checking your USB connection…' :
-        'Trying a steadier USB connection (' + attempt + ' of 3)…');
-    }, sleep, preferred);
-    // Persist verified completion before optional UI decoration. A reload can resume
-    // the connection check without writing the firmware again.
-    try {
-      sessionStorage.setItem(key, String(usedRate));
-      sessionStorage.setItem(resumeKey, JSON.stringify({since, version: bundle.manifest.version}));
-    } catch {}
-    try { showTransferSummary(panel, usedRate, Math.round((performance.now() - began) / 1000)); } catch {}
-    return result;
-  };
-  const preventLeave = event => { event.preventDefault(); event.returnValue = ''; };
-  const run = async (selected, nvs) => {
-    port = selected; busy = true; update();
-    panel.querySelector('[data-usb-finish]').hidden = true;
-    panel.querySelector('[data-usb-preview]').hidden = true;
-    panel.querySelector('[data-usb-wake-panel]').hidden = true;
-    fresh.hidden = true;
-    let written = false;
-    try {
-      const baseline = await fetch('/manage/usb-recovery/status/' + encodeURIComponent(frame),
-        {cache: 'no-store'});
-      if (!baseline.ok) throw new Error('Sign in again before recovering the frame.');
-      since = (await baseline.json()).checked_at;
-      window.addEventListener('beforeunload', preventLeave);
-      try {
-        const files = nvs ? [...bundle.files.slice(0, 2), nvs, ...bundle.files.slice(2)] : bundle.files;
-        await flash(files);
-      } finally {
-        window.removeEventListener('beforeunload', preventLeave);
-        nvs?.data.fill(0);
-      }
-      written = true; progress.value = 100;
-      await afterWrite();
-    } catch (error) {
-      if (error instanceof RecoveryTargetError) {
-        setStatus(error.message, true);
-        if (written) {
-          const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
-          wake.querySelector('p').textContent = 'Firmware is verified. Check the cloud connection again when Emviary is ready.';
-          retryWake.textContent = 'Wake frame and verify';
-          retryWake.dataset.pollOnly = 'false';
-        }
-      } else if (written) escalate(error.message);
-      else setStatus(error.message + ' Check that USB is connected and other serial apps are closed, then retry.', true);
-    } finally { busy = false; update(); }
-  };
-  start.addEventListener('click', async () => {
-    if (busy || !bundle) return;
-    try {
-      // Port selection is the browser's unavoidable permission step, directly from a click.
-      setStatus('In the port picker, select USB Serial (usbserial, CH340 or a COM number), then click Connect.');
-      const selected = await navigator.serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
-      await run(selected);
-    } catch (error) {
-      setStatus(error.name === 'NotFoundError' ? 'No frame selected. Nothing was changed.' :
-        'USB could not be opened. Check the cable and try again.', true);
+  const request=async(url,options={})=>{
+    const {response,payload}=await boundedOperation(async signal=>{const response=await fetch(url,{cache:'no-store',...options,signal});return {response,payload:await response.json()};},10000,{signal:options.signal,operation:'web_request'});
+    if(!response.ok){
+      const detail=payload.detail;
+      const code=typeof detail==='object'&&typeof detail?.code==='string'?detail.code:
+        response.status===409?'tab_conflict':[401,403].includes(response.status)?'authentication':response.status===400&&url.includes('/cloud-settings/')?'configuration_required':'service_error';
+      const message=typeof detail==='string'?detail:typeof detail?.message==='string'?detail.message:'Emviary could not complete this step.';
+      const error=new RecoveryFault(code,message,{retryable:response.status>=500});error.status=response.status;throw error;
     }
-  });
-  retryWake.addEventListener('click', async () => {
-    if (busy || !bundle) return;
-    busy = true; connectionBegan = performance.now(); update();
-    try {
-      if (retryWake.dataset.pollOnly !== 'true') {
-        setStatus('Waking your frame over USB. If a port picker appears, select USB Serial and click Connect. No firmware will be written.');
-        port = await recoveryPort(navigator.serial, port);
-        const baseline = await fetch('/manage/usb-recovery/status/' + encodeURIComponent(frame), {cache: 'no-store'});
-        if (!baseline.ok) throw new Error('Sign in again before checking your frame.');
-        since = (await baseline.json()).checked_at;
-        await restart();
+    return payload;
+  };
+  const post=async(url,fields={},signal)=>{
+    signal ||= runAbort?.signal;
+    if(!csrf)csrf=(await request('/manage/session',{signal})).csrf;
+    return request(url,{method:'POST',body:new URLSearchParams({csrf,...fields}),signal});
+  };
+  const close=async()=>{if(uart){await uart.close();uart=null;}};
+  const openUart=async signal=>{if(!uart){uart=new RecoveryTransport(port);await uart.open({signal});}return uart;};
+  const reset=async signal=>{
+    await close();const link=await openUart(signal);
+    const check=()=>{if(signal?.aborted)throw signal.reason;};
+    try{
+      check();await link.port.setSignals({dataTerminalReady:false,requestToSend:true});
+      await new Promise(resolve=>setTimeout(resolve,120));
+      check();
+    }finally{await link.port.setSignals({dataTerminalReady:false,requestToSend:false});}
+    // Keep the reader and port open through reset. Closing the bridge here can
+    // change its control lines and lose both boot output and the first reply.
+    await new Promise(resolve=>setTimeout(resolve,350));check();
+  };
+  const openLoader=()=>{
+    const transport=new Transport(port,false);
+    const loader=new ESPLoader({transport,baudrate:115200,debugLogging:false,
+      terminal:{clean(){},write(){},writeLine(){}}});return {loader,transport};
+  };
+  const identify=async({signal})=>{
+    await close();const {loader,transport}=openLoader();
+    const stop=()=>transport.disconnect().catch(()=>{});signal.addEventListener('abort',stop,{once:true});
+    const write=transport.write.bind(transport);transport.write=async(...args)=>{if(signal.aborted)throw signal.reason;return write(...args);};
+    try{
+      await loader.main('default_reset');
+      if(signal.aborted)throw signal.reason;
+      if(loader.chip?.CHIP_NAME!=='ESP32-S3'||await loader.detectFlashSize()!=='32MB'||loader.secureDownloadMode)throw new RecoveryFault('wrong_board','This device does not match the E1002.',{retryable:false});
+      const security=await loader.getSecurityInfo();
+      if(security.parsedFlags.SECURE_BOOT_EN||security.flashCryptCnt!==0)throw new RecoveryFault('unsupported_security','This protected device needs its original recovery method.',{retryable:false});
+      return {device_identity:(await loader.chip.readMac(loader)).replace(/:/g,'').toLowerCase(),board:'seeedstudio_reterminal_e1002'};
+    }finally{signal.removeEventListener('abort',stop);await transport.disconnect().catch(()=>{});}
+  };
+  const reportWrite=(index,written,total)=>{
+    progress.hidden=false;progress.value=transferProgress(bundle.files,index,written,total);
+    const label=panel.querySelector('[data-usb-progress-label]');if(label){label.hidden=false;label.textContent=Math.round(progress.value)+'% of software written';}
+  };
+  const onEvent=event=>{
+    display(event);update();
+    if(event.state!=='repairing'){progress.hidden=true;const label=panel.querySelector('[data-usb-progress-label]');if(label)label.hidden=true;}
+    const attention=['needs_attention','paused','cancelled'].includes(event.state);
+    panel.querySelector('[data-usb-wake-panel]').hidden=!attention;
+    if(attention){start.hidden=true;next.textContent=event.state==='paused'?'Continue after reconnecting':'Continue recovery';}
+    const settings=event.state==='needs_attention'&&(event.error?.code==='configuration_required'||event.error?.code==='wifi_connection_failed'||event.error?.code==='network_timeout'||event.error?.code==='wifi_password_required'||String(event.error?.code||'').includes('NVS'));
+    fresh.hidden=!settings;
+    if(event.state==='physical_confirmation'){
+      const preview=panel.querySelector('[data-usb-preview]');if(preview&&event.evidence?.image_id){preview.src='/manage/images/'+event.evidence.image_id+'/preview';preview.hidden=false;}
+      start.hidden=true;panel.querySelector('[data-usb-finish]').hidden=false;
+    }
+    if(event.state==='finished'){
+      panel.querySelector('[data-usb-finish]').hidden=true;
+      panel.querySelector('[data-usb-wake-panel]').hidden=true;
+    }
+    if(job&&event.operation&&event.operation!=='status')post(base+'/'+job.session_id+'/events',{
+      attempt_id:String(event.attempt_id),state:event.state,operation:event.operation,
+      elapsed_ms:String(Math.round(event.elapsed_ms)),...(event.error?{error:event.error.code}:{})
+    }).catch(()=>{});
+  };
+  const operations={
+    prepare:async()=>bundle,
+    hello:async({signal})=>(await openUart(signal)).command('HELLO',{}, {signal}),
+    identify,
+    reset:async({signal})=>reset(signal),
+    repair:async({signal,baud})=>{
+      await close();const transport=new Transport(port,false);
+      const loader=new ESPLoader({transport,baudrate:baud,debugLogging:false,terminal:{clean(){},write(){},writeLine(){}}});
+      try{return await repairRecoveryRegions(loader,transport,bundle.files,md5,reportWrite,{signal,expectedIdentity:controller.identity});}
+      catch(error){if(error instanceof RecoveryTargetError)throw new RecoveryFault('wrong_board',error.message,{retryable:false});throw error;}
+    },
+    verifyFirmware:async({signal})=>{
+      await close();const {loader,transport}=openLoader();
+      const stop=()=>transport.disconnect().catch(()=>{});signal.addEventListener('abort',stop,{once:true});
+      const write=transport.write.bind(transport);transport.write=async(...args)=>{if(signal.aborted)throw signal.reason;return write(...args);};
+      try{if(signal.aborted)throw signal.reason;await loader.main('default_reset');for(const file of bundle.files){if(signal.aborted)throw signal.reason;const hash=await loader.flashMd5sum(file.address,file.data.length);if(signal.aborted)throw signal.reason;if(hash!==md5(file.data))return false;}return true;}
+      finally{signal.removeEventListener('abort',stop);await transport.disconnect().catch(()=>{});}
+    },
+    begin:async({signal,sessionId,nonce})=>(await openUart(signal)).command('BEGIN_RECOVERY',{session_id:sessionId,nonce,bundle_sha256:job.bundle_sha256},{signal}),
+    status:async({signal,sessionId,nonce})=>(await openUart(signal)).command('STATUS',{session_id:sessionId,nonce},{signal}),
+    cloud:async({signal,bootId,imageSha256})=>{
+      const result=await request(base+'/'+job.session_id,{signal});
+      if(result.boot_id!==bootId||result.expected_firmware!==bundle.manifest.version||result.device_id!==controller.identity||!result.evidence?.panel_refreshed||!result.evidence?.image_verified||imageSha256&&result.image_sha256!==imageSha256)throw new RecoveryFault('cloud_unverified','Emviary has not confirmed this boot and picture.',{retryable:false});
+      return {session_verified:true,connected:true,image_sha256:result.image_sha256,image_id:result.image_id};
+    },
+    end:async({signal,sessionId,nonce})=>{
+      try{const link=await openUart(signal);const hello=await link.command('HELLO',{}, {signal});controller.checkBoot(hello);if(hello.active)await link.command('END_RECOVERY',{session_id:sessionId,nonce},{signal});}finally{await close();}
+      await post(base+'/'+sessionId+'/complete',{physical_confirmed:'yes'},signal);
+      clearInterval(renewTimer);try{sessionStorage.removeItem(journalKey);sessionStorage.removeItem(settingsAttemptKey(sessionId));}catch{}
+    },
+    release:async()=>close(),
+  };
+  const session=async()=>{
+    if(job&&job.state==='active'){job=await post(base+'/'+job.session_id+'/renew');return job;}
+    let stored;try{stored=JSON.parse(sessionStorage.getItem(journalKey));}catch{}
+    if(stored){try{const found=await request(base+'/'+stored.session_id);if(found.state==='active'&&found.expected_firmware===bundle.manifest.version){job=await post(base+'/'+found.session_id+'/renew');return job;}}catch(error){if(error.code==='authentication')throw error;}}
+    job=await post(base);try{sessionStorage.setItem(journalKey,JSON.stringify({session_id:job.session_id}));}catch{}return job;
+  };
+  const execute=async selected=>{
+    if(busy)return;port=selected;busy=true;cancelRequested=false;runAbort=new AbortController();start.hidden=true;update();
+    panel.querySelector('[data-usb-finish]').hidden=true;
+    try{
+      if(navigator.locks)await new Promise((resolve,reject)=>{
+        navigator.locks.request('emviary-recovery:'+frame,{ifAvailable:true},async lock=>{
+          if(!lock){reject(new RecoveryFault('tab_conflict','Recovery is open in another tab.',{retryable:false}));return;}
+          await new Promise(done=>{releaseLock=done;resolve();});
+        }).catch(reject);
+      });
+      await session();
+      try{automaticSettingsAttempted=sessionStorage.getItem(settingsAttemptKey(job.session_id))==='yes';}catch{}
+      if(controller&&(controller.sessionId!==job.session_id||controller.nonce!==job.nonce))controller=null;
+      if(runAbort.signal.aborted)throw new RecoveryFault('cancelled','Recovery stopped.');
+      clearInterval(renewTimer);renewTimer=setInterval(()=>post(base+'/'+job.session_id+'/renew').catch(()=>{}),30000);
+      if(!controller)controller=new RecoveryController({frameId:frame,expectedIdentity:job.device_id||undefined,
+        expectedFirmware:bundle.manifest.version,sessionId:job.session_id,nonce:job.nonce,
+        operations,onEvent,storage:sessionStorage,deadlines:{repair:360000,hello:8000}});
+      await controller.run({port,repair:true});
+    }catch(error){
+      const settingsFailure=['configuration_required'].includes(error.code)||String(error.code||'').includes('NVS');
+      if(!cancelRequested&&!automaticSettingsAttempted&&settingsFailure&&metadata?.can_restore_without_input&&metadata?.automatic_restore_ssid&&controller?.state==='needs_attention'){
+        automaticSettingsAttempted=true;
+        try{sessionStorage.setItem(settingsAttemptKey(job.session_id),'yes');}catch{}
+        try{await restoreSettings({ssid:metadata.automatic_restore_ssid,replace_local_settings:'yes'},{automatic:true});await controller.run({port,repair:true});}
+        catch(restorationError){if(!cancelRequested)onEvent({state:'needs_attention',error:{code:restorationError.code||'configuration_required',message:restorationError.message}});}
       }
-      if (!await waitOnline(90000)) escalate('USB verification did not receive a new image request. ' +
-        'Press the green wake button once, then choose I pressed the green button. Your firmware has not been rewritten.');
-    } catch (error) {
-      setStatus(error.name === 'NotFoundError' ? 'No USB port selected. Choose Wake frame and verify, select USB Serial, then Connect.' :
-        'The USB wake or connection check could not finish. ' + error.message +
-        ' Close other recovery tabs and serial apps, keep the power switch on, then try Wake frame and verify again.', true);
-    } finally { busy = false; update(); }
+      else if(!cancelRequested&&error.code!=='cancelled'&&(!controller||controller.state!=='needs_attention'&&controller.state!=='paused'&&controller.state!=='cancelled'))onEvent({state:'needs_attention',error:{code:error.code||'operation_failed',message:error.message}});}
+    finally{busy=false;releaseLock?.();releaseLock=null;update();}
+  };
+  const choose=async()=>{
+    if(busy||preparing||!supported)return;
+    try{display({state:'identifying'});port=await recoveryPort(navigator.serial,port);if(!bundle)await prepare();if(!bundle)return;await execute(port);}
+    catch(error){onEvent({state:'needs_attention',error:{code:error.name==='NotFoundError'?'permission_cancelled':error.code||'port_busy',message:error.message}});}
+  };
+  start.textContent='Check and recover';
+  start.addEventListener('click',choose);next.addEventListener('click',choose);
+  cancel.addEventListener('click',async()=>{
+    cancelRequested=true;runAbort?.abort();controller?.cancel();clearInterval(renewTimer);
+    if(job)await post(base+'/'+job.session_id+'/cancel',{},AbortSignal.timeout(5000)).catch(()=>{});
+    try{if(job)sessionStorage.removeItem(settingsAttemptKey(job.session_id));sessionStorage.removeItem(journalKey);}catch{}
+    job=null;controller=null;onEvent({state:'cancelled'});
   });
-  fresh.addEventListener('submit', async event => {
-    event.preventDefault(); event.stopPropagation();
-    if (busy || !bundle || !fresh.querySelector('[name="replace_local_settings"]').checked) return;
-    if (!window.confirm('Replace local Wi-Fi, settings and saved images with the cloud configuration? ' +
-        'Your artwork and special days on Emviary will stay unchanged.')) return;
-    let nvs;
-    try {
-      const selected = port || await navigator.serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
-      busy = true; update();
-      const response = await fetch('/manage/session', {cache: 'no-store'});
-      if (!response.ok) throw new Error('Sign in again before restoring cloud settings.');
-      const auth = await response.json();
-      const data = new FormData(fresh); data.set('csrf', auth.csrf);
-      // Controls are disabled for the duration, so collect their values explicitly.
-      ['ssid', 'password'].forEach(name => data.set(name, fresh.querySelector('[name="' + name + '"]').value));
-      data.set('replace_local_settings', 'yes');
-      if (fresh.querySelector('[name="open_network"]').checked) data.set('open_network', 'on');
-      const seed = await fetch('/manage/usb-recovery/cloud-settings/' + encodeURIComponent(frame),
-        {method: 'POST', body: new URLSearchParams(data)});
-      const payload = await seed.json();
-      if (!seed.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail :
-        'Cloud settings could not be prepared. Try again.');
-      nvs = await cloudSettingsFile(payload, frame, digest);
-      const password = panel.querySelector('[data-usb-local-password]');
-      password.textContent = payload.local_password;
-      password.closest('details').hidden = false;
-      fresh.querySelector('[name="password"]').value = '';
-      await run(selected, nvs);
-    } catch (error) { nvs?.data.fill(0); setStatus(error.message, true); }
-    finally { busy = false; update(); }
+  navigator.serial?.addEventListener('connect',async()=>{if(controller?.state==='paused'&&!busy)try{const ports=await navigator.serial.getPorts();if(ports.includes(port))await execute(port);}catch{}});
+  panel.querySelector('[data-usb-good]').addEventListener('click',async()=>{
+    if(busy||!controller)return;busy=true;update();
+    try{await controller.finish(true);}catch(error){onEvent({state:'needs_attention',error:{code:error.code||'operation_failed',message:error.message}});}
+    finally{busy=false;update();}
   });
-  panel.querySelector('[data-usb-good]').addEventListener('click', () => {
-    if (!connected) return;
-    setStatus('Recovery complete. You can disconnect USB. Your frame will follow its saved schedule.');
-    panel.querySelector('[data-usb-finish]').hidden = true;
-    try { sessionStorage.removeItem(resumeKey); } catch {}
+  const restoreSettings=async(fields,{automatic=false}={})=>{
+    let nvs;criticalWriting=true;update();
+    try{
+      const payload=await post('/manage/usb-recovery/cloud-settings/'+encodeURIComponent(frame),{...fields,session_id:job.session_id,replace_local_settings:'yes'});
+      nvs=await cloudSettingsFile(payload,frame,digest);await close();
+      const transport=new Transport(port,false),loader=new ESPLoader({transport,baudrate:115200,debugLogging:false,terminal:{clean(){},write(){},writeLine(){}}});
+      display({state:'repairing_settings'});
+      await boundedOperation(signal=>restoreRecoverySettings(loader,transport,nvs,md5,(_i,w,t)=>{progress.hidden=false;progress.value=Math.min(99,w/t*100);},{signal,expectedIdentity:controller.identity,consent:true}),60000,{operation:'restore_settings',signal:runAbort?.signal});
+      fresh.querySelector('[name="password"]').value='';
+      const access=panel.querySelector('[data-usb-local-password]');if(access&&payload.local_password&&!automatic)access.textContent=payload.local_password;
+      await reset(runAbort?.signal);
+    }finally{nvs?.data.fill(0);criticalWriting=false;update();}
+  };
+  fresh.addEventListener('submit',async event=>{
+    event.preventDefault();event.stopPropagation();if(busy||!supported||!job||!fresh.querySelector('[name="replace_local_settings"]').checked)return;
+    busy=true;cancelRequested=false;runAbort=new AbortController();update();let restored=false;
+    try{
+      const fields=Object.fromEntries([...fresh.elements].filter(input=>input.name&&input.type!=='submit'&&(input.type!=='checkbox'||input.checked)).map(input=>[input.name,input.value]));
+      await restoreSettings(fields);restored=true;
+    }catch(error){if(!cancelRequested)onEvent({state:'needs_attention',error:{code:error.code||'configuration_required',message:error.message}});}
+    finally{busy=false;update();}
+    if(restored)await execute(port);
   });
-  panel.querySelector('[data-usb-not-yet]').addEventListener('click', () => {
-    escalate('The frame is connected. Give its color display a minute to finish refreshing. ' +
-      'If the picture still does not appear, retry recovery before restoring cloud settings.');
-  });
-  if (!supported) {
-    setStatus('Open this page in Chrome or Edge on a laptop to recover over USB.', true);
-    update();
-  } else {
-    step('prepare'); setStatus('Preparing your frame’s recovery files…'); update();
-    Promise.all([
-      loadRecovery(fetch, digest, location.origin),
-      fetch(statusUrl(), {cache: 'no-store'}).then(async response => {
-        if (!response.ok) throw new Error('Sign in to recover this frame.');
-        return response.json();
-      }),
-    ]).then(([ready, metadata]) => {
-      bundle = ready;
-      const options = panel.querySelector('[data-usb-networks]');
-      [...new Set([metadata.suggested_network, ...metadata.network_names].filter(Boolean))]
-        .forEach(name => { const option = document.createElement('option'); option.value = name; options.append(option); });
-      fresh.querySelector('[name="ssid"]').value = metadata.suggested_network || metadata.network_names[0] || '';
-      setStatus('Ready. Connect your reTerminal E1002 with a USB data cable, then choose Recover frame.');
-      try {
-        const saved = JSON.parse(sessionStorage.getItem(resumeKey));
-        if (saved?.version === bundle.manifest.version && Date.now() - Date.parse(saved.since) < 86400000) {
-          since = saved.since;
-          const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
-          wake.querySelector('p').textContent = 'Keep the power switch on and USB connected. Choose Wake frame and verify to restart the frame and check a fresh cloud connection. No firmware is written.';
-          retryWake.textContent = 'Wake frame and verify';
-          retryWake.dataset.pollOnly = 'false';
-          setStatus('Firmware verified. Check the connection to finish recovery.');
+  panel.querySelector('[data-usb-not-yet]').addEventListener('click',async()=>{
+    if(busy||!controller||controller.state!=='physical_confirmation')return;
+    if(displayTestUsed){controller.verified.panel=false;controller.state='needs_attention';panel.querySelector('[data-usb-finish]').hidden=true;onEvent({state:'needs_attention',error:{code:'display_failed',message:'The display test has already run. Keep USB connected for display support.'}});return;}
+    displayTestUsed=true;controller.verified.panel=false;controller.state='display_test';panel.querySelector('[data-usb-finish]').hidden=true;busy=true;runAbort=new AbortController();update();
+    try{
+      await boundedOperation(async signal=>{
+        const link=await openUart(signal);const hello=await link.command('HELLO',{}, {signal});controller.checkBoot(hello);
+        if(hello.boot_id!==controller.verified.boot)throw new RecoveryFault('boot_changed','The frame restarted. Continue recovery to verify its new boot before checking the display.',{retryable:false});
+        let prepared=await link.command('BEGIN_RECOVERY',{session_id:job.session_id,nonce:job.nonce,bundle_sha256:job.bundle_sha256},{signal});
+        while(prepared.panel!=='complete'){
+          if(prepared.error&&!['none','ok','ESP_OK'].includes(prepared.error)||['error'].includes(prepared.image)||['error'].includes(prepared.panel))throw new RecoveryFault('display_failed','The frame needs its picture pipeline verified before the display test.',{retryable:false});
+          display({state:'display_prepare'});
+          await new Promise(resolve=>setTimeout(resolve,1500));if(signal.aborted)throw signal.reason;
+          prepared=await link.command('STATUS',{session_id:job.session_id,nonce:job.nonce},{signal});controller.checkBoot(prepared);
+          if(prepared.boot_id!==controller.verified.boot)throw new RecoveryFault('boot_changed','The frame restarted. Continue recovery before checking the display.',{retryable:false});
         }
-      } catch {}
-      // Also allow checking an installation completed by an older recovery page.
-      if (!since) {
-        since = new Date(Date.now() - 600000).toISOString();
-        const wake = panel.querySelector('[data-usb-wake-panel]'); wake.hidden = false;
-        wake.querySelector('p').textContent = 'Already restored the firmware? Keep USB connected and the power switch on. Wake frame and verify restarts it over USB and checks a fresh cloud connection without rewriting firmware.';
-        retryWake.textContent = 'Wake frame and verify';
-          retryWake.dataset.pollOnly = 'false';
+        display({state:'display_test'});
+        let status=await link.command('DISPLAY_TEST',{session_id:job.session_id,nonce:job.nonce},{signal});
+        while(status.test_pattern==='pending'||status.test_pattern==='idle'){
+          await new Promise(resolve=>setTimeout(resolve,1500));if(signal.aborted)throw signal.reason;
+          status=await link.command('STATUS',{session_id:job.session_id,nonce:job.nonce},{signal});
+        }
+        if(status.test_pattern!=='complete')throw new RecoveryFault('display_failed','The frame could not complete its display test.',{retryable:false});
+        display({state:'restoring_picture'});
+        status=await link.command('RESTORE_PICTURE',{session_id:job.session_id,nonce:job.nonce},{signal});
+        while(status.test_pattern!=='restored'&&status.test_pattern!=='error'){
+          await new Promise(resolve=>setTimeout(resolve,1500));if(signal.aborted)throw signal.reason;
+          status=await link.command('STATUS',{session_id:job.session_id,nonce:job.nonce},{signal});
+        }
+        if(status.test_pattern!=='restored')throw new RecoveryFault('display_failed','The frame could not restore its saved picture.',{retryable:false});
+      },150000,{signal:runAbort.signal,operation:'display_check'});
+      controller.verified.panel=true;controller.state='physical_confirmation';
+      onEvent({state:'physical_confirmation',evidence:{image_id:controller.verified.cloud?job.image_id:undefined}});
+      panel.querySelector('[data-usb-status]').textContent='The display test completed and your saved picture was restored. Does the picture appear and stay visible on your frame?';
+    }catch(error){if(controller){controller.verified.panel=false;controller.state='needs_attention';}if(!cancelRequested)onEvent({state:'needs_attention',error:{code:error.code||'display_failed',message:error.message}});}
+    finally{await close();busy=false;update();}
+  });
+  window.addEventListener('beforeunload',event=>{if(busy&&(criticalWriting||controller?.state==='repairing')){event.preventDefault();event.returnValue='';}});
+  const prepare=async()=>{
+    if(preparing||!supported)return;preparing=true;display({state:'preparing'});update();
+    try{
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          const [ready,details]=await boundedOperation(signal=>Promise.all([
+            loadRecovery((url,options={})=>requestDownload(url,{...options,signal}),digest,location.origin),
+            request('/manage/usb-recovery/status/'+encodeURIComponent(frame),{signal}),
+          ]),30000,{operation:'prepare'});
+          bundle=ready;metadata=details;
+          const options=panel.querySelector('[data-usb-networks]');
+          [...new Set([metadata.suggested_network,...(metadata.network_names||[])].filter(Boolean))].forEach(name=>{const option=document.createElement('option');option.value=name;options?.append(option);});
+          fresh.querySelector('[name="ssid"]').value=metadata.suggested_network||metadata.network_names?.[0]||'';
+          display({state:'idle'});return;
+        }catch(error){if(error.code==='authentication'||error.status&&error.status<500||attempt===2)throw error;display({state:'preparing',operation:'retry_prepare'});await new Promise(resolve=>setTimeout(resolve,(attempt+1)*1000));}
       }
-      update();
-    }).catch(error => setStatus(error.message + ' Reload this page to try again.', true));
-  }
+    }catch(error){onEvent({state:'needs_attention',error:{code:error.code||'service_error',message:error.message}});}
+    finally{preparing=false;update();}
+  };
+  const requestDownload=async(url,options)=>{
+    const response=await fetch(url,{cache:'no-store',...options});
+    if(!response.ok){const error=new RecoveryFault([401,403].includes(response.status)?'authentication':'service_error','Recovery files could not be downloaded.',{retryable:response.status>=500});error.status=response.status;throw error;}
+    return response;
+  };
+  if(!supported){onEvent({state:'needs_attention',error:{code:'unsupported_browser',message:'Use Chrome or Edge on a laptop.'}});update();}
+  else prepare();
 }

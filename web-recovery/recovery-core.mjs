@@ -73,7 +73,9 @@ export async function flashRecovery(loader, transport, files, eraseAll, md5, pro
   }
 }
 
-export class RecoveryTargetError extends Error {}
+export class RecoveryTargetError extends Error {
+  constructor(message) { super(message); this.name = 'RecoveryTargetError'; this.retryable = false; }
+}
 export const RECOVERY_BAUD_RATES = Object.freeze([460800, 230400, 115200]);
 
 export async function recoverWithRetries(create, files, eraseAll, md5, progress, report,
@@ -170,4 +172,57 @@ export async function restartFrame(port, sleep = ms => new Promise(resolve => se
     await port.setSignals({dataTerminalReady: false, requestToSend: false});
     await sleep(120);
   } finally { if (opened) await port.close(); }
+}
+
+// Controller primitive: one ROM session and one transfer attempt. The controller
+// alone owns the baud ladder; callers must not wrap this in recoverWithRetries.
+async function recoveryRegions(loader, transport, files, md5, progress,
+  {signal, expectedIdentity, onVerified = () => {}, settingsConsent = false} = {}) {
+  const check = () => { if (signal?.aborted) throw signal.reason || new DOMException('Recovery stopped.', 'AbortError'); };
+  const originalWrite = transport.write.bind(transport);
+  // esptool retries internally. Refuse every subsequent packet after cancellation,
+  // including late packets from a command whose deadline already elapsed.
+  transport.write = async (...args) => {check(); return originalWrite(...args);};
+  const abort = () => {transport.disconnect().catch(() => {});};
+  signal?.addEventListener('abort',abort,{once:true});
+  try {
+    check(); await loader.main('default_reset'); check();
+    if (loader.chip?.CHIP_NAME !== 'ESP32-S3' || loader.secureDownloadMode || !loader.IS_STUB || await loader.detectFlashSize() !== '32MB') throw new RecoveryTargetError('This device does not match the E1002 chip and memory. Nothing was written.');
+    check(); const security = await loader.getSecurityInfo(); check();
+    if(security.parsedFlags.SECURE_BOOT_EN || security.flashCryptCnt !== 0) throw new RecoveryTargetError('This device uses custom boot or encryption security. Nothing was written.');
+    const identity = (await loader.chip.readMac(loader)).replace(/:/g,'').toLowerCase(); check();
+    if(expectedIdentity && identity !== expectedIdentity.replace(/:/g,'').toLowerCase()) throw new RecoveryTargetError('This device does not match the selected frame. Nothing was written.');
+    // Hash whole public firmware regions, never raw NVS or local credentials.
+    if (typeof loader.readFlash !== 'function') throw new RecoveryTargetError('USB read verification is unavailable. Nothing was written.');
+    const sample = await loader.readFlash(0x20000,16384); check();
+    try {
+      const rawDigest = await transport.read(3000); check();
+      const expected = Array.from(rawDigest).map(byte => byte.toString(16).padStart(2,'0')).join('');
+      if(sample.length !== 16384 || rawDigest.length !== 16 || md5(sample) !== expected) throw new Error('USB transfer check failed. Trying a steadier connection.');
+    } finally {sample.fill(0);}
+    const publicAddresses = new Set([0,0x8000,0xf000,0x20000]);
+    const scopedSettings = settingsConsent && files.length === 1 && files[0].address === 0x9000 && files[0].data.length === 0x6000;
+    if(!scopedSettings && files.some(file => !publicAddresses.has(file.address))) throw new RecoveryTargetError('Settings replacement requires a separate scoped operation. Nothing was erased.');
+    const verified = [];
+    for(const [index,file] of files.entries()) {
+      check(); const expected = md5(file.data);
+      const before = await loader.flashMd5sum(file.address,file.data.length); check();
+      if(before !== expected) {
+        await loader.writeFlash({fileArray:[file],flashMode:'keep',flashFreq:'keep',flashSize:'keep',eraseAll:false,compress:true,calculateMD5Hash:md5,reportProgress:(_i,written,total)=>progress(index,written,total)}); check();
+        const after = await loader.flashMd5sum(file.address,file.data.length); check();
+        if(after !== expected) throw new Error('Full firmware region verification failed.');
+      }
+      verified.push(file.address); onVerified(file.address);
+    }
+    return {verified:true,device_identity:identity,regions:verified};
+  } finally {signal?.removeEventListener('abort',abort);await transport.disconnect().catch(()=>{});}
+}
+
+
+export function repairRecoveryRegions(loader,transport,files,md5,progress,options = {}) {
+  return recoveryRegions(loader,transport,files,md5,progress,{...options,settingsConsent:false});
+}
+export function restoreRecoverySettings(loader,transport,file,md5,progress,options = {}) {
+  if(options.consent !== true || file?.address !== 0x9000 || file?.data?.length !== 0x6000) throw new RecoveryTargetError('Targeted settings replacement needs explicit consent and a verified settings region. Nothing was erased.');
+  return recoveryRegions(loader,transport,[file],md5,progress,{...options,settingsConsent:true});
 }

@@ -14,6 +14,7 @@ from . import __version__
 from .branding import BIRD_ICON
 from .diagnostics import parse_metrics
 from .firmware_updates import FirmwareUpdates
+from .recovery_sessions import RecoverySessions, device_headers, promote_pending_token
 from .service import Service
 from .settings import FramePolicy
 from .store import stable_json
@@ -53,7 +54,15 @@ def etag_matches(header, value):
 
 def authenticated(request, service):
     scheme, _, token = request.headers.get("authorization", "").partition(" ")
-    frame = service.store.authenticate(token.strip()) if scheme.casefold() == "bearer" else None
+    frame = None
+    if scheme.casefold() == "bearer":
+        recovery = device_headers(request)
+        if recovery and request.url.path in {"/v1/image", "/v1/recovery/ack"}:
+            frame = RecoverySessions(service.store).authenticate(
+                token.strip(), recovery["session_id"], recovery["nonce"]
+            )
+        if frame is None:
+            frame = service.store.authenticate(token.strip())
     if not frame:
         raise HTTPException(
             401, "Invalid frame credentials", headers={"WWW-Authenticate": "Bearer"}
@@ -213,6 +222,16 @@ def create_app(service=None, schedule=True):
         if len(payload.encode()) > 1900:
             raise HTTPException(503, "Configuration exceeds the firmware header limit")
         headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
+        recovery = device_headers(request)
+        if recovery:
+            token = request.headers.get("authorization", "").partition(" ")[2].strip()
+            RecoverySessions(service.store).image_requested(frame, recovery, record, token)
+            promote_pending_token(service, frame["id"], recovery["session_id"])
+            headers["X-Recovery-Image-Sha256"] = record["body_hash"]
+            headers["X-Recovery-Image-Id"] = str(record["id"])
+            # Recovery verifies the full body, even if an ordinary ETag would retain it.
+            retain, client_tag = False, ""
+
         if retain or etag_matches(client_tag, tag):
             headers["X-Config-Payload"] = payload
             if retain:
@@ -221,6 +240,30 @@ def create_app(service=None, schedule=True):
         headers["X-Config-Payload"] = payload
         return FileResponse(
             path, media_type="application/octet-stream", headers=headers, background=background
+        )
+
+    @app.post("/v1/recovery/ack")
+    async def recovery_ack(request: Request):
+        if (
+            request.headers.get("content-length", "").isdigit()
+            and int(request.headers["content-length"]) > 2048
+        ):
+            raise HTTPException(413, "Recovery acknowledgment too large")
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > 2048:
+                raise HTTPException(413, "Recovery acknowledgment too large")
+        try:
+            data = json.loads(body)
+        except (ValueError, UnicodeError):
+            raise HTTPException(400, "Invalid recovery acknowledgment") from None
+        if not isinstance(data, dict):
+            raise HTTPException(400, "Invalid recovery acknowledgment")
+        frame = authenticated(request, service)
+        return JSONResponse(
+            RecoverySessions(service.store).acknowledge(frame, data),
+            headers={"Cache-Control": "no-store"},
         )
 
     @app.get("/v1/preview")

@@ -137,7 +137,7 @@ class Store:
                     last_attempt_at TEXT, error TEXT,
                     PRIMARY KEY(frame_id,purpose)
                 );
-                PRAGMA user_version=6;
+                PRAGMA user_version=7;
             """)
 
         with self.connect() as db:
@@ -162,6 +162,11 @@ class Store:
                 db.execute("ALTER TABLE images ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
                 for row in db.execute("SELECT manifest FROM images").fetchall():
                     self.count_render(db, json.loads(row["manifest"]))
+
+        from .recovery_sessions import initialize
+
+        with self.connect() as db:
+            initialize(db)
 
     @staticmethod
     def count_render(db, plan):
@@ -328,12 +333,20 @@ class Store:
         self.frame(frame_id)
         token = secrets.token_urlsafe(32)
         with self.connect() as db:
+            from .recovery_sessions import lease_guard
+
+            db.execute("BEGIN IMMEDIATE")
+            lease_guard(db, frame_id)
             db.execute("UPDATE frames SET token_hash=? WHERE id=?", (token_hash(token), frame_id))
         return token
 
-    def set_policy(self, frame_id, policy, expected_revision=None):
+    def set_policy(self, frame_id, policy, expected_revision=None, recovery_session_id=None):
         self.frame(frame_id)
         with self.connect() as db:
+            from .recovery_sessions import lease_guard
+
+            db.execute("BEGIN IMMEDIATE")
+            lease_guard(db, frame_id, recovery_session_id)
             changed = db.execute(
                 "UPDATE frames SET policy=?,site_id=?,config_revision=config_revision+1 "
                 "WHERE id=? AND (? IS NULL OR config_revision=?)",
