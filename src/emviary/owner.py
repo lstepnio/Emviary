@@ -551,7 +551,7 @@ def attach_owner(app, service):
                     )
                 body += (
                     '</div><div class="current-next refresh-slots">'
-                    '<div class="delivered-slot"><h3>Last delivered</h3>'
+                    '<div class="delivered-slot"><h3>Last cloud-confirmed picture</h3>'
                 )
                 body += (
                     (
@@ -593,7 +593,8 @@ def attach_owner(app, service):
                     return state + " · " + image["local_date"] + " · " + detail
 
                 body += (
-                    '<p class="quiet">The website follows artwork delivery. Device health '
+                    '<p class="quiet">During an outage the frame may rotate cached art. '
+                    "This preview shows the last cloud-confirmed picture. Device health "
                     "shows the frame’s reported refresh result.</p>"
                 )
                 body += '</div><div class="prepared-slot"><h3>Daily refresh</h3>'

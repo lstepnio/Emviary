@@ -27,6 +27,11 @@ class SavedNetwork(BaseModel):
 class DeviceMetrics(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
+    offline_mode: bool | None = None
+    offline_image_id: int | None = Field(default=None, ge=0, le=2147483647)
+    offline_cache_count: int | None = Field(default=None, ge=0, le=256)
+    offline_cache_bytes: int | None = Field(default=None, ge=0, le=16777216)
+    offline_rotations: int | None = Field(default=None, ge=0, le=4294967295)
     ota_rollback: bool | None = None
     ssid: str | None = Field(default=None, max_length=32)
     wifi_networks: list[SavedNetwork] | None = Field(default=None, max_length=5)
@@ -284,6 +289,18 @@ def diagnostics_section(store, frame_id, escape):
         ("Last completed refresh", refresh(latest), "Reported on the next connection"),
         ("Wi-Fi connection time", connection(latest), "Time to connect to the network"),
     )
+    if "offline_cache_count" in latest:
+        cache_bytes = latest.get("offline_cache_bytes", 0)
+        mode = "Cached artwork" if latest.get("offline_mode") else "Cloud artwork"
+        rotations = latest.get("offline_rotations", 0)
+        metrics += (
+            (
+                "Offline library",
+                f"{latest['offline_cache_count']} pictures · {cache_bytes / 1048576:.2f} MiB",
+                f"Last reported: {mode}. {rotations} offline rotations. "
+                "Updates on the next connection.",
+            ),
+        )
     body += '<div class="metric-grid device-health-grid">'
     for label, value, detail in metrics:
         body += (

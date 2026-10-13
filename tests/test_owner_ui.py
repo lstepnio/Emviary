@@ -4,7 +4,9 @@ from test_owner import sign_in
 def test_focused_management_pages(service, frame, tmp_path, monkeypatch):
     client, csrf = sign_in(service, tmp_path, monkeypatch)
     home = client.get("/manage").text
-    assert "Last delivered" in home and "Daily refresh" in home and "Next button" in home
+    assert (
+        "Last cloud-confirmed picture" in home and "Daily refresh" in home and "Next button" in home
+    )
     assert 'name="password"' not in home and 'name="max_birds"' not in home
     assert 'name="max_birds"' in client.get("/manage/appearance").text
     assert 'name="date"' in client.get("/manage/events").text

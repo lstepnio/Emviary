@@ -650,9 +650,44 @@ class Service:
                     tmp / "image.epdgz",
                     tmp / "preview.jpg",
                 )
-                render.compose(
-                    self.settings.art_dir, plan["artwork"], plan, master, self.event_art.root
+                ordinary = not plan.get("special_day") and not any(
+                    a.get("event_only") for a in plan.get("artworks", [plan["artwork"]])
                 )
+                neutral = tmp / "neutral.png" if ordinary else None
+                render.compose(
+                    self.settings.art_dir,
+                    plan["artwork"],
+                    plan,
+                    master,
+                    self.event_art.root,
+                    neutral_output=neutral,
+                )
+                if neutral is not None:
+                    from .offline_cache import extract_patch
+
+                    neutral_packed, neutral_preview = tmp / "neutral.epdgz", tmp / "neutral.jpg"
+                    plan.pop("offline_patch", None)
+                    try:
+                        self.converter(
+                            neutral,
+                            neutral_packed,
+                            neutral_preview,
+                            plan["policy"],
+                            self.settings.config.render.timeout_seconds,
+                        )
+                        render.validate_epdgz(neutral_packed)
+                        plan["offline_patch"] = extract_patch(neutral_packed)
+                    except Exception as exc:
+                        # Offline admission is optional; never block ordinary
+                        # artwork because its neutral tile cannot be prepared.
+                        log.warning("Offline tile skipped: %s", type(exc).__name__)
+                # Rendering captures the exact weather-neutral patch. Preserve it
+                # in the retry plan as well as the final immutable image manifest.
+                with self.store.connect() as db:
+                    db.execute(
+                        "UPDATE jobs SET plan=? WHERE frame_id=? AND local_date=? AND revision=?",
+                        (stable_json(plan), *key),
+                    )
                 self.converter(
                     master,
                     packed,

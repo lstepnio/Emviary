@@ -32,7 +32,7 @@ def test_public_home_and_mirror_keep_last_delivery_as_buffer_advances(service, f
     delivered = client.get("/display.jpg").content
     assert delivered == service.cache_path(first["preview_path"]).read_bytes()
     home = client.get("/")
-    assert 'alt="Current frame artwork"' in home.text
+    assert 'alt="Last cloud-confirmed frame artwork"' in home.text
     assert 'src="/display.jpg"' in home.text
     assert frame[0] not in home.text and frame[1] not in home.text
     service.prepare(frame[0], "2026-10-08", force=True, offline=True)
@@ -99,7 +99,9 @@ def test_public_gallery_exposes_prepared_and_past_images_only_for_public_frame(s
     home = client.get("/")
     assert home.status_code == 200
     assert "Coming up" in home.text and "Next button" in home.text
-    assert "Past compositions" in home.text and 'alt="Current frame artwork"' in home.text
+    assert (
+        "Past compositions" in home.text and 'alt="Last cloud-confirmed frame artwork"' in home.text
+    )
     for record in [first, second, ready]:
         path = f"/display/images/{record['id']}.jpg"
         assert path in home.text and client.get(path).status_code == 200

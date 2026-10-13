@@ -160,18 +160,24 @@ def test_daily_and_initial_failures_are_bounded_and_persist(service, frame, monk
     attempts = []
 
     def fail(*args):
-        attempts.append(1)
+        attempts.append(args[0].name)
         raise TimeoutError()
 
     monkeypatch.setattr(service, "converter", fail)
     for minute in (0, 1, 15, 16, 30, 31, 45):
         service.prepare_due(clock[0] + timedelta(minutes=minute))
     # Independent bounded retry budgets: 3 scheduled + 3 navigation/bootstrap.
-    assert len(attempts) == 6
+    # Each job has one optional neutral conversion and one main conversion;
+    # failed optional conversion must not introduce additional job attempts.
+    assert attempts.count("master.png") == 6
+    assert attempts.count("neutral.png") == 6
+    assert len(attempts) == 12
     assert service.store.slot_state(frame[0], "scheduled")["attempts"] == 3
     restarted = Service(service.settings, service.providers, fail, clock=service.clock)
     restarted.prepare_due(clock[0] + timedelta(minutes=50))
-    assert len(attempts) == 6
+    assert attempts.count("master.png") == 6
+    assert attempts.count("neutral.png") == 6
+    assert len(attempts) == 12
     assert service.store.pending_refills(frame[0])[0]["attempts"] == 3
 
 

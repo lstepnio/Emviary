@@ -87,5 +87,5 @@ separate, untested scenarios.
 Maintainers can package the verified release download with:
 
 ```sh
-uv run python tools/package_usb_recovery.py RELEASE_DIRECTORY --version v0.8.8 --build-url GITHUB_BUILD_URL
+uv run python tools/package_usb_recovery.py RELEASE_DIRECTORY --version v0.8.9 --build-url GITHUB_BUILD_URL
 ```

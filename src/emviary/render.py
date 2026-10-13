@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 from .store import stable_json
 
-RENDER_VERSION = 19
+RENDER_VERSION = 20
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -355,13 +355,14 @@ def draw_occasion_art(draw, theme):
             draw.arc((x, 93, x + 12, 105), 240, 540, fill=ink, width=2)
 
 
-def compose(art_dir, artwork, plan, output, event_art_dir=None):
+def compose(art_dir, artwork, plan, output, event_art_dir=None, neutral_output=None):
     with closing(Image.new("RGBA", (800, 480), "#ffffff")) as canvas:
-        _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir)
+        _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir, neutral_output)
 
 
-def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir):
+def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir, neutral_output):
     date = plan["local_date"]
+    policy = plan["policy"]
     season = season_for(int(date[5:7]))
     draw = ImageDraw.Draw(canvas)
     draw.rectangle((8, 8, 791, 471), outline="#333333", width=1)
@@ -396,22 +397,6 @@ def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir):
                 draw.ellipse((x - 6, y - 11, x + 5, y - 4), fill=light)
                 if season == "spring":
                     draw.ellipse((x - 2, y - 11, x + 3, y - 6), fill="#c1a96e")
-    forecast = plan["inputs"].get("open_meteo")
-    weather_valid = bool(forecast and forecast.get("local_date") == date)
-    policy = plan["policy"]
-    if weather_valid and policy["weather_cues"]:
-        values = forecast["values"]
-        parts = []
-        if policy.get("show_weather_condition", True):
-            parts.append(weather_label(values))
-        if policy.get("show_forecast_temperatures", True):
-            parts.append(forecast_temperatures(values))
-        text = " · ".join(parts)
-        font = _header_font()
-        if text:
-            draw.text((776, 25), text, font=font, fill="#000000", anchor="rm")
-        if policy.get("show_weather_icon", True):
-            draw_weather_mark(draw, values, round(776 - draw.textlength(text, font=font) - 22), 25)
     birds = plan.get("artworks", [artwork])
     count = sum(a.get("depicted_birds", 1) for a in birds)
     event_image = len(birds) == 1 and birds[0].get("event_only")
@@ -525,11 +510,39 @@ def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir):
             fill="#000000",
             anchor="lm",
         )
+    # Capture the entire weather-free composition for exact backend quantization.
+    # Weather is clipped to this region so no forecast-specific pixels escape.
+    x, y, width, height = 200, 10, 580, 36
     metadata = PngImagePlugin.PngInfo()
     metadata.add_text(
         "eink_neutral_bands",
         json.dumps([[0, 48], [divider if event_image else (328 if occasion else 420), 480]]),
     )
+    if neutral_output is not None:
+        with closing(canvas.convert("RGB")) as rgb:
+            rgb.save(neutral_output, format="PNG", pnginfo=metadata)
+    with closing(Image.new("RGBA", canvas.size, (0, 0, 0, 0))) as weather_layer:
+        draw = ImageDraw.Draw(weather_layer)
+        forecast = plan["inputs"].get("open_meteo")
+        weather_valid = bool(forecast and forecast.get("local_date") == date)
+        policy = plan["policy"]
+        if weather_valid and policy["weather_cues"]:
+            values = forecast["values"]
+            parts = []
+            if policy.get("show_weather_condition", True):
+                parts.append(weather_label(values))
+            if policy.get("show_forecast_temperatures", True):
+                parts.append(forecast_temperatures(values))
+            text = " · ".join(parts)
+            font = _header_font()
+            if text:
+                draw.text((776, 25), text, font=font, fill="#000000", anchor="rm")
+            if policy.get("show_weather_icon", True):
+                draw_weather_mark(
+                    draw, values, round(776 - draw.textlength(text, font=font) - 22), 25
+                )
+        with closing(weather_layer.crop((x, y, x + width, y + height))) as weather_tile:
+            canvas.alpha_composite(weather_tile, (x, y))
     with closing(canvas.convert("RGB")) as rgb:
         rgb.save(output, format="PNG", pnginfo=metadata)
 

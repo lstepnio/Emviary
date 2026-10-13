@@ -289,7 +289,7 @@ def test_header_long_forecast_is_clear_and_does_not_overlap_location(
     )
     render.compose(service.settings.art_dir, art, plan, tmp_path / "clear.png")
     assert len(header_boxes) == 2
-    weather, location = header_boxes
+    location, weather = sorted(header_boxes, key=lambda box: box[0])
     assert location[2] + 32 < weather[0]  # Includes the weather icon and a clear gap.
     for left, top, right, bottom in header_boxes:
         assert 12 <= left < right <= 788 and 10 <= top < bottom <= 42

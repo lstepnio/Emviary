@@ -85,7 +85,11 @@ def test_failed_converter_preserves_last_good_and_retry_plan(service, frame):
     plan = job["plan"]
     service.converter = converter
     recovered = service.prepare(frame_id, "2026-10-09")
-    assert recovered["manifest"] == plan
+    recovered_plan, saved_plan = json.loads(recovered["manifest"]), json.loads(plan)
+    # The exact offline tile is derived during successful conversion, not selection.
+    recovered_plan.pop("offline_patch", None)
+    saved_plan.pop("offline_patch", None)
+    assert recovered_plan == saved_plan
     assert recovered["revision"] == 1
     assert service.providers.calls == 2
     assert service.prepare(frame_id, "2026-10-09")["id"] == recovered["id"]

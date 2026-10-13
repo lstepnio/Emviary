@@ -14,6 +14,7 @@ from . import __version__
 from .branding import BIRD_ICON
 from .diagnostics import parse_metrics
 from .firmware_updates import FirmwareUpdates
+from .offline_cache import offline_header
 from .recovery_sessions import RecoverySessions, device_headers, promote_pending_token
 from .service import Service
 from .settings import FramePolicy
@@ -238,6 +239,10 @@ def create_app(service=None, schedule=True):
                 headers["X-Image-Readiness"] = "retained; refreshing on server"
             return Response(status_code=304, headers=headers, background=background)
         headers["X-Config-Payload"] = payload
+        if request.headers.get("x-emviary-offline-version") == "1":
+            metadata = offline_header(record)
+            if metadata:
+                headers["X-Emviary-Offline"] = metadata
         return FileResponse(
             path, media_type="application/octet-stream", headers=headers, background=background
         )
@@ -574,8 +579,9 @@ def create_app(service=None, schedule=True):
         if available:
             body += (
                 '<figure class="frame-preview"><img src="/display.jpg" '
-                'width="800" height="480" alt="Current frame artwork">'
-                '<figcaption class="quiet">The last artwork delivered to the frame.</figcaption>'
+                'width="800" height="480" alt="Last cloud-confirmed frame artwork">'
+                '<figcaption class="quiet">Last cloud-confirmed picture. During an outage '
+                "the frame may rotate cached art.</figcaption>"
                 "</figure>"
             )
         else:
