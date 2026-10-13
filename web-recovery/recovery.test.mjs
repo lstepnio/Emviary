@@ -231,3 +231,10 @@ test('ambiguous USB adapters require selection and known ports avoid another pro
   assert.equal(await recoveryPort(serial),port); assert.equal(prompts,1);
   assert.equal(await recoveryPort(serial,port),port); assert.equal(prompts,1);
 });
+
+test('disconnected saved adapter is replaced by the connected authorized frame without prompting',async()=>{
+  const old={connected:false,getInfo:()=>({usbVendorId:0x1a86})};
+  const current={connected:true,getInfo:()=>({usbVendorId:0x1a86})};
+  const serial={getPorts:async()=>[old,current],requestPort:async()=>{throw new Error('unnecessary picker');}};
+  assert.equal(await recoveryPort(serial,old),current);
+});

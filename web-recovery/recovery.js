@@ -115,7 +115,11 @@ if(panel) {
       try{if(signal.aborted)throw signal.reason;await loader.main('default_reset');for(const file of bundle.files){if(signal.aborted)throw signal.reason;const hash=await loader.flashMd5sum(file.address,file.data.length);if(signal.aborted)throw signal.reason;if(hash!==md5(file.data))return false;}return true;}
       finally{signal.removeEventListener('abort',stop);await transport.disconnect().catch(()=>{});}
     },
-    begin:async({signal,sessionId,nonce})=>(await openUart(signal)).command('BEGIN_RECOVERY',{session_id:sessionId,nonce,bundle_sha256:job.bundle_sha256},{signal}),
+    begin:async({signal,sessionId,nonce})=>{
+      job=await post(base+'/'+sessionId+'/boot',{boot_id:controller.verified.boot,device_id:controller.identity,firmware:bundle.manifest.version,bundle_sha256:job.bundle_sha256},signal);
+      if(job.session_id!==sessionId||job.nonce!==nonce)throw new RecoveryFault('session_mismatch','The recovery session changed. Continue recovery to verify it again.',{retryable:false});
+      return (await openUart(signal)).command('BEGIN_RECOVERY',{session_id:sessionId,nonce,bundle_sha256:job.bundle_sha256},{signal});
+    },
     status:async({signal,sessionId,nonce})=>(await openUart(signal)).command('STATUS',{session_id:sessionId,nonce},{signal}),
     cloud:async({signal,bootId,imageSha256})=>{
       const result=await request(base+'/'+job.session_id,{signal});

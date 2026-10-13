@@ -18,8 +18,14 @@ Recovery UART commands, temporary leases and bounded checkpoints are specific to
 
 ## Release and evidence
 
-Service: 0.15.1. Candidate firmware: v0.8.5, source `0c4ffbbb93c53a4412ee829c6f7f912d9880ea07`, official ESP-IDF v6.0 build [38349079866](https://github.com/lstepnio/Emviary-firmware/actions/runs/38349079866). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
+Service candidate: 0.15.2. Firmware candidate: v0.8.6, source `dd9a973bff4de055af9e3c9b8350a53d1930c473`, official ESP-IDF v6.0 build [38352231006](https://github.com/lstepnio/Emviary-firmware/actions/runs/38352231006). Immutable bundle has four verified public firmware regions and excludes NVS and LittleFS.
 
-270 backend tests and 87 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
+274 backend tests and 89 controller/browser/transport tests pass. These exercise healthy verification, slow/legacy startup, retry budgets, cancellation, disconnected/occupied ports, wrong devices, corrupted artifacts, stale sessions, pending binding protection and cloud/panel evidence. These tests do not qualify host drivers, electrical timing, damaged hardware or actual picture retention. Live hardware results are recorded separately after deployment.
 
 The first live v0.15.0 check exposed closed UART reuse after a timeout, before any firmware writes. v0.15.1 recreates closed UART transports automatically, with a real timeout regression test. Terminal failed/paused flows release their browser renewal timer so the server lease expires when idle.
+
+The next hardware test verified v0.8.5 firmware-region repair and application startup; a correlated cloud picture request was recorded, but later image/panel acknowledgments were not established. The frame was subsequently disconnected by its owner. This result is incomplete, not a successful physical recovery.
+
+v0.8.6 removes synchronous NVS, filesystem and charger work from the UART responder and uses a zero-wait OTA state read. Bounded RAM diagnostics expose download progress and ACK status; allocation/bounds failures return explicit errors instead of silently dropping replies. This removes identified blocking paths but does not prove the cause of the incomplete v0.8.5 run. Normal operation retains quiet logging.
+
+The service can register a new validated boot under the same active recovery session. It requires owner authorization, CSRF, matching device identity, firmware and immutable bundle; old image/cloud/panel evidence is cleared. Pending configuration credentials survive the transition. An unknown first-use device is tentative until an authenticated frame request establishes durable identity.

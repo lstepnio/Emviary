@@ -419,3 +419,111 @@ def test_pending_session_resume_never_bypasses_a_competing_live_lease(service, f
         session(sessions, frame)
     assert caught.value.status_code == 409
     assert sessions.get(frame[0], first["session_id"])["state"] == "active"
+
+
+def test_owner_boot_transition_discards_old_picture_proof_but_keeps_pending_binding(
+    service, frame, sessions
+):
+    value = session(sessions, frame)
+    data = challenge(value)
+    current = service.store.frame(frame[0])
+    sessions.image_requested(current, data, {"id": 1, "body_hash": "b" * 64}, frame[1])
+    for phase in ("image_verified", "panel_refreshed"):
+        sessions.acknowledge(current, dict(data, phase=phase, image_sha256="b" * 64))
+    unchanged = sessions.transition_boot(frame[0], value["session_id"], data)
+    assert "panel_refreshed" in unchanged["evidence"]
+    # A candidate may already have been written, so reboot cannot revoke it.
+    sessions.stage_binding(
+        current,
+        service.settings.config.frame_defaults,
+        "possibly-written-token",
+        value["session_id"],
+    )
+    new_boot = dict(data, boot_id="ffffffffffffffff")
+    transitioned = sessions.transition_boot(frame[0], value["session_id"], new_boot)
+    assert transitioned["session_id"] == value["session_id"]
+    assert transitioned["nonce"] == value["nonce"]
+    assert transitioned["boot_id"] == "ffffffffffffffff"
+    assert transitioned["image_id"] is None and transitioned["image_sha256"] is None
+    assert set(transitioned["evidence"]) == {"booted"}
+    assert transitioned["pending_binding"]["session_id"] == value["session_id"]
+    pending = sessions.authenticate("possibly-written-token", value["session_id"], value["nonce"])
+    assert pending and service.store.authenticate(frame[1])
+    with pytest.raises(HTTPException):
+        sessions.finish(frame[0], value["session_id"], True)
+    with pytest.raises(HTTPException):
+        sessions.acknowledge(
+            pending, dict(new_boot, phase="panel_refreshed", image_sha256="b" * 64)
+        )
+    with pytest.raises(HTTPException):
+        sessions.image_requested(
+            pending, data, {"id": 1, "body_hash": "b" * 64}, "possibly-written-token"
+        )
+    sessions.image_requested(
+        pending, new_boot, {"id": 2, "body_hash": "c" * 64}, "possibly-written-token"
+    )
+    assert service.store.authenticate("possibly-written-token")
+
+
+def test_owner_boot_transition_refuses_wrong_device_firmware_bundle_and_expired_lease(
+    service, frame, sessions
+):
+    value = session(sessions, frame)
+    data = challenge(value)
+    for changed in (
+        {"device_id": "aabbcc009999"},
+        {"firmware": "v-other"},
+        {"bundle_sha256": "a" * 64},
+        {"boot_id": "not-a-boot"},
+    ):
+        with pytest.raises(HTTPException):
+            sessions.transition_boot(frame[0], value["session_id"], dict(data, **changed))
+    assert sessions.get(frame[0], value["session_id"])["boot_id"] is None
+    sessions.clock = lambda: datetime.now(UTC) + timedelta(seconds=91)
+    with pytest.raises(HTTPException):
+        sessions.transition_boot(frame[0], value["session_id"], data)
+
+
+def test_boot_transition_route_requires_owner_and_csrf(service, frame, tmp_path, monkeypatch):
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    value = session(RecoverySessions(service.store), frame)
+    path = "/manage/usb-recovery/sessions/" + frame[0] + "/" + value["session_id"] + "/boot"
+    data = challenge(value)
+    assert TestClient(create_app(service, schedule=False)).post(path, data=data).status_code == 401
+    assert client.post(path, data=dict(data, csrf="wrong")).status_code == 403
+    result = client.post(path, data=dict(data, csrf=csrf))
+    assert result.status_code == 200
+    assert result.json()["session_id"] == value["session_id"]
+    assert result.json()["nonce"] == value["nonce"] and result.json()["boot_id"] == data["boot_id"]
+
+
+def test_first_owner_hello_tentatively_identifies_unknown_frame_until_authenticated_fetch(
+    service, frame, sessions
+):
+    value = sessions.create(frame[0], {"version": "v-test", "parts": []})
+    assert value["device_id"] is None
+    data = challenge(value)
+    identified = sessions.transition_boot(frame[0], value["session_id"], data)
+    assert identified["device_id"] == data["device_id"]
+    with service.store.connect() as db:
+        assert not db.execute(
+            "SELECT 1 FROM recovery_device_identity WHERE frame_id=?", (frame[0],)
+        ).fetchone()
+    with pytest.raises(HTTPException):
+        sessions.transition_boot(
+            frame[0], value["session_id"], dict(data, device_id="aabbcc009999")
+        )
+    sessions.image_requested(
+        service.store.frame(frame[0]), data, {"id": 1, "body_hash": "b" * 64}, frame[1]
+    )
+    with service.store.connect() as db:
+        assert (
+            db.execute(
+                "SELECT device_id FROM recovery_device_identity WHERE frame_id=?", (frame[0],)
+            ).fetchone()[0]
+            == data["device_id"]
+        )
+    with pytest.raises(HTTPException):
+        sessions.transition_boot(
+            frame[0], value["session_id"], dict(data, device_id="aabbcc009999")
+        )

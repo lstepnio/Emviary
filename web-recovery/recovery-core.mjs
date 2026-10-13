@@ -158,8 +158,8 @@ export function showTransferSummary(panel, rate, seconds) {
 }
 
 export async function recoveryPort(serial, known) {
-  if (known) return known;
-  const ports = (await serial.getPorts()).filter(port => port.getInfo().usbVendorId === 0x1a86);
+  if (known && known.connected !== false) return known;
+  const ports = (await serial.getPorts()).filter(port => port.connected !== false && port.getInfo().usbVendorId === 0x1a86);
   return ports.length === 1 ? ports[0] : serial.requestPort({filters: [{usbVendorId: 0x1a86}]});
 }
 

@@ -224,6 +224,48 @@ class RecoverySessions:
             )
         return self.get(frame_id, session_id)
 
+    def transition_boot(self, frame_id, session_id, data):
+        """An owner-validated USB HELLO starts fresh evidence for this exact device boot."""
+        with self.store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            session = self._session(db, session_id, frame_id)
+            lease_guard(db, frame_id, session_id)
+            if session["lease_expires_at"] <= self.clock().isoformat():
+                raise HTTPException(409, "Resume recovery before verifying the frame boot")
+            for key, pattern in (("device_id", DEVICE_ID), ("boot_id", BOOT_ID)):
+                if not isinstance(data.get(key), str) or not pattern.fullmatch(data[key]):
+                    raise HTTPException(400, "Invalid recovery device identity")
+            for key, expected in (
+                ("firmware", session["firmware"]),
+                ("bundle_sha256", session["bundle_sha256"]),
+            ):
+                if not isinstance(data.get(key), str) or not secrets.compare_digest(
+                    data[key].encode(), expected.encode()
+                ):
+                    raise HTTPException(409, "Recovery firmware or bundle does not match")
+            pinned = db.execute(
+                "SELECT device_id FROM recovery_device_identity WHERE frame_id=?", (frame_id,)
+            ).fetchone()
+            expected_device = session["device_id"] or (pinned[0] if pinned else None)
+            first_identification = not expected_device and not session["boot_id"]
+            if (
+                not first_identification
+                and data["device_id"] != expected_device
+                or (pinned and pinned[0] != data["device_id"])
+            ):
+                raise HTTPException(409, "USB device does not match the selected frame")
+            if session["boot_id"] != data["boot_id"]:
+                previous = json.loads(session["evidence"])
+                evidence = {"booted": self.clock().isoformat()}
+                if previous.get("binding_activated"):
+                    evidence["binding_activated"] = previous["binding_activated"]
+                db.execute(
+                    "UPDATE recovery_sessions SET device_id=?,boot_id=?,evidence=?,"
+                    "image_id=NULL,image_sha256=NULL WHERE id=?",
+                    (data["device_id"], data["boot_id"], stable_json(evidence), session_id),
+                )
+        return self.get(frame_id, session_id)
+
     def event(self, frame_id, session_id, data):
         # Strict structured vocabulary: no free form trace, nested evidence, credentials or logs.
         allowed = {"attempt_id", "state", "operation", "error", "elapsed_ms"}
@@ -370,6 +412,8 @@ class RecoverySessions:
                 raise HTTPException(400, "Invalid recovery device identity")
         if session["device_id"] and session["device_id"] != data["device_id"]:
             raise HTTPException(409, "USB device does not match this frame")
+        if session["boot_id"] and session["boot_id"] != data["boot_id"]:
+            raise HTTPException(409, "Verify the current frame boot through USB before continuing")
         pinned = db.execute(
             "SELECT device_id FROM recovery_device_identity WHERE frame_id=?", (frame["id"],)
         ).fetchone()
@@ -592,6 +636,11 @@ def install_routes(app, require, service, checked_form):
     async def renew(identifier: str, session_id: str, request: Request):
         await checked_form(request)
         return response(sessions.renew(identifier, session_id))
+
+    @app.post(base + "/{session_id}/boot")
+    async def boot(identifier: str, session_id: str, request: Request):
+        data = await checked_form(request)
+        return response(sessions.transition_boot(identifier, session_id, data))
 
     @app.post(base + "/{session_id}/events")
     async def events(identifier: str, session_id: str, request: Request):

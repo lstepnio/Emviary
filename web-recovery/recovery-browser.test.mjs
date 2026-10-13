@@ -30,7 +30,7 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
   nodes.get('[data-usb-cloud]').querySelector=panel.querySelector;
   for(const selector of ['[data-usb-finish]','[data-usb-wake-panel]','[data-usb-cloud]','[data-usb-preview]'])nodes.get(selector).hidden=true;
   for(const selector of missing)nodes.delete(selector);
-  const requests=[],commands=[],intervals=new Map();let intervalId=0,lockHeld=false,opened=false,readPending,readQueue=[],appLegacy=legacy;
+  const requests=[],commands=[],timeline=[],intervals=new Map();let intervalId=0,lockHeld=false,opened=false,readPending,readQueue=[],appLegacy=legacy;
   const job={session_id:'session-current',nonce:'nonce-current',device_id:'aabbccddeeff',expected_firmware:'0.8.5',bundle_sha256:'a'.repeat(64),state:'active',boot_id:'boot',image_sha256:'b'.repeat(64),image_id:'picture',evidence:{cloud_requested:'now',image_verified:'now',panel_refreshed:'now'}};
   let writeStarted=false,resolveWrite,statusCount=0;
   let configured=!invalidConfig,preparationAttempts=0,currentBoot='boot';
@@ -39,7 +39,7 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
   const port={getInfo:()=>({usbVendorId:0x1a86,usbProductId:1}),open:async()=>{if(opened)throw new Error('port already open');opened=true;},close:async()=>{opened=false;},setSignals:async()=>{},
     readable:{getReader:()=>({read:()=>readQueue.length?Promise.resolve({value:readQueue.shift(),done:false}):new Promise(resolve=>readPending=resolve),cancel:async()=>{readPending?.({done:true});readPending=null;},releaseLock(){}})},
     writable:{getWriter:()=>({abort:async()=>{},releaseLock(){},write:async bytes=>{
-      const text=new TextDecoder().decode(bytes),match=/^!EMV1:(\d+):(\d+):/.exec(text),request=JSON.parse(text.slice(match[0].length,text.lastIndexOf(':')));commands.push(request);
+      const text=new TextDecoder().decode(bytes),match=/^!EMV1:(\d+):(\d+):/.exec(text),request=JSON.parse(text.slice(match[0].length,text.lastIndexOf(':')));commands.push(request);timeline.push({kind:'uart',cmd:request.cmd});
       if(hangStatus&&request.cmd==='STATUS')return;
       if(appLegacy&&request.cmd==='HELLO')return;
       if(request.cmd==='BEGIN_RECOVERY'){active=true;sessionId=request.session_id;nonce=request.nonce;}
@@ -54,12 +54,13 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
   const serial=new Node();serial.getPorts=async()=>[port];serial.requestPort=async()=>port;
   const lock={request:async(_name,_options,callback)=>{await callback(denyLock?null:{});lockHeld=false;}};
   const fetcher=async(url,options={})=>{
-    requests.push({url,method:options.method||'GET',fields:options.body?Object.fromEntries(options.body):{}});
+    timeline.push({kind:'http',url});requests.push({url,method:options.method||'GET',fields:options.body?Object.fromEntries(options.body):{}});
     let payload={},status=200;
     if(url==='/manage/session')payload={csrf:'csrf'};
     else if(url.includes('/usb-recovery/status/'))payload={network_names:['Home'],suggested_network:'Home',can_restore_without_input:autoSettings,automatic_restore_ssid:autoSettings?'Home':''};
     else if(url.includes('/cloud-settings/')){if(settingsDetail){status=400;payload={detail:settingsDetail};}else{const data=new Uint8Array(0x6000);payload={frame_id:'frame',address:0x9000,size:data.length,data:Buffer.from(data).toString('base64'),sha256:createHash('sha256').update(data).digest('hex'),local_password:'local'};}}
     else if(url.endsWith('/events'))payload={};
+    else if(url.endsWith('/boot')){job.boot_id=currentBoot;payload={...job};}
     else if(url.endsWith('/cancel')){job.state='cancelled';payload={...job};}
     else if(url.endsWith('/complete')){job.state='completed';payload={...job};}
     else if(url.includes('/sessions/')){payload={...job};if(cloudFailure&&options.method!=='POST'){status=503;payload={detail:'unavailable'};}}
@@ -80,7 +81,7 @@ async function browser({missing=[],storage=new Map(),denyLock=false,cloudFailure
     loadRecovery:async()=>{preparationAttempts++;if(preparationAttempts<=prepareFailures)throw new RecoveryFault('service_error','temporary download failure',{retryable:true});return {manifest:{version:'0.8.5'},files:[{address:0x20000,data:new Uint8Array([1,2])}]};},
     crypto:webcrypto,document:{querySelector:()=>panel,createElement:()=>new Node()},window,navigator:{serial,locks:{request:async(name,options,callback)=>{lockHeld=!denyLock;return lock.request(name,options,callback);}},},location:{origin:'https://example.com'},sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},fetch:fetcher,URLSearchParams,AbortSignal,AbortController,setTimeout,clearTimeout,setInterval:fn=>{intervals.set(++intervalId,fn);return intervalId;},clearInterval:id=>intervals.delete(id)};
   vm.runInNewContext(entrypoint,context,{filename:'recovery.js'});await flush();
-  return {nodes,panel,requests,commands,intervals,job,serial,window,storage,port,get lockHeld(){return lockHeld;},get opened(){return opened;},get writeStarted(){return writeStarted;},get preparationAttempts(){return preparationAttempts;},resumeWrite(){resolveWrite?.();},expireLease(){active=false;},reboot(){currentBoot='new-boot';},async click(selector){await nodes.get(selector).fire('click');await flush();}};
+  return {nodes,panel,requests,commands,timeline,intervals,job,serial,window,storage,port,get lockHeld(){return lockHeld;},get opened(){return opened;},get writeStarted(){return writeStarted;},get preparationAttempts(){return preparationAttempts;},resumeWrite(){resolveWrite?.();},expireLease(){active=false;},reboot(){currentBoot='new-boot';},async click(selector){await nodes.get(selector).fire('click');await flush();}};
 }
 test('real entrypoint healthy primary action creates correlated job and completes only after physical confirmation',async()=>{const b=await browser();assert.equal(b.nodes.get('[data-usb-start]').disabled,false);await b.click('[data-usb-start]');assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');assert.equal(b.nodes.get('[data-usb-start]').hidden,true);assert.equal(b.nodes.get('[data-usb-finish]').hidden,false);assert.equal(b.commands.filter(c=>c.cmd==='BEGIN_RECOVERY')[0].session_id,b.job.session_id);assert.equal(b.commands.filter(c=>c.cmd==='BEGIN_RECOVERY')[0].nonce,b.job.nonce);assert.equal(b.requests.some(r=>r.url.endsWith('/complete')),false);assert.equal(b.opened,false);assert.equal(b.lockHeld,false);await b.click('[data-usb-good]');assert.equal(b.panel.dataset.recoveryState,'finished');assert.equal(b.requests.find(r=>r.url.endsWith('/complete')).fields.physical_confirmed,'yes');assert.equal(b.intervals.size,0);});
 test('real entrypoint missing optional speed element cannot invalidate recovered application',async()=>{const b=await browser({missing:['[data-usb-speed]']});await b.click('[data-usb-start]');assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');await b.click('[data-usb-good]');});
@@ -113,3 +114,5 @@ test('changed application boot requires full reverification before any display t
 test('persisted settings-attempt marker prevents automatic NVS replacement repeating after reload',async()=>{const storage=new Map([['emviary-recovery-settings-attempt:session-current','yes']]);const b=await browser({storage,invalidConfig:true,autoSettings:true});await b.click('[data-usb-start]');assert.equal(b.panel.dataset.recoveryState,'needs_attention');assert.equal(b.requests.some(r=>r.url.includes('/cloud-settings/')),false);assert.equal(b.nodes.get('[data-usb-cloud]').hidden,false);});
 
 test('real UART timeout closes streams then entrypoint recreates transport and reaches scoped ROM repair',async()=>{const b=await browser({legacy:true});await b.click('[data-usb-start]');assert.equal(b.writeStarted,true);assert.equal(b.commands.filter(command=>command.cmd==='HELLO').length>=4,true);assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');assert.equal(b.nodes.get('[data-usb-wake-panel]').hidden,true);assert.equal(b.opened,false);await b.click('[data-usb-good]');assert.equal(b.panel.dataset.recoveryState,'finished');});
+
+test('verified boot proof is posted before UART BEGIN after legacy firmware reset and repair',async()=>{const b=await browser({legacy:true});await b.click('[data-usb-start]');const proof=b.requests.find(request=>request.url.endsWith('/boot'));assert.equal(proof.method,'POST');assert.equal(proof.fields.csrf,'csrf');assert.equal(proof.fields.boot_id,'boot');assert.equal(proof.fields.device_id,'aabbccddeeff');assert.equal(proof.fields.firmware,'0.8.5');assert.equal(proof.fields.bundle_sha256,'a'.repeat(64));const before=b.timeline.findIndex(item=>item.kind==='http'&&item.url.endsWith('/boot')),begin=b.timeline.findIndex(item=>item.kind==='uart'&&item.cmd==='BEGIN_RECOVERY');assert.equal(before>=0&&before<begin,true);assert.equal(b.panel.dataset.recoveryState,'physical_confirmation');await b.click('[data-usb-good]');});

@@ -25,7 +25,7 @@ def recovery_manifest():
         manifest["board"] != "seeedstudio_reterminal_e1002"
         or manifest["chip"] != "ESP32-S3"
         or manifest["flash_size"] != "32MB"
-        or manifest["version"] != "v0.8.5"
+        or manifest["version"] != "v0.8.6"
         or [p["address"] for p in manifest["parts"]] != [0, 0x8000, 0xF000, 0x20000]
     ):
         raise ValueError("Unexpected USB recovery target or layout")
