@@ -509,6 +509,11 @@ def create_app(service=None, schedule=True):
             description="Explore the birds and artwork from Emviary.",
         )
 
+    from .public_gallery import gallery_markup
+    from .public_gallery import install_routes as install_public_gallery
+
+    install_public_gallery(app, service)
+
     @app.get("/")
     def display_home():
         from .ui import page
@@ -535,9 +540,10 @@ def create_app(service=None, schedule=True):
                 '<section class="empty-state"><h2>The first artwork is on its way.</h2>'
                 "<p>The frame's artwork will appear here after its first delivery.</p></section>"
             )
+        body += gallery_markup(service)
         body += (
             '<section class="public-library-invite"><div><h2>Meet the collection.</h2>'
-            '<p class="quiet">Bird illustrations, their artists and their stories.</p></div>'
+            '<p class="quiet">Birds and Colorado wildlife, curated for the frame.</p></div>'
             '<a class="button secondary" href="/library">Explore the artwork library</a>'
             "</section>"
         )
@@ -546,7 +552,7 @@ def create_app(service=None, schedule=True):
             body,
             active="frame",
             public=True,
-            description="A little bird art, every morning. See the artwork on the frame.",
+            description="See current, upcoming and past nature compositions from Emviary.",
         )
 
     @app.get("/display.jpg")

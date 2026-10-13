@@ -2,7 +2,7 @@
 
 import calendar
 import hashlib
-from datetime import date
+from datetime import date, timedelta
 
 from .event_art import special_day_date
 
@@ -19,8 +19,21 @@ def wildlife_dates(frame_id, year, month, policy):
     result = []
     last = calendar.monthrange(year, month)[1]
     for start, end in ((1, 14), (15, last)):
-        choices = [date(year, month, n) for n in range(start, end + 1)]
+        window_start, window_end = (4, 10) if start == 1 else (19, min(25, last))
+        choices = [date(year, month, n) for n in range(window_start, window_end + 1)]
         choices = [when for when in choices if when not in blocked]
+        if not choices:
+            choices = [
+                date(year, month, n)
+                for n in range(start, end + 1)
+                if date(year, month, n) not in blocked
+            ]
+        if result:
+            choices = [
+                when
+                for when in choices
+                if when >= date.fromisoformat(result[0]) + timedelta(days=8)
+            ]
         if choices:
             seed = hashlib.sha256(f"wildlife:{frame_id}:{year}:{month}:{start}".encode()).digest()
             result.append(choices[int.from_bytes(seed[:8], "big") % len(choices)].isoformat())

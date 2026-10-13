@@ -82,3 +82,44 @@ def test_library_filters_empty_state_and_escape(service):
     assert first.text.count('<article class="card library-card artwork-card"') == 24
     assert "Page 1 of " in first.text
     assert client.get("/library?p=-4").status_code == 200
+
+
+def test_public_gallery_exposes_prepared_and_past_images_only_for_public_frame(service, frame):
+    client = public_client(service, frame)
+    first = service.prepare(frame[0], "2026-10-08", offline=True)
+    second = service.prepare(frame[0], "2026-10-08", force=True, offline=True)
+    current = service.prepare(frame[0], "2026-10-08", force=True, offline=True)
+    with service.store.connect() as db:
+        db.execute(
+            "UPDATE frames SET last_served_etag=? WHERE id=?",
+            ('"' + current["body_hash"] + '"', frame[0]),
+        )
+    ready = service.prepare(frame[0], "2026-10-08", force=True, offline=True)
+    before = service.store.bird_counts()
+    home = client.get("/")
+    assert home.status_code == 200
+    assert "Coming up" in home.text and "Next button" in home.text
+    assert "Past compositions" in home.text and 'alt="Current frame artwork"' in home.text
+    for record in [first, second, ready]:
+        path = f"/display/images/{record['id']}.jpg"
+        assert path in home.text and client.get(path).status_code == 200
+    assert service.store.bird_counts() == before
+    service.store.add_frame("private-frame", service.settings.config.frame_defaults)
+    private = service.prepare("private-frame", "2026-10-08", offline=True)
+    assert client.get(f"/display/images/{private['id']}.jpg").status_code == 404
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (first["id"],))
+    assert client.get(f"/display/images/{first['id']}.jpg").status_code == 404
+    config = service.settings.config.model_dump()
+    config["public_frame_id"] = None
+    service.save_configuration(config)
+    assert client.get(f"/display/images/{ready['id']}.jpg").status_code == 404
+    assert "Coming up" not in client.get("/").text
+
+
+def test_public_gallery_hides_missing_preview_files(service, frame):
+    client = public_client(service, frame)
+    record = service.prepare(frame[0], "2026-10-08", offline=True)
+    service.cache_path(record["preview_path"]).unlink()
+    assert "Next button" not in client.get("/").text
+    assert client.get(f"/display/images/{record['id']}.jpg").status_code == 404

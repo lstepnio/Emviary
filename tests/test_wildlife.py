@@ -12,6 +12,7 @@ def test_twice_monthly_cadence_is_stable_spaced_and_avoids_special_days():
     for month in range(1, 13):
         dates = wildlife_dates("gift", 2028, month, policy)
         assert len(dates) == 2 and int(dates[0][-2:]) <= 14 < int(dates[1][-2:])
+        assert (date.fromisoformat(dates[1]) - date.fromisoformat(dates[0])).days >= 8
         assert wildlife_dates("gift", 2028, month, policy) == dates
         blocked = {**policy, "special_days": [dict(date=dates[0], annual=True, enabled=True)]}
         assert dates[0] not in wildlife_dates("gift", 2028, month, blocked)

@@ -564,7 +564,16 @@ gap:8px}
 
 """
 
-CSS += EVENT_CSS
+CSS += (
+    EVENT_CSS
+    + """
+.public-compositions{max-width:1000px;margin:36px auto}
+.public-compositions figure{margin:0;padding:12px;border:1px solid var(--line);
+border-radius:14px;background:var(--surface)}
+.public-compositions figcaption{margin-top:8px;color:var(--muted);font-size:14px}
+.public-compositions .current-next{margin-top:16px}
+"""
+)
 
 
 # A small progressive enhancement preserves native HTML forms without a framework.
