@@ -1785,7 +1785,7 @@ def attach_owner(app, service):
                     + art_id
                     + '" value="1" aria-label="Select '
                     + name
-                    + ' artwork">Select</label>'
+                    + ' artwork"></label>'
                 )
             if art["approved"] and status != "deleted":
                 body += (
