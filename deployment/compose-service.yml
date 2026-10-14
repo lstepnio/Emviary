@@ -28,6 +28,9 @@
       EMVIARY_PORT: "8080"
       # Pin the actual Caddy TCP peer; never trust the whole shared Docker subnet.
       EMVIARY_TRUSTED_PROXY_IPS: "172.18.0.5/32"
+      # Optional exact router address observed through Caddy for local hairpin NAT.
+      # Never add a LAN/Docker subnet or accept private origins automatically.
+      EMVIARY_TRUSTED_LOCAL_IPS: ""
       EMVIARY_EBIRD_API_KEY_FILE: /run/secrets/ebird-api-key
     volumes:
       - /docker/appdata/emviary/config:/config:ro

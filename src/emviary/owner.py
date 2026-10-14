@@ -875,11 +875,13 @@ def attach_owner(app, service):
                         "Allow password-free management from this frame’s internet connection",
                         policy.get("management_trusted_wan", False),
                     )
-                    + '<p class="quiet">This trusts everyone sharing the public IP, including '
+                    + '<p class="quiet">This trusts everyone sharing the recognized connection, '
+                    "including "
                     "guests. Uses a frame connection authenticated within the last 48 hours. "
                     "Access is checked on every request; another network still needs the "
                     "owner password. If the frame has not contacted this service since this "
-                    "feature was enabled, wait for its next wake or refresh it.</p>"
+                    "feature was enabled, press the right white button once to connect it, "
+                    "then reload management. Its next scheduled wake also works.</p>"
                     "<button>Save management access</button></form></section>"
                 )
                 body += (

@@ -278,7 +278,7 @@ class Store:
             return [dict(r) for r in db.execute("SELECT * FROM frames ORDER BY id")]
 
     def record_frame_network(self, frame_id, public_ip, authenticated_at):
-        """Keep only the latest authenticated network, with at most hourly repeat writes."""
+        """Keep the latest admissible authenticated origin; limit repeat writes to hourly."""
         refresh_before = (authenticated_at - timedelta(hours=1)).isoformat()
         with self.connect() as db:
             db.execute(

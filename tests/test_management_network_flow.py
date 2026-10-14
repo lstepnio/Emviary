@@ -65,3 +65,46 @@ def test_cloud_debug_setting_is_off_by_default_and_does_not_send_management_trus
     )["config"]
     assert config["debug_log_enabled"] is True
     assert "management_trusted_wan" not in config
+
+
+def test_hairpin_management_authentication_is_revocable_and_does_not_issue_a_cookie(
+    service, frame, tmp_path, monkeypatch
+):
+    sign_in(service, tmp_path, monkeypatch)
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_IPS", "192.168.10.1")
+    service.store.set_policy(frame[0], FramePolicy(management_trusted_wan=True))
+    service.prepare(frame[0], offline=True)
+    app = create_app(service, schedule=False)
+    local = TestClient(app, base_url="https://emviary.majjix.com", client=("172.18.0.5", 443))
+    headers = {"X-Forwarded-For": "192.168.10.1"}
+    assert local.get("/manage/session", headers=headers).status_code == 401
+    assert (
+        local.get(
+            "/v1/image", headers={**headers, "Authorization": "Bearer " + frame[1]}
+        ).status_code
+        == 200
+    )
+    session = local.get("/manage/session", headers=headers)
+    assert session.status_code == 200 and "set-cookie" not in session.headers
+    csrf = session.json()["csrf"]
+    assert (
+        local.get("/manage", headers={"X-Forwarded-For": "192.168.10.2"}).url.path
+        == "/manage/login"
+    )
+    assert (
+        local.get(
+            "/manage/session", headers={"X-Forwarded-For": "192.168.10.1, 1.1.1.1"}
+        ).status_code
+        == 401
+    )
+    assert (
+        local.post(
+            "/manage/frames/test-frame/management-access",
+            headers=headers,
+            data={"csrf": csrf},
+            follow_redirects=False,
+        ).status_code
+        == 303
+    )
+    assert local.get("/manage/session", headers=headers).status_code == 401
