@@ -5,7 +5,12 @@ import pytest
 from starlette.requests import Request
 
 from emviary.store import Store
-from emviary.trusted_network import network_session, record_frame_network, source_public_ip
+from emviary.trusted_network import (
+    network_session,
+    record_frame_network,
+    source_management_ip,
+    source_public_ip,
+)
 
 NOW = datetime(2026, 10, 12, 12, tzinfo=UTC)
 PUBLIC_IP = "8.8.8.8"
@@ -207,3 +212,63 @@ def test_repeat_contacts_write_hourly_but_network_changes_write_immediately(serv
     assert service.store.frame_network_contacts()[0]["public_ip"] == "1.1.1.1"
     record(service, trusted_frame, peer="192.168.1.2")
     assert not service.store.frame_network_contacts()
+
+
+def test_configured_hairpin_origin_requires_proxy_and_authenticated_frame(
+    service, trusted_frame, monkeypatch
+):
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_IPS", "192.168.10.1")
+    headers = [("x-forwarded-for", "192.168.10.1")]
+    browser = request("172.18.0.5", headers)
+    assert source_public_ip(browser) is None
+    assert source_management_ip(browser) == "192.168.10.1"
+    assert not network_session(browser, service, now=NOW)
+    record(service, trusted_frame, peer="172.18.0.5", extra_headers=headers)
+    assert network_session(browser, service, now=NOW)
+    assert not network_session(browser, service, now=NOW + timedelta(hours=49))
+    assert source_management_ip(request("192.168.10.1")) is None
+    assert source_management_ip(request("172.18.0.6", headers)) is None
+    assert (
+        source_management_ip(request("172.18.0.5", [("x-forwarded-for", "192.168.10.2")])) is None
+    )
+    assert not network_session(
+        request("172.18.0.5", [("x-forwarded-for", "192.168.10.1, 1.1.1.1")]), service, now=NOW
+    )
+    monkeypatch.delenv("EMVIARY_TRUSTED_LOCAL_IPS")
+    assert not network_session(browser, service, now=NOW)
+
+
+@pytest.mark.parametrize(
+    "setting",
+    [
+        "bad",
+        "192.168.10.0/24",
+        "127.0.0.1",
+        "169.254.1.1",
+        "100.64.0.1",
+        "8.8.8.8",
+        "::1",
+        "fe80::1",
+        "192.168.10.1,bad",
+    ],
+)
+def test_bad_or_non_lan_origin_configuration_does_not_allow_private_clients(setting, monkeypatch):
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_IPS", setting)
+    assert (
+        source_management_ip(request("172.18.0.5", [("x-forwarded-for", "192.168.10.1")])) is None
+    )
+    # Public-address authentication retains its original behavior.
+    assert source_management_ip(request(PUBLIC_IP)) == PUBLIC_IP
+
+
+def test_private_origin_opt_in_never_accepts_ambiguous_forwarding(monkeypatch):
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_IPS", "192.168.10.1")
+    for headers in (
+        [],
+        [("x-forwarded-for", "192.168.10.1"), ("x-forwarded-for", "192.168.10.1")],
+        [("x-forwarded-for", "192.168.10.1, bad")],
+    ):
+        assert source_management_ip(request("172.18.0.5", headers)) is None

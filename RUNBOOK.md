@@ -373,6 +373,18 @@ peers are ignored; do not widen the allowlist to the shared Docker subnet. If
 Caddy's container address changes, update this explicit peer and recreate only
 Emviary. Missing or incorrect proxy trust fails closed to password authentication.
 
+For a server on the same LAN as its frame, router hairpin NAT can forward both
+the frame and local browsers as the router's private IP. Public-IP matching alone
+cannot recognize that connection. After checking the original client address
+forwarded by Caddy, set `EMVIARY_TRUSTED_LOCAL_IPS` to that exact private router
+address. Comma-separated exact RFC1918 or IPv6 ULA addresses are supported; CIDRs,
+loopback, link-local, carrier-grade NAT and malformed entries are rejected.
+This exception applies only to forwarding from the explicitly trusted proxy,
+and still requires an enabled frame policy and its authenticated image request
+within 48 hours. It does not automatically trust LAN or Docker subnets. After
+changing this environment setting, recreate only Emviary and let the actual
+frame connect once before checking cookie-free management access.
+
 ## Artwork scrolling
 
 Artwork library loads 24 cards per batch as the end approaches. Load more remains

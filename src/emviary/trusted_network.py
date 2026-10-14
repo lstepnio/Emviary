@@ -1,8 +1,8 @@
-"""Opt-in owner access from the latest authenticated frame's public network.
+"""Opt-in owner access from the latest authenticated frame's observed network.
 
 The ASGI server must preserve the TCP peer (uvicorn proxy_headers=False). Only
 explicitly trusted reverse proxies may supply X-Forwarded-For. This is a shared
-network convenience: anyone behind that public IP receives owner access.
+network convenience: anyone sharing an admissible origin receives owner access.
 """
 
 import hashlib
@@ -54,32 +54,66 @@ def _trusted_proxies():
         return []
 
 
-def source_public_ip(request):
-    """Canonical global unicast source; ignore forwarding from untrusted peers."""
+def _source_address(request):
+    """Return the observed client and whether an explicit proxy supplied it."""
     peer = _address(request.client.host) if request.client else None
     proxies = _trusted_proxies()
 
     def trusted(address):
         return address is not None and any(address in network for network in proxies)
 
-    if trusted(peer):
+    proxied = trusted(peer)
+    if proxied:
         forwarded = request.headers.getlist("x-forwarded-for")
         if len(forwarded) != 1 or len(forwarded[0]) > 2048:
-            return None
+            return None, False
         chain = forwarded[0].split(",")
         if not 1 <= len(chain) <= 32:
-            return None
+            return None, False
         # Walk right-to-left so attacker-controlled prefixes cannot override the
         # first untrusted hop. Each trusted proxy must append its observed peer.
         for raw in reversed(chain):
             peer = _address(raw)
             if peer is None:
-                return None
+                return None, False
             if not trusted(peer):
                 break
         else:
-            return None
+            return None, False
+    return peer, proxied
+
+
+def source_public_ip(request):
+    """Canonical global unicast source; ignore forwarding from untrusted peers."""
+    peer, _ = _source_address(request)
     return str(peer) if _global(peer) else None
+
+
+def source_management_ip(request):
+    """Allow exact, configured LAN origins only behind an explicitly trusted proxy.
+
+    Hairpin NAT can make both a frame and a browser appear as their router's
+    private address. This exception does not trust private ranges, Docker peers,
+    or browser-supplied forwarding headers.
+    """
+    peer, proxied = _source_address(request)
+    if _global(peer):
+        return str(peer)
+    if not peer or not proxied:
+        return None
+    ranges = tuple(
+        ipaddress.ip_network(value)
+        for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7")
+    )
+    allowed = []
+    for value in os.getenv("EMVIARY_TRUSTED_LOCAL_IPS", "").split(","):
+        if not value.strip():
+            continue
+        address = _address(value)
+        if address is None or not any(address in network for network in ranges):
+            return None
+        allowed.append(address)
+    return str(peer) if peer in allowed else None
 
 
 def record_frame_network(request, service, frame, *, now=None):
@@ -97,7 +131,7 @@ def record_frame_network(request, service, frame, *, now=None):
     )
     if not authenticated or authenticated["id"] != frame["id"]:
         return
-    address = source_public_ip(request)
+    address = source_management_ip(request)
     if address:
         service.store.record_frame_network(frame["id"], address, now or datetime.now(UTC))
     else:
@@ -106,7 +140,7 @@ def record_frame_network(request, service, frame, *, now=None):
 
 def network_session(request, service, *, now=None):
     """A request-local owner session, with no cookie or public source-IP fields."""
-    address = source_public_ip(request)
+    address = source_management_ip(request)
     if not address:
         return None
     now = now or datetime.now(UTC)
