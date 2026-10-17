@@ -72,8 +72,8 @@ def test_matching_wan_is_request_local_and_revalidated(service, trusted_frame):
 
 def test_opt_out_and_stale_or_future_contact_denied(service, trusted_frame):
     record(service, trusted_frame)
-    assert network_session(request(), service, now=NOW + timedelta(hours=48))
-    assert not network_session(request(), service, now=NOW + timedelta(hours=48, seconds=1))
+    assert network_session(request(), service, now=NOW + timedelta(days=30))
+    assert not network_session(request(), service, now=NOW + timedelta(days=30, seconds=1))
     assert not network_session(request(), service, now=NOW - timedelta(seconds=1))
     with service.store.connect() as db:
         db.execute("UPDATE frames SET policy='{}' WHERE id=?", (trusted_frame[0],))
@@ -226,7 +226,7 @@ def test_configured_hairpin_origin_requires_proxy_and_authenticated_frame(
     assert not network_session(browser, service, now=NOW)
     record(service, trusted_frame, peer="172.18.0.5", extra_headers=headers)
     assert network_session(browser, service, now=NOW)
-    assert not network_session(browser, service, now=NOW + timedelta(hours=49))
+    assert not network_session(browser, service, now=NOW + timedelta(days=30, seconds=1))
     assert source_management_ip(request("192.168.10.1")) is None
     assert source_management_ip(request("172.18.0.6", headers)) is None
     assert (
@@ -272,3 +272,15 @@ def test_private_origin_opt_in_never_accepts_ambiguous_forwarding(monkeypatch):
         [("x-forwarded-for", "192.168.10.1, bad")],
     ):
         assert source_management_ip(request("172.18.0.5", headers)) is None
+
+
+def test_frame_check_in_renews_thirty_day_window_but_browser_does_not(service, trusted_frame):
+    record(service, trusted_frame)
+    original = service.store.frame_network_contacts()
+    for days in (2, 7, 29, 30):
+        assert network_session(request(), service, now=NOW + timedelta(days=days))
+    assert service.store.frame_network_contacts() == original
+    assert not network_session(request(), service, now=NOW + timedelta(days=31))
+    record(service, trusted_frame, now=NOW + timedelta(days=29))
+    assert network_session(request(), service, now=NOW + timedelta(days=59))
+    assert not network_session(request(), service, now=NOW + timedelta(days=59, seconds=1))

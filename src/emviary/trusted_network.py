@@ -13,7 +13,8 @@ import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-MAX_CONTACT_AGE = timedelta(hours=48)
+# Only authenticated frame traffic renews trust, never browser activity.
+MAX_CONTACT_AGE = timedelta(days=30)
 
 
 def _address(value):
