@@ -522,7 +522,8 @@ def attach_owner(app, service):
             if view == "manage":
                 delivered = service.delivered_image(frame)
                 ready = service.store.slot_image(frame["id"], "navigation")
-                daily = service.store.slot_image(frame["id"], "scheduled")
+                upcoming = service.next_daily_refresh(frame)
+                daily = upcoming["image"]
                 battery = battery_summary(service, frame["id"])
                 body += (
                     '<section class="card"><div class="section-heading"><h2>'
@@ -567,7 +568,7 @@ def attach_owner(app, service):
                     )
                 )
 
-                def readiness(image):
+                def readiness(image, check_at=None):
                     if not image:
                         return "Waiting for server preparation."
                     plan = json.loads(image["manifest"])
@@ -575,7 +576,7 @@ def attach_owner(app, service):
                     stamp = forecast.get("fetched_at")
                     state = (
                         "Ready"
-                        if service.image_usable(image, frame)
+                        if service.image_usable(image, frame, now=check_at)
                         else "Waiting for fresh preparation"
                     )
                     detail = (
@@ -603,9 +604,32 @@ def attach_owner(app, service):
                     + identifier
                     + '/prepared/scheduled">'
                     if daily
-                    else '<p class="empty-state">Preparing near the next daily wake.</p>'
+                    else '<p class="empty-state">'
+                    + {
+                        "waiting": (
+                            "Picture not prepared yet. It will appear here after preparation."
+                        ),
+                        "preparing": "Preparation is due. Waiting for the next picture.",
+                        "failed": (
+                            "Preparation failed. The frame will keep its current picture "
+                            "until a new one is ready."
+                        ),
+                    }[upcoming["status"]]
+                    + "</p>"
                 )
-                body += '<p class="quiet">' + escape(readiness(daily)) + "</p>"
+                zone = ZoneInfo(site_timezone)
+                wake_label = upcoming["wake_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
+                prep_label = upcoming["prepare_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
+                body += (
+                    '<p class="quiet">Next refresh: '
+                    + escape(wake_label + " · " + timezone_label)
+                    + "</p>"
+                )
+                body += '<p class="quiet">Preparation: ' + escape(prep_label) + "</p>"
+                if daily:
+                    body += (
+                        '<p class="quiet">' + escape(readiness(daily, upcoming["wake_at"])) + "</p>"
+                    )
                 body += '</div><div class="prepared-slot"><h3>Next button</h3>'
                 body += (
                     '<img class="preview" alt="Prepared next artwork" src="/manage/frames/'
@@ -2118,10 +2142,14 @@ def attach_owner(app, service):
     @app.get("/manage/frames/{identifier}/prepared/{purpose}")
     def prepared_preview(identifier: str, purpose: str, request: Request):
         require(request)
-        service.store.frame(identifier)
+        frame = service.store.frame(identifier)
         if purpose not in {"scheduled", "navigation"}:
             raise HTTPException(404, "Unknown prepared image")
-        record = service.store.slot_image(identifier, purpose)
+        record = (
+            service.next_daily_refresh(frame)["image"]
+            if purpose == "scheduled"
+            else service.store.slot_image(identifier, purpose)
+        )
         if not record:
             raise HTTPException(404, "No prepared preview")
         return FileResponse(

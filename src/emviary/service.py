@@ -884,6 +884,55 @@ class Service:
             # The persistent queue will be picked up by the scheduler on its next tick.
             log.debug("Refill postponed: preparation lock busy")
 
+    def daily_schedule(self, frame, day):
+        """One schedule definition for the worker and the upcoming owner preview."""
+        site = self.settings.config.site(frame["site_id"])
+        policy = FramePolicy.model_validate_json(frame["policy"])
+        zone = ZoneInfo(site.timezone)
+        wake = datetime.combine(day, datetime.strptime(policy.wake_local_time, "%H:%M").time())
+        wake = wake.replace(tzinfo=zone).astimezone(UTC)
+        preparation_day = day - timedelta(days=site.prepare_local_time >= policy.wake_local_time)
+        configured = (
+            datetime.combine(
+                preparation_day, datetime.strptime(site.prepare_local_time, "%H:%M").time()
+            )
+            .replace(tzinfo=zone)
+            .astimezone(UTC)
+        )
+        recent = wake - timedelta(minutes=min(45, policy.weather_max_age_minutes // 2))
+        # UTC arithmetic also handles a nonexistent spring-forward preparation time.
+        prepare_at = max(configured, recent) if configured < wake else recent
+        cycle = (
+            day.isoformat() + ":" + site.prepare_local_time + ":" + self.configuration_hash(frame)
+        )
+        return {"wake_at": wake, "prepare_at": prepare_at, "cycle": cycle}
+
+    def next_daily_refresh(self, frame, now=None):
+        """Describe only the next scheduled wake, never a previously delivered slot."""
+        now = now or self.clock()
+        site = self.settings.config.site(frame["site_id"])
+        day = now.astimezone(ZoneInfo(site.timezone)).date()
+        schedule = self.daily_schedule(frame, day)
+        if now >= schedule["wake_at"]:
+            schedule = self.daily_schedule(frame, day + timedelta(days=1))
+        state = self.store.slot_state(frame["id"], "scheduled")
+        matching = state and state["cycle"] == schedule["cycle"]
+        image = self.store.slot_image(frame["id"], "scheduled") if matching else None
+        # Evaluate tomorrow's forecast at tomorrow's wake, not against today's date.
+        if not self.image_usable(image, frame, now=schedule["wake_at"]):
+            image = None
+        error = state["error"] if matching else None
+        status = (
+            "ready"
+            if image
+            else "failed"
+            if error
+            else "waiting"
+            if now < schedule["prepare_at"]
+            else "preparing"
+        )
+        return {**schedule, "image": image, "status": status}
+
     def prepare_due(self, now=None):
         now = now or self.clock()
         with preparation_lock(self.settings.data_dir):
@@ -891,28 +940,9 @@ class Service:
                 site = self.settings.config.site(frame["site_id"])
                 local = now.astimezone(ZoneInfo(site.timezone))
                 today = local.date()
-                policy = FramePolicy.model_validate_json(frame["policy"])
 
                 def deadline_for(day):
-                    zone = ZoneInfo(site.timezone)
-                    wake = (
-                        datetime.fromisoformat(day.isoformat() + "T" + policy.wake_local_time)
-                        .replace(tzinfo=zone)
-                        .astimezone(UTC)
-                    )
-                    preparation_day = day - timedelta(
-                        days=site.prepare_local_time >= policy.wake_local_time
-                    )
-                    configured = (
-                        datetime.fromisoformat(
-                            preparation_day.isoformat() + "T" + site.prepare_local_time
-                        )
-                        .replace(tzinfo=zone)
-                        .astimezone(UTC)
-                    )
-                    recent = wake - timedelta(minutes=min(45, policy.weather_max_age_minutes // 2))
-                    # UTC arithmetic also handles a nonexistent spring-forward prep time.
-                    return max(configured, recent) if configured < wake else recent
+                    return self.daily_schedule(frame, day)["prepare_at"]
 
                 target = today
                 deadline = deadline_for(today)

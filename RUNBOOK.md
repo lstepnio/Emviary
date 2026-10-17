@@ -356,6 +356,20 @@ ESP32 ROM startup output may still occur. This project does not burn eFuses to
 suppress ROM text. Existing bootloader output remains until USB recovery installs
 the quiet bootloader. Battery and refresh-status telemetry remain available.
 
+## Daily refresh preview
+
+The management overview's Daily refresh card targets the next saved daily wake
+in the frame's site timezone. After today's wake it advances to tomorrow, even
+if the frame has not checked in. It never presents a completed prior slot as the
+upcoming picture. Until the worker prepares that cycle, the card shows the exact
+next wake and preparation time without a duplicate thumbnail. The prepared-image
+endpoint also rejects prior-cycle, hidden, invalidated, or expired pictures.
+
+Daily preparation runs close to the wake so the forecast remains fresh. An
+expected wait before that time is distinct from a due or failed preparation.
+Future-day previews evaluate forecast freshness at their target wake, including
+midnight schedules; they are not rejected simply because today has a different date.
+
 ## Trusted network management
 
 Settings contains an explicit password-free management option for each frame. It

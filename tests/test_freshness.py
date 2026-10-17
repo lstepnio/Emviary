@@ -324,3 +324,77 @@ def test_midnight_wake_prepares_tomorrow_without_serving_it_early(service, frame
     clock[0] += timedelta(minutes=45)
     selected, retain = service.select_image(service.store.frame(frame[0]), "latest", "")
     assert selected["id"] == tomorrow["id"] and not retain
+
+
+def test_overview_advances_to_next_wake_without_reusing_delivered_daily(
+    service, frame, monkeypatch, tmp_path
+):
+    from test_owner import sign_in
+
+    clock, _ = install_weather(service, monkeypatch)
+    clock[0] = datetime(2026, 10, 8, 8, 30, tzinfo=UTC)
+    service.prepare_due()
+    daily = service.store.slot_image(frame[0], "scheduled")
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    assert service.next_daily_refresh(service.store.frame(frame[0]))["image"]["id"] == daily["id"]
+    assert client.get("/manage/frames/test-frame/prepared/scheduled").status_code == 200
+    clock[0] = datetime(2026, 10, 8, 9, 15, tzinfo=UTC)  # Exactly at the saved wake.
+    upcoming = service.next_daily_refresh(service.store.frame(frame[0]))
+    assert upcoming["wake_at"] == datetime(2026, 10, 9, 9, 15, tzinfo=UTC)
+    assert upcoming["prepare_at"] == datetime(2026, 10, 9, 8, 30, tzinfo=UTC)
+    assert upcoming["image"] is None and upcoming["status"] == "waiting"
+    home = client.get("/manage").text
+    daily_card = home.split("<h3>Daily refresh</h3>")[1].split("<h3>Next button</h3>")[0]
+    assert "Oct 09, 03:15 AM" in daily_card
+    assert "Oct 09, 02:30 AM" in daily_card
+    assert "/prepared/scheduled" not in daily_card
+    assert "Waiting for fresh preparation" not in daily_card
+    assert client.get("/manage/frames/test-frame/prepared/scheduled").status_code == 404
+    # Nothing changes in the worker's completed daily slot or the confirmed picture.
+    assert service.store.slot_image(frame[0], "scheduled")["id"] == daily["id"]
+    clock[0] = datetime(2026, 10, 9, 8, 30, tzinfo=UTC)
+    service.prepare_due()
+    upcoming = service.next_daily_refresh(service.store.frame(frame[0]))
+    assert upcoming["status"] == "ready"
+    assert upcoming["image"]["local_date"] == "2026-10-09"
+    assert client.get("/manage/frames/test-frame/prepared/scheduled").status_code == 200
+
+
+def test_next_daily_preview_evaluates_midnight_forecast_at_target_wake(
+    service, frame, monkeypatch, tmp_path
+):
+    from test_owner import sign_in
+
+    clock, _ = install_weather(service, monkeypatch)
+    service.store.set_policy(
+        frame[0], FramePolicy(wake_local_time="00:15", firmware_rotate_cron=["15 0 *"])
+    )
+    service.settings.config.sites[0].prepare_local_time = "23:30"
+    clock[0] = datetime(2026, 10, 9, 5, 30, tzinfo=UTC)
+    service.prepare_due()
+    upcoming = service.next_daily_refresh(service.store.frame(frame[0]))
+    assert upcoming["status"] == "ready"
+    assert upcoming["image"]["local_date"] == "2026-10-09"
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    daily_card = (
+        client.get("/manage")
+        .text.split("<h3>Daily refresh</h3>")[1]
+        .split("<h3>Next button</h3>")[0]
+    )
+    assert "Ready" in daily_card and "Waiting for fresh preparation" not in daily_card
+
+
+def test_next_daily_preview_distinguishes_expected_wait_from_failed_preparation(
+    service, frame, monkeypatch
+):
+    clock, _ = install_weather(service, monkeypatch)
+    row = service.store.frame(frame[0])
+    assert service.next_daily_refresh(row)["status"] == "waiting"
+    clock[0] = datetime(2026, 10, 8, 8, 30, tzinfo=UTC)
+    assert service.next_daily_refresh(row)["status"] == "preparing"
+    monkeypatch.setattr(service, "converter", lambda *args: (_ for _ in ()).throw(TimeoutError()))
+    service.prepare_due()
+    assert service.next_daily_refresh(row)["status"] == "failed"
+    # A failed prior day's slot does not make tomorrow's expected wait look broken.
+    clock[0] = datetime(2026, 10, 8, 16, tzinfo=UTC)
+    assert service.next_daily_refresh(row)["status"] == "waiting"
