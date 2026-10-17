@@ -877,7 +877,7 @@ def attach_owner(app, service):
                     )
                     + '<p class="quiet">This trusts everyone sharing the recognized connection, '
                     "including "
-                    "guests. Uses a frame connection authenticated within the last 48 hours. "
+                    "guests. Uses a frame connection authenticated within the last 30 days. "
                     "Access is checked on every request; another network still needs the "
                     "owner password. If the frame has not contacted this service since this "
                     "feature was enabled, press the right white button once to connect it, "

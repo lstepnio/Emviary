@@ -361,9 +361,10 @@ the quiet bootloader. Battery and refresh-status telemetry remain available.
 Settings contains an explicit password-free management option for each frame. It
 trusts everyone sharing that frame's public IP, including guests and shared-NAT
 neighbors. A matching source must have been recorded by an authenticated frame
-image fetch within 48 hours. The server rechecks each request and never creates a
+image fetch within 30 days. The server rechecks each request and never creates a
 portable password-free cookie. Changes of frame WAN take effect on its next normal
-fetch; stale trust otherwise expires after 48 hours. No extra wake is requested.
+fetch; stale trust otherwise expires after 30 days. Only authenticated frame image requests renew this window; website visits do not.
+No extra wake is requested.
 Owner password changes still require password sign-in. Disable the option to
 require password access again. New frames default to password-only access.
 
@@ -381,7 +382,7 @@ address. Comma-separated exact RFC1918 or IPv6 ULA addresses are supported; CIDR
 loopback, link-local, carrier-grade NAT and malformed entries are rejected.
 This exception applies only to forwarding from the explicitly trusted proxy,
 and still requires an enabled frame policy and its authenticated image request
-within 48 hours. It does not automatically trust LAN or Docker subnets. After
+within 30 days. It does not automatically trust LAN or Docker subnets. After
 changing this environment setting, recreate only Emviary and let the actual
 frame connect once before checking cookie-free management access.
 
