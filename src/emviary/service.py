@@ -233,6 +233,7 @@ class Service:
         special_day_id=None,
         now=None,
         weather_not_before=None,
+        composition=None,
     ):
         policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
         policy.pop("wifi_networks", None)
@@ -246,6 +247,17 @@ class Service:
             weather_max_age_minutes=policy["weather_max_age_minutes"],
             weather_not_before=weather_not_before,
         )
+        if composition:
+            return {
+                **composition,
+                "configuration_hash": self.configuration_hash(frame),
+                "prepared_at": (now or self.clock()).isoformat(),
+                "local_date": local_date,
+                "revision": revision,
+                "profile_hash": profile,
+                "policy": policy,
+                "inputs": inputs,
+            }
         cutoff = (
             date.fromisoformat(local_date) - timedelta(days=policy["repeat_penalty_days"])
         ).isoformat()
@@ -255,10 +267,13 @@ class Service:
                 for r in db.execute(
                     """SELECT manifest FROM images WHERE frame_id=?
                        AND local_date>=? AND local_date<=?
-                       ORDER BY local_date DESC, revision DESC LIMIT 21""",
+                       ORDER BY local_date DESC, revision DESC""",
                     (frame["id"], cutoff, local_date),
                 )
             ]
+        from .compositions import distinct_compositions
+
+        manifests = distinct_compositions(manifests, limit=21)
         recent = [
             a["scientific_name"]
             for m in manifests
@@ -322,10 +337,11 @@ class Service:
                     for r in db.execute(
                         "SELECT manifest FROM images WHERE frame_id=? AND local_date<=? "
                         "AND json_extract(manifest, '$.content_category')='wildlife' "
-                        "ORDER BY local_date DESC, revision DESC LIMIT 24",
+                        "ORDER BY local_date DESC, revision DESC",
                         (frame["id"], local_date),
                     )
                 ]
+            wildlife_history = distinct_compositions(wildlife_history, limit=24)
             artworks = [choose_wildlife(wildlife, seed, wildlife_history)]
         else:
             artworks = render.choose_artworks(
@@ -602,6 +618,17 @@ class Service:
                 revision = (row[0] or 0) + 1
                 plan = None
         if plan is None:
+            composition = None
+            if purpose == "scheduled":
+                reserved = self.store.daily_composition(frame_id, local_date)
+                if reserved and reserved["configuration_hash"] == self.configuration_hash(frame):
+                    composition = json.loads(reserved["plan"]) if reserved["plan"] else None
+            elif reuse_image and reuse_image["local_date"] == local_date:
+                old = json.loads(reuse_image["manifest"])
+                if old.get(
+                    "configuration_hash", reuse_image["profile_hash"]
+                ) == self.configuration_hash(frame):
+                    composition = old
             plan = self._new_plan(
                 frame,
                 local_date,
@@ -611,21 +638,10 @@ class Service:
                 special_day_id,
                 now=now,
                 weather_not_before=weather_not_before,
+                composition=composition,
             )
-            if reuse_image and reuse_image["local_date"] == local_date:
-                old = json.loads(reuse_image["manifest"])
-                if old.get(
-                    "configuration_hash", reuse_image["profile_hash"]
-                ) == self.configuration_hash(frame):
-                    for key in (
-                        "artwork",
-                        "artworks",
-                        "layout",
-                        "seed",
-                        "license",
-                        "artwork_licenses",
-                    ):
-                        plan[key] = old[key]
+            # This is regenerated from the fresh render, never inherited from old weather bytes.
+            plan.pop("offline_patch", None)
             with self.store.connect() as db:
                 db.execute(
                     """INSERT INTO jobs(frame_id,local_date,revision,profile_hash,plan,status)
@@ -903,35 +919,166 @@ class Service:
         # UTC arithmetic also handles a nonexistent spring-forward preparation time.
         prepare_at = max(configured, recent) if configured < wake else recent
         cycle = (
-            day.isoformat() + ":" + site.prepare_local_time + ":" + self.configuration_hash(frame)
+            day.isoformat()
+            + ":"
+            + site.prepare_local_time
+            + ":"
+            + self.configuration_hash(frame)
+            + ":"
+            + policy.wake_local_time
+            + ":"
+            + str(policy.weather_max_age_minutes)
         )
         return {"wake_at": wake, "prepare_at": prepare_at, "cycle": cycle}
 
-    def next_daily_refresh(self, frame, now=None):
-        """Describe only the next scheduled wake, never a previously delivered slot."""
-        now = now or self.clock()
+    def _next_daily_schedule(self, frame, now):
         site = self.settings.config.site(frame["site_id"])
         day = now.astimezone(ZoneInfo(site.timezone)).date()
         schedule = self.daily_schedule(frame, day)
         if now >= schedule["wake_at"]:
             schedule = self.daily_schedule(frame, day + timedelta(days=1))
+        return schedule
+
+    def _reserve_daily_composition(self, frame, day, now):
+        """Persist tomorrow's artwork independently of its near-wake forecast.
+
+        The caller holds the preparation lock. A preview is never published into
+        image slots, counted as a delivery, or served through the device API.
+        """
+        from .compositions import composition_key
+
+        local_date = day.isoformat()
+        profile = self.configuration_hash(frame)
+        state = self.store.daily_composition(frame["id"], local_date)
+        matching = state and state["configuration_hash"] == profile
+        if matching and state["preview_path"] and self.cache_path(state["preview_path"]).is_file():
+            return
+        attempts = state["attempts"] if matching else 0
+        if attempts >= 3 or (
+            attempts
+            and state["last_attempt_at"]
+            and datetime.fromisoformat(state["last_attempt_at"]) > now - timedelta(minutes=15)
+        ):
+            return
+        plan = json.loads(state["plan"]) if matching and state["plan"] else None
+        with self.store.connect() as db:
+            db.execute(
+                "INSERT INTO daily_compositions(frame_id,local_date,configuration_hash,plan,"
+                "attempts,last_attempt_at) VALUES(?,?,?,?,?,?) ON CONFLICT(frame_id,local_date) "
+                "DO UPDATE SET configuration_hash=excluded.configuration_hash,plan=excluded.plan,"
+                "preview_path=NULL,attempts=excluded.attempts,last_attempt_at=excluded.last_attempt_at,"
+                "error=NULL",
+                (
+                    frame["id"],
+                    local_date,
+                    profile,
+                    stable_json(plan) if plan else None,
+                    attempts + 1,
+                    now.isoformat(),
+                ),
+            )
+        try:
+            if state and state["preview_path"]:
+                # The old configuration is no longer public or deliverable.
+                # Keep normal replanning from accumulating orphaned draft files.
+                self.cache_path(state["preview_path"]).unlink(missing_ok=True)
+            if plan is None:
+                plan = self._new_plan(frame, local_date, 0, profile, True, now=now)
+                # An early preview deliberately contains no potentially stale weather.
+                plan["inputs"].pop("open_meteo", None)
+                with self.store.connect() as db:
+                    db.execute(
+                        "UPDATE daily_compositions SET plan=? WHERE frame_id=? AND local_date=?",
+                        (stable_json(plan), frame["id"], local_date),
+                    )
+            with tempfile.TemporaryDirectory(
+                prefix="daily-preview-", dir=self.settings.data_dir / "cache"
+            ) as temporary:
+                temporary = Path(temporary)
+                master, packed, preview = (
+                    temporary / "composition.png",
+                    temporary / "image.epdgz",
+                    temporary / "preview.jpg",
+                )
+                render.compose(
+                    self.settings.art_dir, plan["artwork"], plan, master, self.event_art.root
+                )
+                self.converter(
+                    master,
+                    packed,
+                    preview,
+                    plan["policy"],
+                    self.settings.config.render.timeout_seconds,
+                )
+                render.validate_epdgz(packed)
+                with render.Image.open(preview) as image:
+                    image.verify()
+                name = (
+                    f"cache/{frame['id']}-{local_date}-planned-"
+                    f"{profile[:12]}-{composition_key(plan)[:12]}.jpg"
+                )
+                preview.replace(self.cache_path(name))
+            with self.store.connect() as db:
+                db.execute(
+                    "UPDATE daily_compositions SET preview_path=?,error=NULL "
+                    "WHERE frame_id=? AND local_date=?",
+                    (name, frame["id"], local_date),
+                )
+        except Exception as exc:
+            with self.store.connect() as db:
+                db.execute(
+                    "UPDATE daily_compositions SET error=? WHERE frame_id=? AND local_date=?",
+                    (type(exc).__name__, frame["id"], local_date),
+                )
+            log.warning(
+                "Daily composition preview failed frame=%s error=%s",
+                frame["id"],
+                type(exc).__name__,
+            )
+
+    def next_daily_refresh(self, frame, now=None):
+        """Read the saved composition and final render for the next scheduled wake."""
+        now = now or self.clock()
+        schedule = self._next_daily_schedule(frame, now)
+        site = self.settings.config.site(frame["site_id"])
+        day = schedule["wake_at"].astimezone(ZoneInfo(site.timezone)).date().isoformat()
         state = self.store.slot_state(frame["id"], "scheduled")
         matching = state and state["cycle"] == schedule["cycle"]
         image = self.store.slot_image(frame["id"], "scheduled") if matching else None
-        # Evaluate tomorrow's forecast at tomorrow's wake, not against today's date.
         if not self.image_usable(image, frame, now=schedule["wake_at"]):
             image = None
-        error = state["error"] if matching else None
+        reservation = self.store.daily_composition(frame["id"], day)
+        planned = None
+        if reservation and reservation["configuration_hash"] == self.configuration_hash(frame):
+            if (
+                reservation["plan"]
+                and reservation["preview_path"]
+                and self.cache_path(reservation["preview_path"]).is_file()
+            ):
+                planned = {
+                    "id": None,
+                    "local_date": day,
+                    "manifest": reservation["plan"],
+                    "preview_path": reservation["preview_path"],
+                    "planned": True,
+                }
+        else:
+            reservation = None
+        error = (state["error"] if matching else None) or (
+            reservation["error"] if reservation else None
+        )
         status = (
             "ready"
             if image
             else "failed"
             if error
-            else "waiting"
-            if now < schedule["prepare_at"]
             else "preparing"
+            if now >= schedule["prepare_at"]
+            else "planned"
+            if planned
+            else "waiting"
         )
-        return {**schedule, "image": image, "status": status}
+        return {**schedule, "image": image, "preview": image or planned, "status": status}
 
     def prepare_due(self, now=None):
         now = now or self.clock()
@@ -940,6 +1087,9 @@ class Service:
                 site = self.settings.config.site(frame["site_id"])
                 local = now.astimezone(ZoneInfo(site.timezone))
                 today = local.date()
+                upcoming = self._next_daily_schedule(frame, now)
+                planned_day = upcoming["wake_at"].astimezone(ZoneInfo(site.timezone)).date()
+                self._reserve_daily_composition(frame, planned_day, now)
 
                 def deadline_for(day):
                     return self.daily_schedule(frame, day)["prepare_at"]
@@ -950,18 +1100,33 @@ class Service:
                 if now >= deadline_for(tomorrow):
                     target = tomorrow
                     deadline = deadline_for(tomorrow)
-                cycle = (
+                cycle = self.daily_schedule(frame, target)["cycle"]
+                state = self.store.slot_state(frame["id"], "scheduled")
+                scheduled = self.store.slot_image(frame["id"], "scheduled")
+                # Accept a completed pre-upgrade cycle only when its saved timing
+                # policy still matches. Deploying must not reroll today's artwork.
+                old_policy = (
+                    json.loads(scheduled["manifest"]).get("policy", {}) if scheduled else {}
+                )
+                policy = FramePolicy.model_validate_json(frame["policy"])
+                legacy_cycle = (
                     target.isoformat()
                     + ":"
                     + site.prepare_local_time
                     + ":"
                     + self.configuration_hash(frame)
                 )
-                state = self.store.slot_state(frame["id"], "scheduled")
+                legacy_done = (
+                    state
+                    and state["cycle"] == legacy_cycle
+                    and scheduled
+                    and old_policy.get("wake_local_time") == policy.wake_local_time
+                    and old_policy.get("weather_max_age_minutes") == policy.weather_max_age_minutes
+                )
                 done = (
                     state
-                    and state["cycle"] == cycle
-                    and self.store.slot_image(frame["id"], "scheduled")
+                    and (state["cycle"] == cycle or legacy_done)
+                    and scheduled
                     and not state["error"]
                 )
                 eligible = now >= deadline
@@ -1020,9 +1185,12 @@ class Service:
                 if local.strftime("%H:%M") >= "03:00":
                     directory = self.settings.backup_dir / local.date().isoformat()
                     if not (directory / "COMPLETE").is_file():
-                        self._backup(directory)
-                        self._prune_backups()
-                        self._prune_history(local.date())
+                        try:
+                            self._backup(directory)
+                            self._prune_backups()
+                            self._prune_history(local.date())
+                        except Exception as exc:
+                            log.warning("Scheduled backup failed: %s", type(exc).__name__)
 
         self.refill_pending(now=now)
 
@@ -1037,6 +1205,15 @@ class Service:
                        images.body_hash=substr(trim(frames.last_served_etag,'"'),1,64))""",
                 (cutoff,),
             ).fetchall()
+            planned_previews = [
+                row[0]
+                for row in db.execute(
+                    "SELECT preview_path FROM daily_compositions "
+                    "WHERE local_date<? AND preview_path IS NOT NULL",
+                    (cutoff,),
+                )
+            ]
+            db.execute("DELETE FROM daily_compositions WHERE local_date<?", (cutoff,))
             for image in expired:
                 db.execute("DELETE FROM images WHERE id=?", (image["id"],))
             db.execute(
@@ -1050,6 +1227,8 @@ class Service:
                 ((today - timedelta(days=14)).isoformat(),),
             )
         # Remove files after committing rows. Interrupted cleanup leaves harmless orphan files.
+        for name in planned_previews:
+            self.cache_path(name).unlink(missing_ok=True)
         for image in expired:
             for name in (image["path"], image["preview_path"]):
                 self.cache_path(name).unlink(missing_ok=True)
@@ -1114,6 +1293,13 @@ class Service:
                 for image in list(images) + [r for r in protected if r["id"] in protected_ids]
                 for name in (image["path"], image["preview_path"])
             }
+            with sqlite3.connect(database) as db:
+                paths.update(
+                    row[0]
+                    for row in db.execute(
+                        "SELECT preview_path FROM daily_compositions WHERE preview_path IS NOT NULL"
+                    )
+                )
             for name in paths:
                 source = self.cache_path(name)
                 unresolved = self.settings.data_dir / name

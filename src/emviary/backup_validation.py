@@ -110,6 +110,18 @@ def verify_backup(root, *, require_complete=True, temp_dir=None):
             original_frames = [dict(r) for r in db.execute("SELECT * FROM frames ORDER BY id")]
             images = [dict(r) for r in db.execute("SELECT * FROM images")]
             slots = [dict(r) for r in db.execute("SELECT * FROM prepared_slots")]
+            has_plans = db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='daily_compositions'"
+            ).fetchone()
+            planned = (
+                list(
+                    db.execute(
+                        "SELECT preview_path FROM daily_compositions WHERE preview_path IS NOT NULL"
+                    )
+                )
+                if has_plans
+                else []
+            )
     except sqlite3.Error:
         raise ValueError("Backup database cannot be read or has invalid schema") from None
     try:
@@ -157,6 +169,12 @@ def verify_backup(root, *, require_complete=True, temp_dir=None):
                 active = restored.store.active_image(frame)
                 if frame.get("active_image_id") and active is None:
                     raise ValueError("Active image reference is unavailable")
+            for row in planned:
+                preview = restored.cache_path(row["preview_path"])
+                if not preview.is_file():
+                    raise ValueError("Backup is missing a planned composition preview")
+                with Image.open(preview) as image:
+                    image.verify()
             for identifier in mandatory:
                 image = image_by_id.get(identifier)
                 if image is None:

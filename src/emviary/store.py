@@ -137,7 +137,18 @@ class Store:
                     last_attempt_at TEXT, error TEXT,
                     PRIMARY KEY(frame_id,purpose)
                 );
-                PRAGMA user_version=7;
+                CREATE TABLE IF NOT EXISTS daily_compositions (
+                    frame_id TEXT NOT NULL REFERENCES frames(id),
+                    local_date TEXT NOT NULL,
+                    configuration_hash TEXT NOT NULL,
+                    plan TEXT,
+                    preview_path TEXT,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    last_attempt_at TEXT,
+                    error TEXT,
+                    PRIMARY KEY(frame_id, local_date)
+                );
+                PRAGMA user_version=8;
             """)
 
         with self.connect() as db:
@@ -209,16 +220,30 @@ class Store:
             ).fetchone()
         return dict(row) if row else None
 
-    def past_compositions(self, frame_id, current_id, limit=2):
+    def daily_composition(self, frame_id, local_date):
         with self.connect() as db:
-            return [
-                dict(row)
-                for row in db.execute(
-                    "SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id<? "
-                    "ORDER BY id DESC LIMIT ?",
-                    (frame_id, current_id, min(10, max(1, limit))),
-                )
-            ]
+            row = db.execute(
+                "SELECT * FROM daily_compositions WHERE frame_id=? AND local_date=?",
+                (frame_id, local_date),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def past_compositions(self, frame_id, current_id, limit=2):
+        from .compositions import composition_key, distinct_compositions
+
+        with self.connect() as db:
+            current = db.execute(
+                "SELECT * FROM images WHERE frame_id=? AND id=?", (frame_id, current_id)
+            ).fetchone()
+            images = db.execute(
+                "SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id<? ORDER BY id DESC",
+                (frame_id, current_id),
+            )
+            return distinct_compositions(
+                (dict(row) for row in images),
+                exclude=[composition_key(dict(current))] if current else [],
+                limit=min(10, max(1, limit)),
+            )
 
     def navigation_image(self, frame, direction, client_tag):
         digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]
@@ -241,13 +266,16 @@ class Store:
             ):
                 return dict(active)
             comparison, order = ("<", "DESC") if direction == "previous" else (">", "ASC")
-            row = db.execute(
+            from .compositions import composition_key
+
+            current_key = composition_key(dict(cursor))
+            for row in db.execute(
                 f"SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id{comparison}? "
-                f"ORDER BY id {order} LIMIT 1",
+                f"ORDER BY id {order}",
                 (frame["id"], cursor["id"]),
-            ).fetchone()
-            if row:
-                return dict(row)
+            ):
+                if composition_key(dict(row)) != current_key:
+                    return dict(row)
             # An older device cursor can reference artwork removed since its fetch.
             # Preserve that navigation position, but never resend a removed image.
             return self.active_image(frame) if cursor["hidden"] else dict(cursor)

@@ -171,13 +171,19 @@ def test_daily_and_initial_failures_are_bounded_and_persist(service, frame, monk
     # failed optional conversion must not introduce additional job attempts.
     assert attempts.count("master.png") == 6
     assert attempts.count("neutral.png") == 6
-    assert len(attempts) == 12
+    # Preview retries are independent: three today, then one for tomorrow
+    # once the clock reaches today's wake. None publish a deliverable image.
+    assert attempts.count("composition.png") == 4
+    assert len(attempts) == 16
     assert service.store.slot_state(frame[0], "scheduled")["attempts"] == 3
     restarted = Service(service.settings, service.providers, fail, clock=service.clock)
     restarted.prepare_due(clock[0] + timedelta(minutes=50))
     assert attempts.count("master.png") == 6
     assert attempts.count("neutral.png") == 6
-    assert len(attempts) == 12
+    # Preview retries are independent: three today, then one for tomorrow
+    # once the clock reaches today's wake. None publish a deliverable image.
+    assert attempts.count("composition.png") == 4
+    assert len(attempts) == 16
     assert service.store.pending_refills(frame[0])[0]["attempts"] == 3
 
 

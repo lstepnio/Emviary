@@ -508,8 +508,9 @@ def create_app(service=None, schedule=True):
                 + '"></a></div><div class="artwork-heading"><h2>'
                 + escape(artwork["common_name"])
                 + '</h2></div><p class="artwork-meta">'
+                + "Species renders: "
                 + str(counts.get(name, 0))
-                + " generated compositions</p>"
+                + "</p>"
                 + (
                     '<details class="artwork-options"><summary>'
                     + str(len(variants))
