@@ -1,9 +1,12 @@
 """Read-only composition previews for the configured public frame only."""
 
 from html import escape
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
+
+from .compositions import composition_key
 
 
 def public_records(service):
@@ -15,10 +18,11 @@ def public_records(service):
     except ValueError:
         return None, {}, []
     current = service.delivered_image(frame)
-    upcoming = {
-        "Daily refresh": service.store.slot_image(identifier, "scheduled"),
-        "Next button": service.store.active_image(frame),
-    }
+    daily = service.next_daily_refresh(frame)
+    preview = daily["preview"]
+    if preview:
+        preview = {**preview, "preview_url": "/display/next-daily.jpg"}
+    upcoming = {"Daily refresh": preview, "Next button": service.store.active_image(frame)}
     past = service.store.past_compositions(identifier, current["id"], 10) if current else []
     return current, upcoming, past
 
@@ -34,14 +38,15 @@ def gallery_markup(service):
         )
 
     def card(record, label):
+        url = record.get("preview_url") or f"/display/images/{record['id']}.jpg"
         return (
-            '<figure><a href="/display/images/' + str(record["id"]) + '.jpg">'
+            '<figure><a href="' + escape(url, quote=True) + '">'
             '<img class="preview" loading="lazy" width="800" height="480" '
             'alt="'
             + escape(label, quote=True)
-            + '" src="/display/images/'
-            + str(record["id"])
-            + '.jpg"></a><figcaption>'
+            + '" src="'
+            + escape(url, quote=True)
+            + '"></a><figcaption>'
             + escape(label)
             + "</figcaption></figure>"
         )
@@ -50,20 +55,43 @@ def gallery_markup(service):
     grouped = {}
     for label, image in upcoming.items():
         if usable(image):
-            labels, record = grouped.setdefault(image["id"], ([], image))
+            labels, record = grouped.setdefault(composition_key(image), ([], image))
             labels.append(label)
-    ready = [(" · ".join(labels), image) for labels, image in grouped.values()]
-    if ready:
+    ready = [
+        (" · ".join(labels) + " · " + image["local_date"], image)
+        for labels, image in grouped.values()
+    ]
+    if ready or upcoming:
         body += '<section class="public-compositions"><h2>Coming up</h2>'
+        frame = service.store.frame(service.settings.config.public_frame_id)
+        daily = service.next_daily_refresh(frame)
+        site = service.settings.config.site(frame["site_id"])
+        zone = ZoneInfo(site.timezone)
+        wake = daily["wake_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
+        weather = daily["prepare_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
         body += (
-            '<p class="quiet">Prepared previews. The daily picture can change '
-            "as the forecast updates.</p>"
+            '<p class="quiet">Next daily refresh: '
+            + escape(wake)
+            + " · "
+            + escape(site.timezone.rsplit("/", 1)[-1].replace("_", " "))
+            + ". Artwork and layout are planned in advance; weather updates before the refresh at "
+            + escape(weather)
+            + ".</p>"
         )
+        if daily["status"] == "failed":
+            body += (
+                '<p class="notice">Daily refresh preparation is delayed. The frame keeps '
+                "its current picture until it is ready.</p>"
+            )
+
         body += (
             '<div class="current-next">'
             + "".join(card(image, label) for label, image in ready)
-            + "</div></section>"
+            + "</div>"
         )
+        if not ready:
+            body += '<p class="empty-state">The next composition preview is being prepared.</p>'
+        body += "</section>"
     history = [image for image in past if usable(image)]
     if history:
         body += (
@@ -82,6 +110,18 @@ def gallery_markup(service):
 
 
 def install_routes(app, service):
+    @app.get("/display/next-daily.jpg")
+    def daily_composition_preview():
+        _, upcoming, _ = public_records(service)
+        chosen = upcoming.get("Daily refresh")
+        if not chosen or not service.cache_path(chosen["preview_path"]).is_file():
+            raise HTTPException(404, "Public daily composition unavailable")
+        return FileResponse(
+            service.cache_path(chosen["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
+
     @app.get("/display/images/{image_id}.jpg")
     def composition_preview(image_id: int):
         current, upcoming, past = public_records(service)

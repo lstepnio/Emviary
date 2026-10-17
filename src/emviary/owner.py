@@ -523,7 +523,7 @@ def attach_owner(app, service):
                 delivered = service.delivered_image(frame)
                 ready = service.store.slot_image(frame["id"], "navigation")
                 upcoming = service.next_daily_refresh(frame)
-                daily = upcoming["image"]
+                daily = upcoming["preview"]
                 battery = battery_summary(service, frame["id"])
                 body += (
                     '<section class="card"><div class="section-heading"><h2>'
@@ -577,7 +577,7 @@ def attach_owner(app, service):
                     state = (
                         "Ready"
                         if service.image_usable(image, frame, now=check_at)
-                        else "Waiting for fresh preparation"
+                        else "Refreshing weather"
                     )
                     detail = (
                         "Forecast updated "
@@ -625,11 +625,24 @@ def attach_owner(app, service):
                     + escape(wake_label + " · " + timezone_label)
                     + "</p>"
                 )
-                body += '<p class="quiet">Preparation: ' + escape(prep_label) + "</p>"
+                body += '<p class="quiet">Weather update: ' + escape(prep_label) + "</p>"
                 if daily:
-                    body += (
-                        '<p class="quiet">' + escape(readiness(daily, upcoming["wake_at"])) + "</p>"
-                    )
+                    if daily.get("planned"):
+                        body += (
+                            '<p class="quiet">Composition planned. Weather will be '
+                            "updated before the daily refresh.</p>"
+                        )
+                    else:
+                        body += (
+                            '<p class="quiet">'
+                            + escape(readiness(daily, upcoming["wake_at"]))
+                            + "</p>"
+                        )
+                    if upcoming["status"] == "failed":
+                        body += (
+                            '<p class="notice">Preparation needs attention. The frame keeps '
+                            "its current picture until a fresh render is ready.</p>"
+                        )
                 body += '</div><div class="prepared-slot"><h3>Next button</h3>'
                 body += (
                     '<img class="preview" alt="Prepared next artwork" src="/manage/frames/'
@@ -654,7 +667,7 @@ def attach_owner(app, service):
                 body += '<section class="past-compositions"><h3>Past compositions</h3>'
                 body += (
                     '<p class="quiet">Browse the pictures before the current '
-                    "composition, newest first.</p>"
+                    "composition, newest first. Weather-only updates are grouped.</p>"
                 )
                 if not past:
                     body += (
@@ -1861,8 +1874,9 @@ def attach_owner(app, service):
                 + label
                 + "</span></div>"
                 '<p class="artwork-meta">'
+                + "Species renders: "
                 + str(counts.get(art["scientific_name"], 0))
-                + " compositions</p>"
+                + "</p>"
             )
             if art.get("category") == "wildlife":
                 body += '<p class="artwork-meta">Colorado · Mammal</p>'
@@ -2146,7 +2160,7 @@ def attach_owner(app, service):
         if purpose not in {"scheduled", "navigation"}:
             raise HTTPException(404, "Unknown prepared image")
         record = (
-            service.next_daily_refresh(frame)["image"]
+            service.next_daily_refresh(frame)["preview"]
             if purpose == "scheduled"
             else service.store.slot_image(identifier, purpose)
         )

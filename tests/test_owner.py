@@ -160,7 +160,7 @@ def test_queued_preview_and_exclude_artwork(service, frame, tmp_path, monkeypatc
         == 303
     )
     assert artwork not in service.store.excluded_artworks()
-    assert " compositions</p>" in client.get("/manage/artwork").text
+    assert "Species renders: " in client.get("/manage/artwork").text
 
 
 def test_management_exposes_battery_history_and_charge_alert(service, frame, tmp_path, monkeypatch):

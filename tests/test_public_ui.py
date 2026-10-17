@@ -39,7 +39,7 @@ def test_public_home_and_mirror_keep_last_delivery_as_buffer_advances(service, f
     assert client.get("/display.jpg").content == delivered
 
 
-def test_library_search_sort_and_counts_are_compositions(service):
+def test_library_search_sort_and_counts_are_species_renders(service):
     works = service.settings.artworks
     chickadee = next(a for a in works if a["common_name"] == "Black-capped Chickadee")
     bluejay = next(a for a in works if a["common_name"] == "Blue Jay")
@@ -55,9 +55,9 @@ def test_library_search_sort_and_counts_are_compositions(service):
     assert response.text.index("<h2>Blue Jay</h2>") < response.text.index(
         "<h2>Black-capped Chickadee</h2>"
     )
-    assert "1 generated composition" in response.text
+    assert "Species renders: 1" in response.text
     assert "2 illustrations" in response.text
-    assert "2 generated compositions" in response.text
+    assert "Species renders: 2" in response.text
     assert "once per composition" in response.text
     assert "not page views" in response.text
     search = client.get("/library", params={"q": "poecile"})
@@ -77,7 +77,7 @@ def test_library_filters_empty_state_and_escape(service):
     assert 'href="/library"' in response.text
     reference = client.get("/library?status=reference")
     assert "Web reference only" in reference.text
-    assert "0 generated compositions" in reference.text
+    assert "Species renders: 0" in reference.text
     first = client.get("/library")
     assert first.text.count('<article class="card library-card artwork-card"') == 24
     assert "Page 1 of " in first.text
@@ -128,10 +128,20 @@ def test_public_gallery_hides_missing_preview_files(service, frame):
 
 
 def test_public_gallery_deduplicates_shared_prepared_picture_with_both_roles(service, frame):
+    from datetime import UTC, datetime
+
+    service.clock = lambda: datetime(2026, 10, 8, 8, 30, tzinfo=UTC)
     client = public_client(service, frame)
     ready = service.prepare(frame[0], "2026-10-08", offline=True)
     with service.store.connect() as db:
-        service._publish_slot(db, frame[0], "scheduled", ready["id"], None)
+        service._publish_slot(
+            db,
+            frame[0],
+            "scheduled",
+            ready["id"],
+            service.daily_schedule(service.store.frame(frame[0]), service.clock().date())["cycle"],
+        )
     home = client.get("/").text
     assert "Daily refresh · Next button" in home
-    assert home.count(f'src="/display/images/{ready["id"]}.jpg"') == 1
+    assert home.count('src="/display/next-daily.jpg"') == 1
+    assert f'src="/display/images/{ready["id"]}.jpg"' not in home

@@ -356,19 +356,36 @@ ESP32 ROM startup output may still occur. This project does not burn eFuses to
 suppress ROM text. Existing bootloader output remains until USB recovery installs
 the quiet bootloader. Battery and refresh-status telemetry remain available.
 
-## Daily refresh preview
+## Daily composition planning and previews
 
-The management overview's Daily refresh card targets the next saved daily wake
-in the frame's site timezone. After today's wake it advances to tomorrow, even
-if the frame has not checked in. It never presents a completed prior slot as the
-upcoming picture. Until the worker prepares that cycle, the card shows the exact
-next wake and preparation time without a duplicate thumbnail. The prepared-image
-endpoint also rejects prior-cycle, hidden, invalidated, or expired pictures.
+The worker reserves the next scheduled day's composition ahead of time in
+`daily_compositions`. It stores the selected artwork, order, layout, greeting,
+and appearance settings and produces a quantized preview with no forecast.
+This preview is separate from deliverable images: it does not replace the
+current image, enter device navigation, or increment render statistics.
 
-Daily preparation runs close to the wake so the forecast remains fresh. An
-expected wait before that time is distinct from a due or failed preparation.
-Future-day previews evaluate forecast freshness at their target wake, including
-midnight schedules; they are not rejected simply because today has a different date.
+The public Coming up section and owner Daily refresh card read that same plan.
+Both show the next wake and weather-update time. The scheduled worker adds a
+fresh forecast near the wake while preserving the reserved composition. Once
+that render is ready, both previews show its final bytes. Changing appearance,
+artwork availability, special days, or location invalidates the reservation;
+the worker replans on its next tick. Preview requests do not render or contact
+providers. Preview failures retry three times per day/configuration, at least
+15 minutes apart, without preventing the final scheduled render.
+
+Past compositions and previous/next navigation group weather-only revisions by
+artwork order, layout, greeting, and visible appearance. The currently displayed
+composition is excluded from past cards, and grouping happens before the card
+limit. Retained historical image bytes remain unchanged. History is a record of
+earlier prepared compositions, not proof that every image reached the panel.
+Artwork selection also uses distinct composition history instead of giving
+repeated weather renders extra weight. Library counters are labeled as renders.
+
+Daily schedule cycles include wake time and weather-age policy. Daylight-saving
+and midnight schedules use the same clock calculation for the worker and UI.
+A scheduled backup failure is logged independently and cannot starve navigation
+refills. The dedicated production backup directory must be writable by UID 1000.
+Backups and restore validation include the reserved preview files and plans.
 
 ## Trusted network management
 
