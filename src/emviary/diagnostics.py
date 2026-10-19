@@ -9,6 +9,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from .status_data import json_object, timestamp
+
 
 class SavedNetwork(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
@@ -84,7 +86,7 @@ class DeviceMetrics(BaseModel):
 
 
 def parse_metrics(header):
-    if not header or len(header.encode()) > 2048:
+    if not isinstance(header, str) or not header or len(header.encode()) > 2048:
         return None
     try:
         if header.startswith("b64:"):
@@ -93,6 +95,22 @@ def parse_metrics(header):
         return result or None
     except (ValidationError, ValueError):
         return None
+
+
+def device_readings(store, frame_id):
+    """Revalidate optional historical telemetry; leave stored evidence unchanged."""
+    readings = []
+    for row in store.device_samples(frame_id):
+        if timestamp(row["recorded_at"]) is None:
+            continue
+        try:
+            metrics = DeviceMetrics.model_validate_json(row["metrics"]).model_dump(
+                exclude_none=True
+            )
+        except (ValidationError, ValueError, TypeError):
+            continue
+        readings.append({**row, "metrics": metrics})
+    return sorted(readings, key=lambda row: timestamp(row["recorded_at"]))
 
 
 def signal_label(value):
@@ -123,9 +141,9 @@ def management_alerts(service, frame, now=None):
         wake = datetime.fromisoformat(day.isoformat() + "T" + policy.wake_local_time)
         wake = wake.replace(tzinfo=zone).astimezone(UTC)
     alerts = []
-    contact = datetime.fromisoformat(frame["last_contact"]) if frame["last_contact"] else None
-    enrolled = datetime.fromisoformat(frame["created_at"])
-    if enrolled <= wake and (contact is None or contact < wake):
+    contact = timestamp(frame["last_contact"])
+    enrolled = timestamp(frame["created_at"])
+    if enrolled is not None and enrolled <= wake and (contact is None or contact < wake):
         alerts.append(
             (
                 "scheduled_refresh",
@@ -137,7 +155,7 @@ def management_alerts(service, frame, now=None):
 
     if policy.weather_cues and site.providers.open_meteo.enabled:
         snapshot = service.store.snapshot(frame["site_id"], "open_meteo")
-        payload = json.loads(snapshot["payload"]) if snapshot else {}
+        payload = json_object(snapshot["payload"]) if snapshot else {}
         stamp = payload.get("fetched_at")
         weather_age = timedelta(minutes=policy.weather_max_age_minutes)
         try:
@@ -178,7 +196,7 @@ def management_alerts(service, frame, now=None):
                     ):
                         stale = True
                         break
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, AttributeError):
             stale = True
         if stale:
             alerts.append(
@@ -202,13 +220,15 @@ def management_alerts(service, frame, now=None):
         job
         and job["status"] == "failed"
         and job["finished_at"]
-        and (recent <= datetime.fromisoformat(job["finished_at"]) <= now)
+        and (stamp := timestamp(job["finished_at"])) is not None
+        and recent <= stamp <= now
     )
     failed_slot = (
         slot
         and slot["error"]
         and slot["last_attempt_at"]
-        and (recent <= datetime.fromisoformat(slot["last_attempt_at"]) <= now)
+        and (stamp := timestamp(slot["last_attempt_at"])) is not None
+        and recent <= stamp <= now
     )
     if failed_job or failed_slot:
         alerts.append(
@@ -220,9 +240,9 @@ def management_alerts(service, frame, now=None):
             )
         )
 
-    rows = service.store.device_samples(frame["id"])
-    if rows and recent <= datetime.fromisoformat(rows[-1]["recorded_at"]) <= now:
-        metrics = json.loads(rows[-1]["metrics"])
+    rows = device_readings(service.store, frame["id"])
+    if rows and recent <= timestamp(rows[-1]["recorded_at"]) <= now:
+        metrics = rows[-1]["metrics"]
         result = metrics.get("firmware_update_result")
         if result in ("failed", "retry_held"):
             version = metrics.get("firmware_update_version")
@@ -264,13 +284,15 @@ def management_alerts_section(service, frame, escape, now=None):
 
 
 def diagnostics_section(store, frame_id, escape):
-    rows = store.device_samples(frame_id)
+    rows = device_readings(store, frame_id)
     body = '<section class="card"><h3>Connectivity and refreshes</h3>'
     if not rows:
-        return (
-            body
-            + '<p class="empty-state">Readings will appear after the frame connects.</p></section>'
+        message = (
+            "No readable diagnostic readings are available. Saved readings have not been changed."
+            if store.device_samples(frame_id)
+            else "Readings will appear after the frame connects."
         )
+        return body + '<p class="empty-state">' + message + "</p></section>"
 
     from .ui import local_time as reported
 
@@ -283,7 +305,7 @@ def diagnostics_section(store, frame_id, escape):
     def connection(m):
         return f"{m['connect_ms'] / 1000:.1f} s" if "connect_ms" in m else "Not reported"
 
-    latest = json.loads(rows[-1]["metrics"])
+    latest = rows[-1]["metrics"]
     metrics = (
         ("Wi-Fi", signal_label(latest.get("rssi_dbm")), latest.get("ssid", "")),
         ("Last completed refresh", refresh(latest), "Reported on the next connection"),
@@ -333,7 +355,7 @@ def diagnostics_section(store, frame_id, escape):
         "<th>Completed refresh</th></tr>"
     )
     for row in reversed(rows[-30:]):
-        m = json.loads(row["metrics"])
+        m = row["metrics"]
         values = [
             reported(row["recorded_at"]),
             signal_label(m.get("rssi_dbm")),
@@ -349,8 +371,8 @@ def saved_networks_section(store, frame_id, policy, escape):
     from .ui import local_time
 
     body = "<h3>Saved on the frame</h3>"
-    for row in reversed(store.device_samples(frame_id)):
-        metrics = json.loads(row["metrics"])
+    for row in reversed(device_readings(store, frame_id)):
+        metrics = row["metrics"]
         if "wifi_networks" not in metrics:
             continue
         networks = metrics["wifi_networks"]

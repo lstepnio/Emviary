@@ -12,6 +12,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import ValidationError
 
+from .diagnostics import device_readings
 from .service import preparation_lock
 from .settings import FramePolicy, WifiNetwork
 
@@ -51,10 +52,27 @@ def recovery_manifest():
 
 
 def install_routes(app, require, service, checked_form):
+    def verified_bundle():
+        try:
+            return recovery_manifest()
+        except (OSError, ValueError, KeyError, TypeError):
+            raise HTTPException(503, "Verified USB recovery bundle is unavailable") from None
+
+    def available_file(path):
+        try:
+            if path.is_file():
+                return path
+        except OSError:
+            pass
+        raise HTTPException(503, "USB recovery files are unavailable")
+
     @app.get("/manage/usb-recovery/status/{identifier}")
     def status(identifier: str, request: Request, since: str = ""):
         require(request)
-        frame = service.store.frame(identifier)
+        try:
+            frame = service.store.frame(identifier)
+        except ValueError:
+            raise HTTPException(404, "Unknown frame") from None
         policy = FramePolicy.model_validate_json(frame["policy"])
         now = datetime.now(UTC)
         cutoff = now
@@ -65,15 +83,12 @@ def install_routes(app, require, service, checked_form):
                     raise ValueError
             except ValueError:
                 raise HTTPException(400, "Start recovery again to check its progress") from None
-        samples = service.store.device_samples(identifier)
+        bundle = verified_bundle()
+        samples = device_readings(service.store, identifier)
         latest = samples[-1] if samples else None
-        metrics = json.loads(latest["metrics"]) if latest else {}
+        metrics = latest["metrics"] if latest else {}
         reported_ssid = next(
-            (
-                value
-                for sample in reversed(samples)
-                if (value := json.loads(sample["metrics"]).get("ssid"))
-            ),
+            (value for sample in reversed(samples) if (value := sample["metrics"].get("ssid"))),
             "",
         )
         eligible_networks = [network for network in policy.wifi_networks or [] if network.password]
@@ -85,7 +100,7 @@ def install_routes(app, require, service, checked_form):
             since
             and latest
             and datetime.fromisoformat(latest["recorded_at"]) > cutoff
-            and latest["firmware"] == recovery_manifest()["version"]
+            and latest["firmware"] == bundle["version"]
         )
         image = service.delivered_image(frame)
         available = image or service.store.active_image(frame)
@@ -94,7 +109,7 @@ def install_routes(app, require, service, checked_form):
                 "checked_at": now.isoformat(),
                 "last_contact": latest["recorded_at"] if latest else None,
                 "reported_firmware": latest["firmware"] if latest else None,
-                "expected_firmware": recovery_manifest()["version"],
+                "expected_firmware": bundle["version"],
                 "fresh_contact": bool(
                     since and latest and datetime.fromisoformat(latest["recorded_at"]) > cutoff
                 ),
@@ -228,10 +243,7 @@ def install_routes(app, require, service, checked_form):
     @app.get("/manage/usb-recovery/manifest")
     def manifest(request: Request):
         require(request)
-        try:
-            value = recovery_manifest()
-        except (OSError, ValueError, KeyError):
-            raise HTTPException(503, "Verified USB recovery bundle is unavailable") from None
+        value = verified_bundle()
         return JSONResponse(value, headers={"Cache-Control": "no-store"})
 
     @app.get("/manage/usb-recovery/assets/{name}")
@@ -240,7 +252,7 @@ def install_routes(app, require, service, checked_form):
         if name not in {"recovery.js", "recovery.js.LEGAL.txt"}:
             raise HTTPException(404, "Unknown recovery asset")
         return FileResponse(
-            ROOT / name,
+            available_file(ROOT / name),
             media_type="text/javascript" if name.endswith(".js") else "text/plain",
             headers={"Cache-Control": "private, no-cache", "X-Content-Type-Options": "nosniff"},
         )
@@ -248,14 +260,11 @@ def install_routes(app, require, service, checked_form):
     @app.get("/manage/usb-recovery/{version}/{name}")
     def binary(version: str, name: str, request: Request):
         require(request)
-        try:
-            value = recovery_manifest()
-        except (OSError, ValueError, KeyError):
-            raise HTTPException(503, "Verified USB recovery bundle is unavailable") from None
+        value = verified_bundle()
         if version != value["version"] or name not in {p["name"] for p in value["parts"]}:
             raise HTTPException(404, "Unknown recovery file")
         return FileResponse(
-            ROOT / version / name,
+            available_file(ROOT / version / name),
             media_type="application/octet-stream",
             headers={"Cache-Control": "private, no-cache", "X-Content-Type-Options": "nosniff"},
         )

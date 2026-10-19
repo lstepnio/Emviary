@@ -1,10 +1,12 @@
 """Battery history and deliberately conservative discharge estimates for the owner UI."""
 
+import math
 from datetime import UTC, datetime
 from statistics import median
 
 from fastapi import HTTPException, Request
 
+from .status_data import timestamp
 from .ui import local_time
 
 LOW_PERCENT = 20
@@ -15,8 +17,30 @@ def parse_time(value):
     return datetime.fromisoformat(value).astimezone(UTC)
 
 
+def battery_readings(samples):
+    readings = []
+    for sample in samples:
+        if timestamp(sample.get("recorded_at")) is None:
+            continue
+        percent = sample.get("percent")
+        if type(percent) is not int or not 0 <= percent <= 100:
+            continue
+        value = dict(sample)
+        for key in ("charging", "usb_connected"):
+            value[key] = value.get(key) if value.get(key) in (0, 1) else None
+        voltage = value.get("voltage")
+        value["voltage"] = (
+            voltage
+            if (type(voltage) in (int, float) and math.isfinite(voltage) and 0 <= voltage <= 10)
+            else None
+        )
+        readings.append(value)
+    return sorted(readings, key=lambda sample: timestamp(sample["recorded_at"]))
+
+
 def summarize(samples, now=None):
     now = now or datetime.now(UTC)
+    samples = battery_readings(samples)
     result = {
         "percent": None,
         "status": "No battery readings yet",
@@ -107,6 +131,7 @@ def battery_summary(service, frame_id):
 
 
 def chart(samples):
+    samples = battery_readings(samples)
     if not samples:
         return ""
     # A daily point keeps the chart readable with a year of history.
@@ -158,7 +183,7 @@ def install_battery_routes(app, service, require, escape, page):
         if chosen:
             body += '<p><a href="/manage/battery">View all frames</a></p>'
         for frame in (f for f in frames if not chosen or f["id"] == chosen):
-            samples = service.store.battery_samples(frame["id"])
+            samples = battery_readings(service.store.battery_samples(frame["id"]))
             summary = summarize(samples)
             body += f"<section><h2>{escape(frame['id'])}</h2>"
             percent = "Unknown" if summary["percent"] is None else f"{summary['percent']}%"

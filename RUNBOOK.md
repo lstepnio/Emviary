@@ -356,6 +356,19 @@ ESP32 ROM startup output may still occur. This project does not burn eFuses to
 suppress ROM text. Existing bootloader output remains until USB recovery installs
 the quiet bootloader. Battery and refresh-status telemetry remain available.
 
+## Recovery status resilience
+
+Keep private deployment rollback snapshots outside the application's backup
+folder, under `/docker/backups/emviary-deployments/`. The recovery page reads
+completion records defensively and reports unreadable or malformed metadata
+without disabling USB recovery or hiding other verified backups. It does not
+follow backup-directory links or verify all backup bytes on each page request.
+Invalid independent-copy metadata is shown as unavailable, not as a verified copy.
+
+Optional historical device and battery readings are revalidated for display;
+bad records do not overwrite valid readings or establish USB recovery success.
+Core device authorization, recovery leases, and firmware hashes remain strict.
+
 ## Daily composition planning and previews
 
 The worker reserves the next scheduled day's composition ahead of time in
