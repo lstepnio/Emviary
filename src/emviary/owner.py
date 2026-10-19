@@ -505,7 +505,7 @@ def attach_owner(app, service):
             )
         selected_frames = (
             [f for f in frames if not chosen or f["id"] == chosen]
-            if view in ("manage", "recovery")
+            if view == "manage"
             else [f for f in frames if f["id"] == (chosen or frames[0]["id"])]
             if frames
             else []
@@ -1270,39 +1270,9 @@ def attach_owner(app, service):
                     + '<a href="#recovery">Recovery instructions</a>'
                 )
         if view == "recovery":
-            body += '<section class="card"><h2>Backup health</h2>'
-            verified = []
-            for candidate in service.settings.backup_dir.iterdir():
-                marker = candidate / "COMPLETE"
-                if candidate.is_dir() and marker.is_file():
-                    try:
-                        result = json.loads(marker.read_text())
-                        if result.get("restore_rehearsal") == "passed":
-                            verified.append(result["created_at"])
-                    except (ValueError, KeyError, OSError):
-                        pass
-            body += (
-                "<p>Latest verified backup: "
-                + escape(local_time(max(verified)))
-                + ". Every new backup passes an isolated offline restore rehearsal.</p>"
-                if verified
-                else '<p class="notice">No backup with a verified restore rehearsal yet.</p>'
-            )
-            try:
-                independent = json.loads(
-                    (service.settings.data_dir / "offhost-backup.json").read_text()
-                )
-                body += (
-                    "<p>Independent copy verified: "
-                    + escape(local_time(independent["created_at"]))
-                    + ".</p>"
-                )
-            except (OSError, ValueError, KeyError):
-                body += '<p class="notice">No independent backup copy has been confirmed.</p>'
-            body += (
-                '<p class="quiet">Older backups remain available. '
-                "They predate automatic integrity manifests.</p></section>"
-            )
+            from .backup_status import backup_health_section
+
+            body += backup_health_section(service, escape, local_time)
             body += (
                 '<section id="recovery"><h2>Frame recovery and Wi-Fi setup</h2>'
                 "<details><summary>Wake or restart an unresponsive frame</summary>"
@@ -1360,7 +1330,7 @@ def attach_owner(app, service):
                 "firmware requires reinstalling Emviary first; a configuration import "
                 "alone does not restore our firmware features.</p></details></section>"
             )
-        if view == "recovery":
+        if view == "recovery" and selected_frames:
             body += "</details>"
         config = service.settings.config
         if view == "settings":

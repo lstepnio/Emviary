@@ -2,7 +2,6 @@
 
 import hashlib
 import html
-from datetime import datetime
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
@@ -972,13 +971,15 @@ ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
 
 def local_time(value):
     """One readable timestamp convention for frame locations in this POC."""
-    if not value:
+    from .status_data import timestamp
+
+    parsed = timestamp(value)
+    if parsed is None:
         return "Not reported"
-    return (
-        datetime.fromisoformat(value)
-        .astimezone(ZoneInfo("America/Denver"))
-        .strftime("%b %-d, %-I:%M %p %Z")
-    )
+    try:
+        return parsed.astimezone(ZoneInfo("America/Denver")).strftime("%b %-d, %-I:%M %p %Z")
+    except (ValueError, OverflowError):
+        return "Not reported"
 
 
 def _navigation(active, frame=None):
