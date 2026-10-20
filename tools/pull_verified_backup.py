@@ -23,35 +23,43 @@ REMOTE_ROOT = "/docker/backups/emviary"
 DEFAULT_DESTINATION = Path.home() / "Library/Application Support/Emviary/backups"
 SSH_OPTIONS = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=15"]
 REMOTE_SELECT = r"""
-import json
-from datetime import datetime
+import hashlib, json, re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from emviary.backup_validation import MANIFEST, file_digest, verify_backup
-from emviary.service import Service
-root = Path('/backups')
-candidates = sorted((p for p in root.iterdir() if p.is_dir() and not p.is_symlink()
-                     and (p / 'COMPLETE').is_file() and (p / MANIFEST).is_file()),
-                    key=lambda p: p.stat().st_mtime, reverse=True)
-selected = None
-today = datetime.now(ZoneInfo('America/Denver')).date()
-for candidate in candidates:
+root = Path('/docker/backups/emviary')
+now = datetime.now(timezone.utc)
+today = now.astimezone(ZoneInfo('America/Denver')).date()
+candidates = []
+for candidate in root.iterdir():
     try:
-        marker = json.loads((candidate / 'COMPLETE').read_text())
-        created = datetime.fromisoformat(marker['created_at']).astimezone(
-            ZoneInfo('America/Denver'))
-        if created.date() != today:
+        if (candidate.is_symlink() or not candidate.is_dir()
+                or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,100}', candidate.name)):
             continue
-        verify_backup(candidate)
-        selected = candidate
-        break
-    except (ValueError, KeyError, OSError, RuntimeError):
+        complete, manifest = candidate / 'COMPLETE', candidate / 'integrity-manifest.json'
+        if (complete.is_symlink() or manifest.is_symlink() or not complete.is_file()
+                or not manifest.is_file() or complete.stat().st_size > 65536):
+            continue
+        marker = json.loads(complete.read_text())
+        created = datetime.fromisoformat(marker['created_at'])
+        if (created.tzinfo is None or created > now + timedelta(minutes=5)
+                or created.astimezone(ZoneInfo('America/Denver')).date() != today
+                or marker.get('restore_rehearsal') != 'passed'):
+            continue
+        digest = hashlib.sha256()
+        with manifest.open('rb') as source:
+            for block in iter(lambda: source.read(1024 * 1024), b''):
+                digest.update(block)
+        value = digest.hexdigest()
+        if marker.get('manifest_sha256') == value:
+            candidates.append((created, candidate.name, value))
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, OverflowError):
         continue
-if selected is None:
-    name = 'offhost-' + datetime.now(ZoneInfo('America/Denver')).date().isoformat()
-    selected = Path(Service().backup(root / name))
-    verify_backup(selected)
-print(json.dumps({'name': selected.name, 'manifest_sha256': file_digest(selected / MANIFEST)}))
+if not candidates:
+    raise RuntimeError('No completed backup from the current Denver day; '
+                       'the server backup must finish first')
+_, name, digest = max(candidates)
+print(json.dumps({'name': name, 'manifest_sha256': digest}))
 """
 
 
@@ -187,9 +195,7 @@ def pull(destination=DEFAULT_DESTINATION, max_bytes=None):
     lock_fd = os.open(destination / ".pull.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     with os.fdopen(lock_fd, "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        selected = ssh_run(
-            "docker exec -i emviary python -", input=REMOTE_SELECT.encode(), stdout=subprocess.PIPE
-        )
+        selected = ssh_run("python3 -", input=REMOTE_SELECT.encode(), stdout=subprocess.PIPE)
         try:
             metadata = json.loads(selected.stdout)
             name, digest = metadata["name"], metadata["manifest_sha256"]
@@ -215,14 +221,14 @@ def pull(destination=DEFAULT_DESTINATION, max_bytes=None):
         update = (
             "import json,os,tempfile\n"
             "from pathlib import Path\n"
-            "root=Path('/data')\n"
+            "root=Path('/docker/appdata/emviary/data')\n"
             "fd,name=tempfile.mkstemp(prefix='.offhost-',dir=root)\n"
             "os.fchmod(fd,0o600)\n"
             "with os.fdopen(fd,'w') as output:\n"
             "    json.dump(" + repr(remote_status) + ",output)\n"
             "os.replace(name,root/'offhost-backup.json')\n"
         )
-        ssh_run("docker exec -i emviary python -", input=update.encode(), stdout=subprocess.PIPE)
+        ssh_run("python3 -", input=update.encode(), stdout=subprocess.PIPE)
         write_local_status(destination, report)
         return report
 

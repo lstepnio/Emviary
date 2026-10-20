@@ -8,10 +8,18 @@ module. Run with the repo environment:
 ```
 
 SSH uses the existing key configuration for `lstepnio@one.majjix.com`, batch mode
-and a 15-second connection timeout. The remote container `emviary` verifies its
-most recent complete backup from the current Denver date under `/backups`, mounted from
-`/docker/backups/emviary`. If none passes, it creates `offhost-YYYY-MM-DD` and
-verifies it. Existing backups are never replaced or deleted.
+and a 15-second connection timeout. Remote selection uses the host's standard
+Python interpreter and the existing account's readable files under
+`/docker/backups/emviary`; it requires neither Docker access nor sudo. It selects
+the newest completion record from the current Denver date whose restore
+rehearsal passed and whose manifest hash matches. Unreadable/malformed records,
+links and future timestamps are skipped. If no current completed backup exists,
+the pull fails without changing old copies or the remote success marker. The
+server's own scheduler creates nightly backups before the 06:30 Mac pull.
+
+The full file-integrity checks and isolated restore rehearsal run locally after
+transfer. Remote selection does not claim to revalidate every payload file.
+Existing backups are never replaced or deleted.
 
 The local destination defaults to
 `~/Library/Application Support/Emviary/backups`. Each download is extracted into
@@ -26,7 +34,8 @@ Directories use mode 0700 and files use 0600.
 both archive download and extracted payload size; allow additional free space
 for staging and the temporary restore rehearsal. There is no automatic retention
 or deletion. `.last-pull.json` records the latest local outcome without secrets.
-After success, `/data/offhost-backup.json` records only verification time, backup
+After success, `/docker/appdata/emviary/data/offhost-backup.json` on the host
+(`/data/offhost-backup.json` inside the container) records only verification time, backup
 name, manifest digest and the passed restore rehearsal for the owner UI. A failed
 pull does not refresh the remote success marker.
 

@@ -107,3 +107,19 @@ Confirm health/version, management pages, source snapshots and browser console.
 Local release validation: 399 backend tests and 117 USB simulation tests pass;
 ruff lint/format checks pass. The independent production backup verifies 985
 files, 309 retained images and one frame, including an offline restore rehearsal.
+
+## Off-host automation follow-up
+
+The installed Mac LaunchAgent was registered and had run eight times, but its
+last exit code was 1. A live batch-mode SSH check confirmed that the backup
+account could read the backup directory and write its existing application data
+directory, while Docker socket access was denied. The pull script still invoked
+`docker exec` for both selection and its success receipt.
+
+Remove that dependency. Select current-day completion records using the host's
+standard Python and existing filesystem access, validate the completion/manifest
+hash before transfer, then perform the full integrity and offline restore checks
+on the independent Mac copy. Record success atomically through the same existing
+account only after local verification passes. Do not create a remote backup on
+demand or broaden Docker/sudo rights. If the server's nightly backup has not
+completed, fail without overwriting earlier copies or refreshing success evidence.
