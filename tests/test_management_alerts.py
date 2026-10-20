@@ -186,3 +186,34 @@ def test_ota_metrics_are_bounded():
     assert parse_metrics('{"firmware_update_result":"retry_held"}') == {
         "firmware_update_result": "retry_held"
     }
+
+
+def test_midnight_forecast_does_not_need_to_satisfy_future_wake(service, frame):
+    row = service.store.frame(frame[0])
+    now = datetime(2026, 10, 20, 0, 50, tzinfo=ZoneInfo("America/Denver")).astimezone(UTC)
+    fetched = now - timedelta(minutes=50)
+    service.store.save_snapshot(
+        row["site_id"],
+        "open_meteo",
+        "2026-10-20",
+        {"local_date": "2026-10-20", "fetched_at": fetched.isoformat()},
+        fetched.isoformat(),
+    )
+    assert "stale_weather" not in codes(service, row, now)
+    # Once daily preparation is due, the midnight cache no longer suffices.
+    after_prepare = datetime(2026, 10, 20, 2, 31, tzinfo=ZoneInfo("America/Denver"))
+    assert "stale_weather" in codes(service, row, after_prepare.astimezone(UTC))
+
+
+def test_yesterdays_panel_forecast_survives_midnight_until_preparation_due(service, frame):
+    row = service.store.frame(frame[0])
+    zone = ZoneInfo("America/Denver")
+    fetched = datetime(2026, 10, 19, 2, 30, tzinfo=zone)
+    service.store.save_snapshot(
+        row["site_id"],
+        "open_meteo",
+        "2026-10-19",
+        {"local_date": "2026-10-19", "fetched_at": fetched.isoformat()},
+        fetched.isoformat(),
+    )
+    assert "stale_weather" not in codes(service, row, datetime(2026, 10, 20, 0, 5, tzinfo=zone))

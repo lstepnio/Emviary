@@ -14,6 +14,7 @@ from . import render
 from .event_art import EventArt
 from .providers import Providers
 from .settings import Config, FramePolicy, Settings
+from .status_data import timestamp
 from .store import RevisionConflict, Store, stable_json, utcnow
 
 log = logging.getLogger(__name__)
@@ -158,7 +159,7 @@ class Service:
         if plan.get("configuration_hash", image["profile_hash"]) != self.configuration_hash(frame):
             return False
         policy = FramePolicy.model_validate_json(frame["policy"])
-        if not policy.weather_cues or not site.providers.open_meteo.enabled:
+        if not policy.weather_cues or not site.weather_enabled:
             return True
         forecast = plan["inputs"].get("open_meteo")
         if not forecast:
@@ -1129,6 +1130,19 @@ class Service:
                     and scheduled
                     and not state["error"]
                 )
+                # Retry weather-free daily art before wake without changing its
+                # reserved composition or exceeding the three-attempt budget.
+                retry_weather = False
+                if done and policy.weather_cues and site.weather_enabled:
+                    manifest = json.loads(scheduled["manifest"])
+                    prepared_at = datetime.fromisoformat(manifest["prepared_at"])
+                    if (
+                        not manifest.get("inputs", {}).get("open_meteo")
+                        and now >= prepared_at + timedelta(minutes=15)
+                        and now < self.daily_schedule(frame, target)["wake_at"]
+                    ):
+                        done = False
+                        retry_weather = True
                 eligible = now >= deadline
                 attempts = state["attempts"] if state and state["cycle"] == cycle else 0
                 retry = not (
@@ -1155,7 +1169,7 @@ class Service:
                         self._prepare(
                             frame["id"],
                             target.isoformat(),
-                            force=False,
+                            force=retry_weather,
                             offline=False,
                             purpose="scheduled",
                             cycle=cycle,
@@ -1348,8 +1362,11 @@ class Service:
         with self.store.connect() as db:
             for frame in self.store.frames():
                 image = self.store.active_image(frame)
-                contact = frame["last_contact"]
-                age = (now - datetime.fromisoformat(contact)).total_seconds() if contact else None
+                received = timestamp(frame["last_contact"])
+                if received is not None and received > now + timedelta(minutes=5):
+                    received = None
+                contact = received.isoformat() if received else None
+                age = (now - received).total_seconds() if received else None
                 job = db.execute(
                     "SELECT status,error,attempts FROM jobs WHERE frame_id=? ORDER BY "
                     "local_date DESC,revision DESC LIMIT 1",

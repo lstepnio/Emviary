@@ -39,6 +39,9 @@ def service(tmp_path):
         art_dir=ROOT / "art",
         backup_dir=tmp_path / "backups",
     )
+    # Existing unit fixtures control their own single weather adapter.
+    # Multi-source integration tests explicitly enable the NWS adapter.
+    settings.config.sites[0].providers.nws.enabled = False
     return Service(
         settings,
         providers=OfflineProviders(),

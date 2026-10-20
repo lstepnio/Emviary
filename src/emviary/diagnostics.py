@@ -1,7 +1,6 @@
 """Bounded, owner-only device diagnostics carried by existing image requests."""
 
 import base64
-import json
 from datetime import UTC, datetime, timedelta
 from ipaddress import IPv4Address
 from typing import Literal
@@ -153,51 +152,50 @@ def management_alerts(service, frame, now=None):
             )
         )
 
-    if policy.weather_cues and site.providers.open_meteo.enabled:
-        snapshot = service.store.snapshot(frame["site_id"], "open_meteo")
-        payload = json_object(snapshot["payload"]) if snapshot else {}
-        stamp = payload.get("fetched_at")
+    if policy.weather_cues and site.weather_enabled:
+        schedule = service.daily_schedule(frame, local.date())
+        before_preparation = now < schedule["prepare_at"]
         weather_age = timedelta(minutes=policy.weather_max_age_minutes)
-        try:
-            fetched = datetime.fromisoformat(stamp) if stamp else None
-            expected_day = wake.astimezone(zone).date().isoformat()
-            forecast_day = payload.get("local_date")
-            # The daily forecast remains useful all day. Its age limit governs
-            # preparation and delivery, not how long a sleeping panel may show it.
-            forecast_wake = (
-                (
-                    datetime.fromisoformat(forecast_day + "T" + policy.wake_local_time)
-                    .replace(tzinfo=zone)
-                    .astimezone(UTC)
-                )
-                if forecast_day
-                else wake
+        # A midnight navigation forecast need not yet satisfy a future daily wake.
+        # Until preparation is due, yesterday's completed daily forecast is also
+        # valid evidence for the sleeping panel. Never select a future day's cache.
+        days = [local.date()]
+        if before_preparation:
+            days.append(local.date() - timedelta(days=1))
+        stale, stamp, fetched = True, None, None
+        for day in days:
+            snapshot = service.store.snapshot(frame["site_id"], "open_meteo", day.isoformat())
+            payload = json_object(snapshot["payload"]) if snapshot else {}
+            stamp = payload.get("fetched_at") or stamp
+            candidate = timestamp(payload.get("fetched_at"))
+            lower = (
+                now - weather_age
+                if day == local.date() and before_preparation
+                else service.daily_schedule(frame, day)["wake_at"] - weather_age
             )
-            stale = (
-                fetched is None
-                or fetched.tzinfo is None
-                or forecast_day not in {expected_day, local.date().isoformat()}
-                or not (forecast_wake - weather_age < fetched <= now + timedelta(minutes=5))
-            )
-            # A rebuilt weather-free buffer is evidence that fresh weather was
-            # unavailable for that preparation. An afternoon cache age alone is not.
-            if not stale:
-                for purpose in ("scheduled", "navigation"):
-                    image = service.store.slot_image(frame["id"], purpose)
-                    if not image or image["local_date"] != local.date().isoformat():
-                        continue
-                    manifest = json.loads(image["manifest"])
-                    prepared = datetime.fromisoformat(
-                        manifest.get("prepared_at", image["created_at"])
-                    )
-                    if (
-                        not manifest.get("inputs", {}).get("open_meteo")
-                        and fetched + weather_age <= prepared <= now
-                    ):
-                        stale = True
-                        break
-        except (TypeError, ValueError, AttributeError):
-            stale = True
+            if (
+                candidate is not None
+                and payload.get("local_date") == day.isoformat()
+                and lower < candidate <= now + timedelta(minutes=5)
+            ):
+                stale, fetched = False, candidate
+                break
+        if not stale:
+            for purpose in ("scheduled", "navigation"):
+                image = service.store.slot_image(frame["id"], purpose)
+                if not image or image["local_date"] != local.date().isoformat():
+                    continue
+                manifest = json_object(image["manifest"])
+                prepared = timestamp(manifest.get("prepared_at", image["created_at"]))
+                inputs = manifest.get("inputs")
+                if (
+                    isinstance(inputs, dict)
+                    and not inputs.get("open_meteo")
+                    and prepared is not None
+                    and fetched + weather_age <= prepared <= now
+                ):
+                    stale = True
+                    break
         if stale:
             alerts.append(
                 (
@@ -405,4 +403,51 @@ def saved_networks_section(store, frame_id, policy, escape):
     return body + (
         '<p class="empty-state">The frame has not reported its saved network list yet. '
         "Firmware v0.7.6 or later reports all networks on its next artwork fetch.</p>"
+    )
+
+
+def weather_sources_section(service, site, escape, format_time):
+    """Read-only provenance; management page loads never call weather services."""
+    now = service.clock()
+    day = now.astimezone(ZoneInfo(site.timezone)).date().isoformat()
+    body = "<details><summary>Weather source status</summary><ul>"
+    for key, label, enabled in (
+        ("open_meteo", "Open-Meteo", site.providers.open_meteo.enabled),
+        ("nws", "National Weather Service", site.providers.nws.enabled),
+    ):
+        record = service.store.snapshot(site.id, "weather_" + key, day)
+        payload = json_object(record["payload"]) if record else {}
+        fetched = timestamp(payload.get("fetched_at"))
+        failure = service.store.snapshot(site.id, "weather_" + key + "_failure", day)
+        failed = json_object(failure["payload"]) if failure else {}
+        attempted = timestamp(failed.get("attempted_at"))
+        state = "Off" if not enabled else "Awaiting the next preparation"
+        if enabled and fetched is not None:
+            state = "Last received " + format_time(fetched.isoformat())
+            issued = timestamp(payload.get("issued_at"))
+            if issued is not None:
+                state += "; forecast issued " + format_time(issued.isoformat())
+        if (
+            enabled
+            and attempted is not None
+            and attempted <= now
+            and (fetched is None or attempted > fetched)
+        ):
+            state = "Last request failed; retrying during background preparation"
+        body += "<li><strong>" + label + "</strong>: " + escape(state) + "</li>"
+    record = service.store.snapshot(site.id, "open_meteo", day)
+    payload = json_object(record["payload"]) if record else {}
+    agreement = payload.get("agreement")
+    note = {
+        "agreement": "Both sources agree on conditions. Temperatures use their median.",
+        "single_source": "One source is available. Its forecast is used independently.",
+        "disagreement": "Sources differ. Local NWS conditions take precedence; temperatures "
+        "are blended only when within 6°C.",
+    }.get(agreement)
+    body += "</ul>"
+    if note:
+        body += '<p class="quiet">' + escape(note) + "</p>"
+    return (
+        body + '<p class="quiet">Weather is fetched in the background. Missing or invalid '
+        "forecasts are omitted from new pictures; the artwork remains available.</p></details>"
     )
