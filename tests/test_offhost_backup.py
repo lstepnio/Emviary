@@ -116,7 +116,7 @@ def test_pull_reports_remote_success_only_after_verified_publication(
     updates = []
 
     def ssh(command, **kwargs):
-        assert command == "docker exec -i emviary python -"
+        assert command == "python3 -"
         if kwargs["input"] == puller.REMOTE_SELECT.encode():
             return SimpleNamespace(
                 stdout=json.dumps({"name": "daily", "manifest_sha256": digest}).encode()
@@ -165,3 +165,47 @@ def test_cli_failure_status_is_private_and_never_logs_remote_details(tmp_path, m
     status = destination / ".last-pull.json"
     assert json.loads(status.read_text())["status"] == "failed"
     assert status.stat().st_mode & 0o777 == 0o600
+
+
+def test_host_selection_skips_unreadable_invalid_and_future_markers(tmp_path, monkeypatch, capsys):
+    import json
+    from datetime import UTC, datetime, timedelta
+
+    root = tmp_path / "remote"
+    root.mkdir()
+    now = datetime.now(UTC)
+    digest = __import__("hashlib").sha256(b"{}").hexdigest()
+
+    def record(name, stamp, **extra):
+        folder = root / name
+        folder.mkdir()
+        (folder / MANIFEST).write_text("{}")
+        marker = {
+            "created_at": stamp,
+            "manifest_sha256": digest,
+            "restore_rehearsal": "passed",
+            **extra,
+        }
+        (folder / "COMPLETE").write_text(json.dumps(marker))
+        return folder
+
+    record("valid", now.isoformat())
+    record("future", (now + timedelta(hours=2)).isoformat())
+    record("bad-hash", now.isoformat(), manifest_sha256="0" * 64)
+    bad = record("corrupt", now.isoformat())
+    (bad / "COMPLETE").write_text("[]")
+    private = record("private", now.isoformat())
+    original = Path.is_file
+
+    def is_file(path):
+        if path == private / "COMPLETE":
+            raise PermissionError("private status")
+        return original(path)
+
+    monkeypatch.setattr(Path, "is_file", is_file)
+    script = puller.REMOTE_SELECT.replace("Path('/docker/backups/emviary')", f"Path({str(root)!r})")
+    exec(compile(script, "remote-selector", "exec"), {})
+    assert json.loads(capsys.readouterr().out) == {"name": "valid", "manifest_sha256": digest}
+    (root / "valid" / "COMPLETE").unlink()
+    with pytest.raises(RuntimeError, match="No completed backup"):
+        exec(compile(script, "remote-selector", "exec"), {})
