@@ -30,6 +30,10 @@ Reviewed October 20, 2026, America/Denver. Application release 0.18.0.
    bounded retries at least 15 minutes apart, within the existing total budget
    of three attempts and only before its scheduled wake.
 
+8. Visual inspection found the mobile recovery step numbers collapsed to narrow
+   ovals when flex direction became vertical. An explicit width preserves the
+   circular progress markers on narrow screens.
+
 ## Weather policy
 
 - Two independently delivered APIs: Open-Meteo and the US National Weather Service.
@@ -82,7 +86,7 @@ Primary API references:
   provides an explicit unconfirmed-save remedy. Expired sessions remain guarded.
 - All seven pages load against a private offline clone of the actual verified
   production backup. Providers and rendering are disabled during that rehearsal.
-- Existing 117 USB browser/controller/transport simulations cover wrong hardware,
+- Existing USB backend checks and 117 browser/controller/transport simulations cover wrong hardware,
   unsupported browser, busy firmware, cancellation, disconnect/reconnect, timeouts,
   interrupted writes, hashes, lease/session conflicts, expired authentication,
   settings restoration, cloud proof, display failure and completion retries.
@@ -99,3 +103,7 @@ independently off the server, and retain a private compose/release/image rollbac
 snapshot outside the application backup directory. Deploy only the Emviary service.
 Verify frame credential/policy invariants and unrelated container start times.
 Confirm health/version, management pages, source snapshots and browser console.
+
+Local release validation: 399 backend tests and 117 USB simulation tests pass;
+ruff lint/format checks pass. The independent production backup verifies 985
+files, 309 retained images and one frame, including an offline restore rehearsal.

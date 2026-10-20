@@ -433,6 +433,7 @@ font-size:12px}
 .recovery-steps li span{display:grid;
 place-items:center;
 flex:0 0 28px;
+width:28px;
 height:28px;
 border-radius:50%;
 background:var(--soft)}
