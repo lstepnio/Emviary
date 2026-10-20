@@ -19,6 +19,7 @@ def install_weather(service, monkeypatch):
     def forecast(site, local_date):
         calls.append((local_date, clock[0]))
         return {
+            "provider": "open_meteo",
             "local_date": local_date,
             "values": {
                 "weather_code": 0,
@@ -404,3 +405,25 @@ def test_next_daily_preview_distinguishes_expected_wait_from_failed_preparation(
     # A failed prior day's slot does not make tomorrow's expected wait look broken.
     clock[0] = datetime(2026, 10, 8, 16, tzinfo=UTC)
     assert service.next_daily_refresh(row)["status"] == "waiting"
+
+
+def test_daily_weather_failure_retries_reserved_composition_before_wake(
+    service, frame, monkeypatch
+):
+    clock, _ = install_weather(service, monkeypatch)
+    clock[0] = datetime(2026, 10, 8, 8, 30, tzinfo=UTC)
+    forecast = service.providers.forecast
+    monkeypatch.setattr(
+        service.providers, "forecast", lambda *a: (_ for _ in ()).throw(ValueError())
+    )
+    service.prepare_due()
+    fallback = service.store.slot_image(frame[0], "scheduled")
+    assert "open_meteo" not in plan(fallback)["inputs"]
+    monkeypatch.setattr(service.providers, "forecast", forecast)
+    clock[0] += timedelta(minutes=16)
+    service.prepare_due()
+    recovered = service.store.slot_image(frame[0], "scheduled")
+    assert "open_meteo" in plan(recovered)["inputs"]
+    assert plan(recovered)["artworks"] == plan(fallback)["artworks"]
+    assert plan(recovered)["layout"] == plan(fallback)["layout"]
+    assert service.store.slot_state(frame[0], "scheduled")["attempts"] == 2

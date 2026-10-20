@@ -58,6 +58,7 @@ class EBirdProvider(Provider):
 class Providers(Model):
     birdweather: Provider = Field(default_factory=Provider)
     open_meteo: Provider = Field(default_factory=Provider)
+    nws: Provider = Field(default_factory=Provider)
     ebird: EBirdProvider = Field(default_factory=lambda: EBirdProvider(enabled=False))
 
 
@@ -79,6 +80,10 @@ class Site(Model):
         if abs(self.weather_location.latitude) > 85:
             raise ValueError("This locality query does not support polar regions")
         return self
+
+    @property
+    def weather_enabled(self):
+        return self.providers.open_meteo.enabled or self.providers.nws.enabled
 
     @property
     def locality_bounds(self):

@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from fastapi.responses import HTMLResponse
 
 from .branding import BRAND_MARK, ICON_LINK
-from .event_ui import EVENT_CSS
+from .event_ui import EVENT_CSS, EVENT_JAVASCRIPT
 
 NAVIGATION = (
     ("overview", "/manage", "Overview"),
@@ -433,6 +433,7 @@ font-size:12px}
 .recovery-steps li span{display:grid;
 place-items:center;
 flex:0 0 28px;
+width:28px;
 height:28px;
 border-radius:50%;
 background:var(--soft)}
@@ -966,6 +967,7 @@ JAVASCRIPT = r"""
   });
 })();
 """
+JAVASCRIPT += EVENT_JAVASCRIPT
 ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
 
 

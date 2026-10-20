@@ -25,11 +25,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
-from .diagnostics import management_alerts_section, saved_networks_section
+from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
-from .store import RevisionConflict, token_hash
+from .store import RevisionConflict, UnknownFrame, token_hash
 from .trusted_network import network_session, source_public_ip
 from .ui import local_time
 
@@ -284,6 +284,10 @@ def attach_owner(app, service):
             {"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers
         )
 
+    @app.exception_handler(UnknownFrame)
+    async def unknown_frame(request: Request, exc: UnknownFrame):
+        return await management_error(request, HTTPException(404, "Unknown frame"))
+
     @app.exception_handler(RevisionConflict)
     async def conflicting_edit(request: Request, exc: RevisionConflict):
         return await management_error(
@@ -445,6 +449,15 @@ def attach_owner(app, service):
         response = RedirectResponse("/", status_code=303)
         response.delete_cookie(COOKIE, path="/manage")
         return response
+
+    def provisioning_token(identifier):
+        try:
+            path = service.settings.data_dir / "provisioning" / (identifier + ".token")
+            token = path.read_text().strip()
+            identity = service.store.authenticate(token)
+            return token if identity and identity["id"] == identifier else None
+        except OSError:
+            return None
 
     @app.get("/manage/appearance")
     @app.get("/manage/events")
@@ -993,7 +1006,7 @@ def attach_owner(app, service):
                 )
                 body += "</section>"
             if view == "events":
-                from .event_ui import EVENT_SCRIPT, card_start
+                from .event_ui import card_start
 
                 body += '<section class="special-days"><div class="event-toolbar">'
                 body += '<p class="special-days-intro">Choose the days your frame celebrates.</p>'
@@ -1253,7 +1266,7 @@ def attach_owner(app, service):
                 body += '</details></div><details class="event-art-secondary">'
                 body += "<summary>Artwork collection</summary>"
                 body += event_art_panel(request, csrf, frame["id"])
-                body += "</details></section>" + EVENT_SCRIPT
+                body += "</details></section>"
             if view == "recovery":
                 from .usb_recovery import panel as usb_recovery_panel
 
@@ -1261,14 +1274,23 @@ def attach_owner(app, service):
                 body += (
                     '<details class="manual-recovery"><summary>Manual recovery and '
                     "backups</summary>"
-                    '<a class="quiet" href="/manage/frames/'
-                    + identifier
-                    + '/provision">Download private device configuration</a> · '
-                    + '<a href="/manage/frames/'
-                    + identifier
-                    + '/provision?import_file=true">Download recovery import file</a> · '
-                    + '<a href="#recovery">Recovery instructions</a>'
                 )
+                if provisioning_token(frame["id"]):
+                    body += (
+                        '<a class="quiet" href="/manage/frames/'
+                        + identifier
+                        + '/provision">Download private device configuration</a> · '
+                        + '<a href="/manage/frames/'
+                        + identifier
+                        + '/provision?import_file=true">Download recovery import file</a> · '
+                    )
+                else:
+                    body += (
+                        '<p class="notice">Manual configuration downloads are unavailable '
+                        "because the saved device credential is missing or has changed. "
+                        "Use Check and recover above to restore the connection over USB.</p>"
+                    )
+                body += '<a href="#recovery">Recovery instructions</a>'
         if view == "recovery":
             from .backup_status import backup_health_section
 
@@ -1403,7 +1425,12 @@ def attach_owner(app, service):
                     )
                     + checkbox("ebird", "eBird regional reports", site.providers.ebird.enabled)
                     + checkbox("weather", "Open-Meteo forecast", site.providers.open_meteo.enabled)
-                    + "<button>Save locality and sources</button></form></section>"
+                    + checkbox(
+                        "nws", "National Weather Service forecast (US)", site.providers.nws.enabled
+                    )
+                    + "<button>Save locality and sources</button></form>"
+                    + weather_sources_section(service, site, escape, local_time)
+                    + "</section>"
                 )
             body += (
                 '<section><h2>Public display</h2><form method="post" action="/manage/public">'
@@ -2099,17 +2126,22 @@ def attach_owner(app, service):
             artwork_return(data), status_code=303, background=BackgroundTask(service.refill_pending)
         )
 
+    def cached_preview(record):
+        try:
+            content = service.cache_path(record["preview_path"]).read_bytes()
+        except (OSError, ValueError):
+            raise HTTPException(
+                503, "Picture preview unavailable. Try preparing it again."
+            ) from None
+        return Response(content, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
     @app.get("/manage/frames/{identifier}/display")
     def delivered_preview(identifier: str, request: Request):
         require(request)
         record = service.delivered_image(service.store.frame(identifier))
         if not record:
             raise HTTPException(404, "No image delivered yet")
-        return FileResponse(
-            service.cache_path(record["preview_path"]),
-            media_type="image/jpeg",
-            headers={"Cache-Control": "no-store"},
-        )
+        return cached_preview(record)
 
     @app.get("/manage/frames/{identifier}/preview")
     def preview(identifier: str, request: Request):
@@ -2117,11 +2149,7 @@ def attach_owner(app, service):
         record = service.store.active_image(service.store.frame(identifier))
         if not record:
             raise HTTPException(404, "No prepared preview")
-        return FileResponse(
-            service.cache_path(record["preview_path"]),
-            media_type="image/jpeg",
-            headers={"Cache-Control": "no-store"},
-        )
+        return cached_preview(record)
 
     @app.get("/manage/frames/{identifier}/prepared/{purpose}")
     def prepared_preview(identifier: str, purpose: str, request: Request):
@@ -2136,11 +2164,7 @@ def attach_owner(app, service):
         )
         if not record:
             raise HTTPException(404, "No prepared preview")
-        return FileResponse(
-            service.cache_path(record["preview_path"]),
-            media_type="image/jpeg",
-            headers={"Cache-Control": "no-store"},
-        )
+        return cached_preview(record)
 
     def appearance_policy(identifier, data):
         policy = FramePolicy.model_validate_json(
@@ -2825,6 +2849,7 @@ def attach_owner(app, service):
                 ("birdweather", "birdweather"),
                 ("ebird", "ebird"),
                 ("open_meteo", "weather"),
+                ("nws", "nws"),
             ):
                 site["providers"][name]["enabled"] = data.get(field_name) == "on"
             site["providers"]["ebird"]["lookback_days"] = int(data["days"])
@@ -2896,14 +2921,13 @@ def attach_owner(app, service):
     def provision(identifier: str, request: Request, import_file: bool = False):
         require(request)
         frame = service.store.frame(identifier)
-        path = service.settings.data_dir / "provisioning" / (identifier + ".token")
-        try:
-            token = path.read_text().strip()
-        except OSError:
-            raise HTTPException(409, "Reprovision this frame through the owner CLI") from None
-        identity = service.store.authenticate(token)
-        if not identity or identity["id"] != identifier:
-            raise HTTPException(409, "Current token file is unavailable")
+        token = provisioning_token(identifier)
+        if token is None:
+            raise HTTPException(
+                409,
+                "Saved device credential unavailable. Use Check and recover "
+                "on the Recovery page to restore the connection over USB.",
+            )
         config = json.loads(config_payload(frame))["config"]
         config.update(
             image_url=service.settings.config.public_base_url + "/v1/image", access_token=token

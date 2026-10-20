@@ -22,6 +22,10 @@ class RevisionConflict(RuntimeError):
     """A stale editor must not overwrite newer saved settings."""
 
 
+class UnknownFrame(ValueError):
+    """A requested frame no longer exists."""
+
+
 class Store:
     def __init__(self, path):
         self.path = path
@@ -298,7 +302,7 @@ class Store:
         with self.connect() as db:
             row = db.execute("SELECT * FROM frames WHERE id=?", (frame_id,)).fetchone()
         if row is None:
-            raise ValueError(f"Unknown frame: {frame_id}")
+            raise UnknownFrame("Unknown frame")
         return dict(row)
 
     def frames(self):

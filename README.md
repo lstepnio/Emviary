@@ -118,7 +118,11 @@ Enable **Show location name** in frame management to include the area name (curr
 
 ### Daily weather on the artwork
 
-The compact header summarizes the prevailing daylight sky for the dated Denver forecast, rather than the worst cloud condition across all 24 hours. Daily rain, snow, storm and wind cues take precedence. It is a forecast, not a live observation. High / low temperatures appear beneath the word in Fahrenheit by default; turn them off with **High / low beneath forecast (°F)** in frame management. The high and low cover the full local calendar day. Existing frames receive this default without firmware changes. Weather snapshots are tied to the requested date and location; older dates never supply weather cues.
+The compact header shows a dated local forecast, not a live observation. Open-Meteo and the US National Weather Service are independently fetched and cached. Either can supply weather when the other fails; if both fail, the composition remains available without weather. Settings includes source status and reports disagreements.
+
+Both sources normalize temperatures to Celsius, wind to km/h and snow to cm before rendering temperatures in Fahrenheit. When daily highs and lows differ by no more than 6°C, their median is used. Larger differences retain the local NWS values. Conditions use agreement, with NWS taking precedence on a tie; condition codes and precipitation amounts are never blindly averaged. NWS uses its daytime high and predawn overnight low, while Open-Meteo uses local calendar-day extrema. These are comparable outlooks, not identical measurement windows or statistically independent models.
+
+Snapshots must match the date and location, satisfy the frame's fetch freshness window, and pass unit/range checks. NWS issuance must also be less than 18 hours old. Failed sources have a 15-minute retry delay. A daily picture prepared without weather gets up to two additional attempts before wake, keeping the same planned composition. The daily panel does not become an error simply because its forecast ages while the frame sleeps.
 
 ### A picture ready for the next wake
 

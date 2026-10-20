@@ -195,7 +195,10 @@ def test_broken_usb_bundle_fails_closed_with_a_controlled_unavailable_response(
 def test_recovery_renders_one_target_and_no_duplicate_usb_controls(
     service, frame, tmp_path, monkeypatch
 ):
-    service.store.add_frame("second-frame", service.settings.config.frame_defaults)
+    token = service.store.add_frame("second-frame", service.settings.config.frame_defaults)
+    directory = service.settings.data_dir / "provisioning"
+    directory.mkdir()
+    (directory / "second-frame.token").write_text(token)
     client, _ = sign_in(service, tmp_path, monkeypatch)
     for path in ("/manage/recovery", "/manage/recovery?frame=second-frame"):
         page = client.get(path)

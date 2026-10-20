@@ -115,3 +115,18 @@ def test_toggle_requires_owner_csrf_and_valid_existing_day(service, frame, tmp_p
         == 404
     )
     assert json.loads(service.store.frame(frame[0])["policy"])["special_days"][0]["enabled"]
+
+
+def test_event_enhancements_are_served_by_csp_permitted_external_asset(
+    service, frame, tmp_path, monkeypatch
+):
+    from emviary.ui import ASSET_VERSION
+
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    response = client.get("/manage/events")
+    assert "script-src 'self'" in response.headers["content-security-policy"]
+    assert "<script>" not in response.text
+    script = client.get(f"/assets/{ASSET_VERSION}/ui.js")
+    assert script.status_code == 200
+    assert "__emviaryEventToggles" in script.text
+    assert "data-event-toggle" in script.text

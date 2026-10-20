@@ -333,9 +333,9 @@ def panel(frame):
         '<p class="quiet" data-usb-speed></p><p class="quiet" data-usb-debug></p>'
         "<p>Make sure the power switch is on. Close other serial apps and try another data cable "
         "if USB cannot connect. A charging-only cable does not work.</p>"
-        "<p>For older firmware or manual Wi-Fi setup, you can "
-        '<a href="/manage/frames/' + escape(frame) + '/provision?import_file=true">'
-        "download a private recovery import file</a> and follow the instructions below.</p>"
+        "<p>For older firmware or manual Wi-Fi setup, see "
+        '<a href="#recovery">manual recovery instructions</a> below. '
+        "Configuration downloads appear there when the saved credential is available.</p>"
         "<p>Repair preserves your settings first. Cloud restoration replaces local settings only "
         "after you confirm. The installer stays on this laptop and checks each firmware file.</p>"
         '</details></section><script type="module" '

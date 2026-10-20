@@ -42,7 +42,7 @@ border-radius:50%;left:3px;top:3px;transition:transform .15s}
 .event-card-controls{padding:0 14px 12px}}
 """
 
-EVENT_SCRIPT = """<script>
+EVENT_JAVASCRIPT = r"""
 (() => {
   if (window.__emviaryEventToggles) return;
   window.__emviaryEventToggles = true;
@@ -71,14 +71,28 @@ EVENT_SCRIPT = """<script>
     message.hidden = false; message.textContent = 'Saving…';
     queue = queue.then(async () => {
       try {
+        const auth = await fetch('/manage/session', {credentials:'same-origin',
+          cache:'no-store', headers:{Accept:'application/json'},
+          signal:AbortSignal.timeout(15000)});
+        if (auth.status === 401) throw new Error('Your session expired. Sign in in another ' +
+          'tab, then retry this change.');
+        if (!auth.ok) throw new Error('Sign-in could not be checked. Try again.');
+        const current = await auth.json();
+        document.querySelectorAll('form input[name="csrf"]').forEach(field => {
+          if (!/\/(login|logout)$/.test(new URL(field.form.action).pathname)) {
+            field.value = current.csrf;
+          }
+        });
         const data = new FormData(form); data.set('enabled', desired ? 'yes' : 'no');
         const response = await fetch(form.action, {method:'POST', body:new URLSearchParams(data),
           headers:{Accept:'application/json'}, credentials:'same-origin',
           signal:AbortSignal.timeout(15000)});
-        let saved; try { saved = await response.json(); }
-        catch { throw new Error('Sign in again to save.'); }
-        if (!response.ok) throw new Error(typeof saved.detail === 'string'
-          ? saved.detail : 'Could not save. Try again.');
+        if (response.status === 409) throw new Error('Settings changed in another tab. ' +
+          'Reload before saving again.');
+        if (response.status === 401 || response.status === 403) throw new Error(
+          'Sign in again, then reload this page before saving.');
+        if (!response.ok) throw new Error('Could not save. Try again shortly.');
+        const saved = await response.json();
         const base = form.action.slice(0, form.action.indexOf('/special-days/'));
         document.querySelectorAll('form').forEach(other => {
           if (!other.action.startsWith(base + '/')) return;
@@ -90,12 +104,15 @@ EVENT_SCRIPT = """<script>
         if (editor) editor.checked = saved.enabled;
         message.hidden = true;
       } catch (error) {
-        input.checked = previous; message.textContent = error.message;
+        input.checked = previous;
+        message.textContent = error instanceof TypeError || error.name === 'TimeoutError'
+          ? 'The change could not be confirmed. Reload to check its saved state before retrying.'
+          : error.message;
       } finally { input.disabled = false; }
     });
   });
 })();
-</script>"""
+"""
 
 
 def card_start(day, frame_id, csrf, next_date, artwork, hidden):
