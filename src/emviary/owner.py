@@ -26,6 +26,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
 from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
+from .display_history import HISTORY_NOTE, reported_label
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
@@ -565,11 +566,11 @@ def attach_owner(app, service):
                     )
                 body += (
                     '</div><div class="current-next refresh-slots">'
-                    '<div class="delivered-slot"><h3>Last cloud-confirmed picture</h3>'
+                    '<div class="delivered-slot"><h3>Last picture sent to frame</h3>'
                 )
                 body += (
                     (
-                        '<img class="preview" alt="Last artwork delivered to this frame" '
+                        '<img class="preview" alt="Last artwork sent to this frame" '
                         'src="/manage/frames/'
                     )
                     + identifier
@@ -588,7 +589,7 @@ def attach_owner(app, service):
                     forecast = plan["inputs"].get("open_meteo", {})
                     stamp = forecast.get("fetched_at")
                     state = (
-                        "Ready"
+                        "Prepared"
                         if service.image_usable(image, frame, now=check_at)
                         else "Refreshing weather"
                     )
@@ -606,10 +607,24 @@ def attach_owner(app, service):
                     )
                     return state + " · " + image["local_date"] + " · " + detail
 
+                display_report = (
+                    service.display_history.latest(frame["id"], delivered["body_hash"])
+                    if delivered
+                    else None
+                )
+                display_status = (
+                    reported_label(display_report, site_timezone)
+                    if display_report
+                    else "Sent to frame; display not yet confirmed."
+                    if delivered
+                    else "Waiting for the frame's first picture request."
+                )
                 body += (
-                    '<p class="quiet">During an outage the frame may rotate cached art. '
-                    "This preview shows the last cloud-confirmed picture. Device health "
-                    "shows the frame’s reported refresh result.</p>"
+                    '<p class="quiet" data-display-status>'
+                    + escape(display_status)
+                    + '</p><p class="quiet">The frame reports its previous refresh '
+                    "on a later wake. "
+                    "Sending a picture does not confirm a panel refresh.</p>"
                 )
                 body += '</div><div class="prepared-slot"><h3>Daily refresh</h3>'
                 body += (
@@ -669,23 +684,21 @@ def attach_owner(app, service):
                     '</div></div><p class="quiet">Daily refreshes get a separately prepared '
                     "forecast. The next button uses a ready image; older images keep their "
                     "original weather when browsing history. If preparation is delayed, the "
-                    "frame keeps its current picture. This view follows delivery and cannot "
-                    "confirm the physical panel.</p>"
+                    "frame keeps its current picture. Prepared pictures have not yet been "
+                    "confirmed as displayed.</p>"
                 )
-                past = (
-                    service.store.past_compositions(frame["id"], delivered["id"], 10)
-                    if delivered
-                    else []
+                past = service.store.past_compositions(
+                    frame["id"], delivered["id"] if delivered else None, 10
                 )
+                past = [
+                    image for image in past if service.cache_path(image["preview_path"]).is_file()
+                ]
                 body += '<section class="past-compositions"><h3>Past compositions</h3>'
-                body += (
-                    '<p class="quiet">Browse the pictures before the current '
-                    "composition, newest first. Weather-only updates are grouped.</p>"
-                )
+                body += '<p class="quiet">' + HISTORY_NOTE + "</p>"
                 if not past:
                     body += (
-                        '<p class="empty-state">Past compositions will appear after your '
-                        "frame changes pictures.</p>"
+                        '<p class="empty-state">No frame-confirmed past pictures '
+                        "are available yet.</p>"
                     )
                 else:
 
@@ -699,6 +712,8 @@ def attach_owner(app, service):
                                 + '" src="/manage/images/'
                                 + str(image["id"])
                                 + '/preview"><figcaption>'
+                                + escape(reported_label(image, site_timezone))
+                                + " · Artwork for "
                                 + escape(image["local_date"])
                                 + "</figcaption></figure>"
                                 for image in images
@@ -1014,7 +1029,11 @@ def attach_owner(app, service):
                     '<a class="button secondary" href="#event-new" data-event-add>'
                     "Add a day</a></div>"
                 )
-                today = datetime.now(ZoneInfo("America/Denver")).date()
+                today = (
+                    service.clock()
+                    .astimezone(ZoneInfo(service.settings.config.site(frame["site_id"]).timezone))
+                    .date()
+                )
 
                 def occasion_date(event):
                     return next_special_day_date(event, today)
@@ -1543,9 +1562,15 @@ def attach_owner(app, service):
         delivered = service.delivered_image(frame)
         special_day = json.loads(image["manifest"]).get("special_day") or {}
         event_anchor = "#event-" + special_day["id"] if special_day.get("id") else ""
-        if delivered and delivered["id"] == image_id:
+        confirmed = service.display_history.latest(frame["id"], image["body_hash"])
+        if confirmed:
             message = (
-                "This artwork was last delivered to the frame. Another image may be ready next."
+                reported_label(confirmed, service.settings.config.site(frame["site_id"]).timezone)
+                + ". The report can arrive after the display changed."
+            )
+        elif delivered and delivered["id"] == image_id:
+            message = (
+                "This artwork was sent to the frame. Its display is not confirmed by delivery."
             )
         elif frame["active_image_id"] == image_id:
             message = (
@@ -1553,7 +1578,9 @@ def attach_owner(app, service):
                 "or next-image button press."
             )
         else:
-            message = "This is a saved preview. The next-image queue has moved on."
+            message = (
+                "This is a prepared preview with no display confirmation. The queue has moved on."
+            )
         body = (
             '<section class="preview-result"><p class="notice success" role="status">'
             + escape(message)

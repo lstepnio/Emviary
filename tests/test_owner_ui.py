@@ -5,7 +5,7 @@ def test_focused_management_pages(service, frame, tmp_path, monkeypatch):
     client, csrf = sign_in(service, tmp_path, monkeypatch)
     home = client.get("/manage").text
     assert (
-        "Last cloud-confirmed picture" in home and "Daily refresh" in home and "Next button" in home
+        "Last picture sent to frame" in home and "Daily refresh" in home and "Next button" in home
     )
     assert 'name="password"' not in home and 'name="max_birds"' not in home
     assert 'name="max_birds"' in client.get("/manage/appearance").text
@@ -53,6 +53,10 @@ def test_overview_past_compositions_follow_current_and_hide_removed(
 ):
     client, _ = sign_in(service, tmp_path, monkeypatch)
     images = [service.prepare(frame[0], "2026-10-08", offline=True, force=True) for _ in range(4)]
+    from test_display_history import observe
+
+    for image in images[:3]:
+        observe(service, frame, image)
     service.store.telemetry(frame[0], 80, "v0.8.4", "demo", images[2]["body_hash"])
     home = client.get("/manage").text
     assert "Past compositions" in home

@@ -168,10 +168,16 @@ def test_special_day_html_queue_confirms_service_state_and_keeps_jpeg_compatibil
     assert service.delivered_image(service.store.frame(frame[0]))["id"] == first["id"]
     service.prepare(frame[0], "2026-10-09", force=True, offline=True)
     historical = client.get(response.headers["location"])
-    assert "This is a saved preview. The next-image queue has moved on." in historical.text
+    assert (
+        "This is a prepared preview with no display confirmation. The queue has moved on."
+        in historical.text
+    )
     assert "Artwork prepared and queued" not in historical.text
     delivered = client.get(f"/manage/images/{first['id']}/review")
-    assert "This artwork was last delivered to the frame." in delivered.text
+    assert (
+        "This artwork was sent to the frame. Its display is not confirmed by delivery."
+        in delivered.text
+    )
     assert "Artwork prepared and queued" not in delivered.text
 
 

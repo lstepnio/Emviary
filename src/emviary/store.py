@@ -152,7 +152,7 @@ class Store:
                     error TEXT,
                     PRIMARY KEY(frame_id, local_date)
                 );
-                PRAGMA user_version=8;
+                PRAGMA user_version=9;
             """)
 
         with self.connect() as db:
@@ -178,10 +178,21 @@ class Store:
                 for row in db.execute("SELECT manifest FROM images").fetchall():
                     self.count_render(db, json.loads(row["manifest"]))
 
+        with self.connect() as db:
+            db.execute(
+                "CREATE INDEX IF NOT EXISTS images_frame_hidden_id "
+                "ON images(frame_id,hidden,id DESC)"
+            )
+
         from .recovery_sessions import initialize
 
         with self.connect() as db:
             initialize(db)
+
+        from .display_history import initialize as initialize_display_history
+
+        with self.connect() as db:
+            initialize_display_history(db)
 
     @staticmethod
     def count_render(db, plan):
@@ -232,22 +243,10 @@ class Store:
             ).fetchone()
         return dict(row) if row else None
 
-    def past_compositions(self, frame_id, current_id, limit=2):
-        from .compositions import composition_key, distinct_compositions
+    def past_compositions(self, frame_id, current_id=None, limit=2):
+        from .display_history import DisplayHistory
 
-        with self.connect() as db:
-            current = db.execute(
-                "SELECT * FROM images WHERE frame_id=? AND id=?", (frame_id, current_id)
-            ).fetchone()
-            images = db.execute(
-                "SELECT * FROM images WHERE frame_id=? AND hidden=0 AND id<? ORDER BY id DESC",
-                (frame_id, current_id),
-            )
-            return distinct_compositions(
-                (dict(row) for row in images),
-                exclude=[composition_key(dict(current))] if current else [],
-                limit=min(10, max(1, limit)),
-            )
+        return DisplayHistory(self).past(frame_id, current_id, limit)
 
     def navigation_image(self, frame, direction, client_tag):
         digest = client_tag.removeprefix("W/").strip('"').split("-c")[0]

@@ -539,6 +539,25 @@ class RecoverySessions:
                 evidence.pop("failed", None)
                 evidence.pop("error", None)
             evidence[phase] = self.clock().isoformat()
+            if phase == "panel_refreshed":
+                from .display_history import DisplayHistory
+
+                image = DisplayHistory._image(db, frame["id"], session["image_id"], self.clock())
+                if image and image["body_hash"] == session["image_sha256"]:
+                    DisplayHistory._insert(
+                        db,
+                        frame["id"],
+                        image,
+                        self.clock(),
+                        "recovery_panel_ack",
+                        session["firmware"],
+                        "recovery:"
+                        + session["id"]
+                        + ":"
+                        + data["boot_id"]
+                        + ":"
+                        + image["body_hash"],
+                    )
             db.execute(
                 "UPDATE recovery_sessions SET device_id=?,boot_id=?,evidence=? WHERE id=?",
                 (data["device_id"], data["boot_id"], stable_json(evidence), session["id"]),

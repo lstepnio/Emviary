@@ -182,6 +182,10 @@ def test_history_and_buttons_group_weather_revisions_and_exclude_current_composi
     current = service._prepare(frame[0], None, True, False, reuse_image=second)
     assert composition_key(first) == composition_key(first_weather)
     assert composition_key(second) == composition_key(current)
+    from test_display_history import observe
+
+    for image in (first, first_weather, second, current):
+        observe(service, frame, image)
     past = service.store.past_compositions(frame[0], current["id"], 10)
     assert [image["id"] for image in past] == [first_weather["id"]]
     assert [

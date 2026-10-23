@@ -388,7 +388,7 @@ def test_next_daily_preview_evaluates_midnight_forecast_at_target_wake(
         .text.split("<h3>Daily refresh</h3>")[1]
         .split("<h3>Next button</h3>")[0]
     )
-    assert "Ready" in daily_card and "Waiting for fresh preparation" not in daily_card
+    assert "Prepared" in daily_card and "Waiting for fresh preparation" not in daily_card
 
 
 def test_next_daily_preview_distinguishes_expected_wait_from_failed_preparation(
