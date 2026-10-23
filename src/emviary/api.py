@@ -167,6 +167,10 @@ def create_app(service=None, schedule=True):
         frame = authenticated(request, service)
         check_geometry(request, frame)
         record_frame_network(request, service, frame)
+        metrics = parse_metrics(request.headers.get("x-frame-metrics"))
+        client_report_tag = request.headers.get("if-none-match", "")[:256]
+        reported_firmware = request.headers.get("x-firmware-version", "")[:80]
+        service.display_history.observe(frame["id"], client_report_tag, metrics, reported_firmware)
         direction = request.headers.get("x-image-navigation", "latest")
         if direction not in {"latest", "previous", "next"}:
             raise HTTPException(400, "Unknown image navigation direction")
@@ -202,23 +206,6 @@ def create_app(service=None, schedule=True):
         if firmware:
             firmware = firmware[:80]
         client_tag = request.headers.get("if-none-match", "")[:256]
-        background = (
-            BackgroundTask(
-                service.image_delivered,
-                frame["id"],
-                record["id"],
-                battery,
-                firmware,
-                client_tag,
-                tag,
-                voltage,
-                charging,
-                usb_connected,
-                parse_metrics(request.headers.get("x-frame-metrics")),
-            )
-            if firmware
-            else None
-        )
         payload = config_payload(frame)
         if len(payload.encode()) > 1900:
             raise HTTPException(503, "Configuration exceeds the firmware header limit")
@@ -233,7 +220,26 @@ def create_app(service=None, schedule=True):
             # Recovery verifies the full body, even if an ordinary ETag would retain it.
             retain, client_tag = False, ""
 
-        if retain or etag_matches(client_tag, tag):
+        status = 304 if retain or etag_matches(client_tag, tag) else 200
+        background = (
+            BackgroundTask(
+                service.image_delivered,
+                frame["id"],
+                record["id"],
+                battery,
+                firmware,
+                client_tag,
+                tag,
+                voltage,
+                charging,
+                usb_connected,
+                metrics,
+                status,
+            )
+            if firmware
+            else BackgroundTask(service.display_history.sent, frame["id"], record["id"], status)
+        )
+        if status == 304:
             headers["X-Config-Payload"] = payload
             if retain:
                 headers["X-Image-Readiness"] = "retained; refreshing on server"
@@ -580,9 +586,10 @@ def create_app(service=None, schedule=True):
         if available:
             body += (
                 '<figure class="frame-preview"><img src="/display.jpg" '
-                'width="800" height="480" alt="Last cloud-confirmed frame artwork">'
-                '<figcaption class="quiet">Last cloud-confirmed picture. During an outage '
-                "the frame may rotate cached art.</figcaption>"
+                'width="800" height="480" alt="Last picture sent to the frame">'
+                '<figcaption class="quiet">Last picture sent to the frame. '
+                "Sending a picture does not confirm its display. "
+                "The frame can rotate cached art during an outage.</figcaption>"
                 "</figure>"
             )
         else:

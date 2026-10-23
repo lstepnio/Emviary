@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
 from .compositions import composition_key
+from .display_history import HISTORY_NOTE, reported_label
 
 
 def public_records(service):
@@ -23,7 +24,7 @@ def public_records(service):
     if preview:
         preview = {**preview, "preview_url": "/display/next-daily.jpg"}
     upcoming = {"Daily refresh": preview, "Next button": service.store.active_image(frame)}
-    past = service.store.past_compositions(identifier, current["id"], 10) if current else []
+    past = service.store.past_compositions(identifier, current["id"] if current else None, 10)
     return current, upcoming, past
 
 
@@ -58,7 +59,13 @@ def gallery_markup(service):
             labels, record = grouped.setdefault(composition_key(image), ([], image))
             labels.append(label)
     ready = [
-        (" · ".join(labels) + " · " + image["local_date"], image)
+        (
+            ("Planned · " if image.get("planned") else "Prepared · ")
+            + " · ".join(labels)
+            + " · "
+            + image["local_date"],
+            image,
+        )
         for labels, image in grouped.values()
     ]
     if ready or upcoming:
@@ -93,18 +100,32 @@ def gallery_markup(service):
             body += '<p class="empty-state">The next composition preview is being prepared.</p>'
         body += "</section>"
     history = [image for image in past if usable(image)]
-    if history:
+    if upcoming:
+        site = service.settings.config.site(
+            service.store.frame(service.settings.config.public_frame_id)["site_id"]
+        )
         body += (
             '<section class="public-compositions"><h2>Past compositions</h2>'
-            '<div class="current-next">'
+            '<p class="quiet">' + HISTORY_NOTE + "</p>"
         )
-        body += "".join(card(image, image["local_date"]) for image in history[:2]) + "</div>"
-        if len(history) > 2:
-            body += '<details><summary>More past compositions</summary><div class="current-next">'
+        if history:
+            body += '<div class="current-next">'
             body += (
-                "".join(card(image, image["local_date"]) for image in history[2:])
-                + "</div></details>"
+                "".join(card(image, reported_label(image, site.timezone)) for image in history[:2])
+                + "</div>"
             )
+            if len(history) > 2:
+                body += (
+                    '<details><summary>More past compositions</summary><div class="current-next">'
+                )
+                body += (
+                    "".join(
+                        card(image, reported_label(image, site.timezone)) for image in history[2:]
+                    )
+                    + "</div></details>"
+                )
+        else:
+            body += '<p class="empty-state">No frame-confirmed past pictures are available yet.</p>'
         body += "</section>"
     return body
 

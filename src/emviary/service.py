@@ -38,6 +38,10 @@ class Service:
         self.clock = clock or (lambda: datetime.now(UTC))
         self.settings = settings or Settings()
         self.store = Store(self.settings.db_path)
+        from .display_history import DisplayHistory
+
+        self.display_history = DisplayHistory(self.store, lambda: self.clock())
+        self.display_history.import_legacy()
         self.event_art = EventArt(self.settings.data_dir)
         with preparation_lock(self.settings.data_dir):
             self.event_art.approve_existing()
@@ -795,8 +799,10 @@ class Service:
         battery_charging=None,
         usb_connected=None,
         device_metrics=None,
+        response_status=200,
     ):
-        # Called after the HTTP body is sent; preview visits never consume the buffer.
+        # Called after the HTTP body is sent; this does not confirm the panel.
+        self.display_history.sent(frame_id, image_id, response_status)
         self.store.telemetry(
             frame_id,
             battery,
