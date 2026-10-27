@@ -36,8 +36,10 @@ environment, database-name and canonical-URL migration. The local-hostname follo
 is `emily-e1002`; existing token hashes, delivery state and image history
 remain preserved.
 
-The local checkout is `/Users/lukasz.stepniowski/Development/Emviary`; the
-former checkout path is a compatibility symlink for existing tools.
+The local checkout is `~/Development/Emviary`. The compatibility symlink at
+`~/Development/eInkArtifact` was retired on October 23, 2026 after updating
+the saved Codex project and rebuilding the local Python environment. See
+[project structure](../PROJECT_STRUCTURE.md) for the canonical layout.
 
 The deployed application implementation is commit
 `a30e86b45342a0560fcb1804c985ab81cd5ee11e`, image `emviary:poc-010`,

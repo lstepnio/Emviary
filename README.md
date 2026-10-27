@@ -49,6 +49,9 @@ and application-only recovery instructions are in
 
 ## Local development
 
+See [project structure](PROJECT_STRUCTURE.md) for the canonical checkout, firmware
+submodule, and local development paths.
+
 ```sh
 git clone --recurse-submodules git@github.com:lstepnio/Emviary.git
 cd Emviary
