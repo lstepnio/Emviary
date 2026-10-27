@@ -826,6 +826,10 @@ def attach_owner(app, service):
                     "Manual requires a "
                     "chosen version; "
                     "disabled keeps the installed firmware.</p>"
+                    '<p class="quiet">For a gift you maintain, choose Manual and pin the '
+                    "version you have tested on this frame. New frames default to stable "
+                    "releases with a seven-day delay; a release label does not replace "
+                    "testing.</p>"
                     '<p><a href="https://github.com/lstepnio/Emviary-firmware/releases">'
                     "Firmware releases</a></p>"
                     '<label>Update preference<br><select name="firmware_updates">'

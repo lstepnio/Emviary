@@ -47,6 +47,8 @@
     "weather_cues": true,
     "max_birds": 3,
     "firmware_updates": "automatic",
+    "firmware_channel": "stable",
+    "firmware_rollout_days": 7,
     "firmware_pinned_version": null
   },
   "render": {

@@ -39,7 +39,8 @@ on upstream v2.19.0. It retains the safe panel refresh with clearing removed fro
 advertises `emviary.local` plus `photoframe.local`, and checks the authenticated
 cloud update policy on every online wake. GitHub hosts immutable, board-specific
 releases; complete-image SHA-256 verification precedes the OTA boot switch.
-Automatic updates, including prereleases, are enabled by default; management
+New frames default to automatic stable-release updates after a seven-day
+publication delay. Existing saved update preferences are preserved; management
 can pause updates or select a pinned version. Battery endurance still needs
 separate validation.
 See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
@@ -86,6 +87,11 @@ See [RUNBOOK.md](RUNBOOK.md) for owner operations and restore instructions,
 [DEPLOYMENT.md](DEPLOYMENT.md) for the deployment specification,
 [PLAN.md](PLAN.md) for architecture, cost and power tradeoffs, and
 [research/PROJECTS.md](research/PROJECTS.md) for upstream reuse decisions.
+
+For a gift you preconfigure and maintain, see the
+[gift readiness plan](research/GIFT_READINESS_PLAN_2026_10_13.md). The public
+`/guide` page explains everyday controls, charging and help, and can be printed
+for the gift box. It requires no account and contains no frame-specific data.
 
 Original service code is MIT licensed. Artwork retains its per-asset MIT,
 CC BY-SA, CC BY-NC-SA or public-domain provenance; fonts are OFL licensed. Artwork provenance is in

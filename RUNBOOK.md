@@ -175,9 +175,12 @@ Only available approved, seasonally eligible artwork participates in rotation.
 
 ## Firmware updates
 
-The default frame policy takes any newer compatible published release, including
-prereleases. In management, expand Firmware updates to pause updates or specify
-a version. A pin permits an upgrade to that exact published version; it does not
+New frame policies accept compatible stable releases after a seven-day publication
+delay. Existing explicitly saved channels and delays are preserved. For a gift
+you maintain, use Manual with the physically tested version pinned and authorize
+each later release after validation. In management, expand Firmware updates to
+pause updates or specify a version. A pin permits an upgrade to that exact
+published version; it does not
 force a downgrade. Automatic without a pin resumes the newest compatible release.
 The frame requests `/v1/firmware` with its existing bearer token every online
 wake. Failed discovery, downloads or digest validation retain its current
@@ -194,6 +197,11 @@ Local controls: `http://emviary.local`, with `http://photoframe.local` as a fall
 while the frame is awake on the same Wi-Fi. The primary frame is `emily-e1002`.
 
 ## Stage Wi-Fi before gifting
+
+Use the [gift readiness plan](research/GIFT_READINESS_PLAN_2026_10_13.md) as the
+handoff checklist. Print the public `/guide` page for the recipient and include
+the tested cable and power adapter. The recipient does not need an owner account.
+Keep maintenance credentials and recovery imports in your private support kit.
 
 Wake the frame on its current Wi-Fi, then sign in to cloud management and open
 **Saved Wi-Fi networks** for `emily-e1002`. Add the destination's 2.4 GHz SSID

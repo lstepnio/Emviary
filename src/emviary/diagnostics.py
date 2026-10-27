@@ -148,7 +148,8 @@ def management_alerts(service, frame, now=None):
                 "scheduled_refresh",
                 "Daily connection missed",
                 "The frame has not connected since its expected daily wake. "
-                "Check its battery and Wi-Fi, then press the right white button.",
+                "It may still be displaying cached artwork. "
+                "Check its battery and Wi-Fi, then briefly press the green button to reconnect.",
             )
         )
 
@@ -343,8 +344,9 @@ def diagnostics_section(store, frame_id, escape):
         )
     if latest.get("previous_result") == "failed":
         body += (
-            '<p class="notice">The last refresh failed. '
-            "Check Wi-Fi and try the next-image button.</p>"
+            '<p class="notice">The last reported refresh failed. '
+            "Cached pictures may still work. Check Wi-Fi and briefly press the green "
+            "button to reconnect.</p>"
         )
     body += (
         "<details><summary>Recent connections</summary>"

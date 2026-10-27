@@ -29,6 +29,13 @@ def test_sleep_schedule_grace_and_contact_recovery(service, frame):
     )
     assert "scheduled_refresh" not in codes(service, row, now + timedelta(minutes=44))
     assert "scheduled_refresh" in codes(service, row, now + timedelta(minutes=45))
+    detail = next(
+        a[2]
+        for a in management_alerts(service, row, now + timedelta(minutes=45))
+        if a[0] == "scheduled_refresh"
+    )
+    assert "cached artwork" in detail and "green button" in detail
+    assert "right white button" not in detail
     row = update_frame(service, frame_id, last_contact=now.isoformat())
     assert "scheduled_refresh" not in codes(service, row, now + timedelta(hours=12))
     row = update_frame(service, frame_id, last_contact=None, created_at=now.isoformat())

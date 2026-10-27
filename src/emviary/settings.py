@@ -199,8 +199,8 @@ class FramePolicy(Model):
     firmware_updates: Literal["automatic", "manual", "disabled"] = "automatic"
     firmware_debug_logging: bool = False
     management_trusted_wan: bool = False
-    firmware_channel: Literal["all", "stable"] = "all"
-    firmware_rollout_days: int = Field(default=0, ge=0, le=30)
+    firmware_channel: Literal["all", "stable"] = "stable"
+    firmware_rollout_days: int = Field(default=7, ge=0, le=30)
     firmware_blocked_versions: list[str] = Field(default_factory=list, max_length=32)
     firmware_pinned_version: str | None = Field(
         default=None,
