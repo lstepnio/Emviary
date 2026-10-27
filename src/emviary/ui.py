@@ -300,6 +300,25 @@ padding:18px;
 border-radius:10px}
 
 hr{border:0;border-top:1px solid var(--line);margin:24px 0}.danger-zone{border-color:#e2bbb3}
+.recipient-guide{max-width:860px;margin:0 auto}
+.guide-actions{margin-bottom:24px}
+.guide-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:0}
+.guide-controls dt{font-weight:650;margin-bottom:8px}
+.guide-controls dd{margin:0}
+@media(max-width:600px){.guide-controls{grid-template-columns:1fr;gap:16px}}
+@media print{
+  @page recipient-guide{size:letter;margin:12mm}
+  body{background:white;color:black;font-size:11pt}
+  .site-header,.site-footer,.skip-link,.guide-actions{display:none}
+  .public main{padding:0}
+  .recipient-guide{max-width:none;page:recipient-guide;font-size:10.5pt;line-height:1.45}
+  .recipient-guide .page-header{margin-bottom:18px}
+  .recipient-guide section{break-inside:avoid;padding:16px;margin-bottom:14px;box-shadow:none}
+  .recipient-guide h1{font-size:25pt}
+  .recipient-guide h2{font-size:16pt;margin-bottom:10px}
+  .recipient-guide p{margin-bottom:10px}
+  .recipient-guide .quiet{color:black}
+}
 @media(min-width:1440px){main{padding-top:54px}}
 @media(max-width:1000px){.split,.current-next{grid-template-columns:1fr}.sidebar{width:210px}
 .refresh-slots .delivered-slot{grid-row:auto}
@@ -582,6 +601,7 @@ max-width:800px;justify-self:center;box-sizing:border-box}
 # A small progressive enhancement preserves native HTML forms without a framework.
 JAVASCRIPT = r"""
 (() => {
+  document.querySelector('[data-print-guide]')?.addEventListener('click', () => window.print());
   document.querySelectorAll('[data-weather-options]').forEach(group => {
     const toggle = group.closest('form').querySelector('[name="weather"]');
     if (!toggle) return;
@@ -1023,6 +1043,9 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
                 + '<a href="/library"'
                 + (' aria-current="page"' if active == "artwork" else "")
                 + ">Artwork</a>"
+                + '<a href="/guide"'
+                + (' aria-current="page"' if active == "guide" else "")
+                + ">Using your frame</a>"
                 + '<a class="manage-link" href="/manage">Manage</a></nav>'
             )
         )

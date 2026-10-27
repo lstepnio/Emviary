@@ -177,11 +177,11 @@ class Store:
                 db.execute("ALTER TABLE images ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
                 for row in db.execute("SELECT manifest FROM images").fetchall():
                     self.count_render(db, json.loads(row["manifest"]))
-
-        with self.connect() as db:
+            # Gallery history must stream in ID order without sorting large manifests
+            # into SQLite temporary files on the server's bounded /tmp filesystem.
             db.execute(
                 "CREATE INDEX IF NOT EXISTS images_frame_hidden_id "
-                "ON images(frame_id,hidden,id DESC)"
+                "ON images(frame_id, hidden, id DESC)"
             )
 
         from .recovery_sessions import initialize

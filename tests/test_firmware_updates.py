@@ -1,5 +1,6 @@
 import copy
 
+import pytest
 from fastapi.testclient import TestClient
 
 from emviary.api import create_app
@@ -12,6 +13,7 @@ def release(tag="v0.3.1", **changes):
         "tag_name": tag,
         "draft": False,
         "prerelease": "-" in tag,
+        "published_at": "2020-01-01T00:00:00+00:00",
         "assets": [
             {
                 "name": ASSET_NAME,
@@ -33,12 +35,13 @@ def checker(releases):
 
 def test_automatic_prerelease_and_versions():
     updates = checker([release("v0.3.1"), release("v0.4.0-rc.1")])
-    result = updates.check(FramePolicy(), "v0.3.0")
+    policy = FramePolicy(firmware_channel="all", firmware_rollout_days=0)
+    result = updates.check(policy, "v0.3.0")
     assert result["tag_name"] == "v0.4.0-rc.1"
     assert result["update_available"] and result["sha256"] == "a" * 64
     assert result["size"] == 2048
-    assert updates.check(FramePolicy(), "dev04c423f")["update_available"]
-    assert not updates.check(FramePolicy(), "v0.5.0")["update_available"]
+    assert updates.check(policy, "dev04c423f")["update_available"]
+    assert not updates.check(policy, "v0.5.0")["update_available"]
     assert not checker([release()]).check(FramePolicy(), "v0.3.1")["update_available"]
 
 
@@ -144,18 +147,97 @@ def test_release_channels_delay_blocklist_and_bootloader_gate():
     older = release("v0.7.7", published_at=(now - timedelta(days=5)).isoformat())
     preview = release("v0.8.0", prerelease=True, published_at=now.isoformat())
     updates = checker([older, preview])
-    assert updates.check(FramePolicy(firmware_channel="stable"), "v0.7.6")["tag_name"] == "v0.7.7"
+    assert updates.check(FramePolicy(firmware_rollout_days=0), "v0.7.6")["tag_name"] == "v0.7.7"
     assert (
         updates.check(FramePolicy(firmware_rollout_days=2), "v0.7.6", now=now)["tag_name"]
         == "v0.7.7"
     )
     assert (
-        updates.check(FramePolicy(firmware_blocked_versions=["v0.8.0"]), "v0.7.6")["tag_name"]
+        updates.check(
+            FramePolicy(
+                firmware_channel="all",
+                firmware_rollout_days=0,
+                firmware_blocked_versions=["v0.8.0"],
+            ),
+            "v0.7.6",
+        )["tag_name"]
         == "v0.7.7"
     )
     preview["assets"].append({"name": "requires-rollback-bootloader.txt"})
-    assert updates.check(FramePolicy(), "v0.7.7")["update_available"] is False
-    assert updates.check(FramePolicy(), "v0.7.7", rollback_ready=True)["tag_name"] == "v0.8.0"
-    assert not checker([release()]).check(FramePolicy(firmware_rollout_days=1), "v0.1.0", now=now)[
+    policy = FramePolicy(firmware_channel="all", firmware_rollout_days=0)
+    assert updates.check(policy, "v0.7.7")["update_available"] is False
+    assert updates.check(policy, "v0.7.7", rollback_ready=True)["tag_name"] == "v0.8.0"
+    assert not checker([release(published_at=None)]).check(
+        FramePolicy(firmware_rollout_days=1), "v0.1.0", now=now
+    )["update_available"]
+
+
+def test_gift_defaults_require_aged_stable_release_and_preserve_explicit_preview_policy():
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime(2026, 10, 13, tzinfo=UTC)
+    mature = release("v0.8.10", published_at=(now - timedelta(days=8)).isoformat())
+    fresh = release("v0.8.11", published_at=now.isoformat())
+    preview = release("v0.9.0-rc.1", published_at=(now - timedelta(days=8)).isoformat())
+    updates = checker([mature, fresh, preview])
+    assert updates.check(FramePolicy(), "v0.8.9", now=now)["tag_name"] == "v0.8.10"
+    assert not checker([fresh, preview]).check(FramePolicy(), "v0.8.10", now=now)[
         "update_available"
     ]
+    explicit = FramePolicy.model_validate({"firmware_channel": "all", "firmware_rollout_days": 0})
+    assert updates.check(explicit, "v0.8.9", now=now)["tag_name"] == "v0.9.0-rc.1"
+
+
+@pytest.mark.parametrize(
+    "mode,pin,expected",
+    [
+        ("automatic", None, "v0.4.0-rc.1"),
+        ("manual", "v0.3.1", "v0.3.1"),
+        ("disabled", None, "v0.3.0"),
+    ],
+)
+def test_saved_update_preferences_survive_settings_save_restart_and_discovery(
+    service, frame, tmp_path, monkeypatch, mode, pin, expected
+):
+    import json
+
+    from test_owner import sign_in
+
+    from emviary.service import Service
+
+    service.store.set_policy(
+        frame[0],
+        FramePolicy(
+            firmware_updates=mode,
+            firmware_channel="all",
+            firmware_rollout_days=0,
+            firmware_pinned_version=pin,
+        ),
+    )
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    saved = client.post(
+        "/manage/frames/" + frame[0] + "/settings",
+        data={
+            "csrf": csrf,
+            "wake": "04:15",
+            "max_birds": "3",
+            "preset": "balanced",
+            "dither": "stucki",
+        },
+        follow_redirects=False,
+    )
+    assert saved.status_code == 303, saved.text
+    restarted = Service(service.settings, service.providers, service.converter, service.clock)
+    stored = json.loads(restarted.store.frame(frame[0])["policy"])
+    assert stored["firmware_updates"] == mode
+    assert stored["firmware_channel"] == "all"
+    assert stored["firmware_rollout_days"] == 0
+    assert stored["firmware_pinned_version"] == pin
+    app = create_app(restarted, schedule=False)
+    app.state.firmware_updates = checker([release("v0.3.1"), release("v0.4.0-rc.1")])
+    response = TestClient(app).get(
+        "/v1/firmware?current=v0.3.0", headers={"Authorization": "Bearer " + frame[1]}
+    )
+    assert response.status_code == 200
+    assert response.json()["tag_name"] == expected
+    assert response.json()["update_available"] is (mode != "disabled")

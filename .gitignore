@@ -1,6 +1,9 @@
 .venv/
 .state/
 .private/
+.playwright-cli/
+output/playwright/
+output/pdf/
 art/experimental/
 __pycache__/
 .pytest_cache/

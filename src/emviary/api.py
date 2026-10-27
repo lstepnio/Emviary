@@ -569,6 +569,10 @@ def create_app(service=None, schedule=True):
 
     install_public_gallery(app, service)
 
+    from .recipient import install_routes as install_recipient_guide
+
+    install_recipient_guide(app)
+
     @app.get("/")
     def display_home():
         from .ui import page
