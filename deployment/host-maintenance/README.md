@@ -6,7 +6,8 @@ other source and notification state; activate the new monitoring window at the
 schedule transition to avoid retroactive missed-start alerts.
 
 Stop the timers before editing their calendars, reload systemd, verify the next
-scheduled times, then start the timers. Never start the backup or update service
+scheduled times, then start the timers with a future-only first trigger. Check queued jobs as
+well as active services during the cutover. Never start the backup or update service
 as part of a schedule-only edit. Do not interrupt an active cold snapshot.
 
 The patch handles a queued image that Docker no longer retains: discard only

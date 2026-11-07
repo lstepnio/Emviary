@@ -56,7 +56,8 @@ Selective application deployment compared container identities and start times:
 only Emviary changed. SQLite quick_check passed and foreign_key_check returned
 zero violations. Live overview, recovery, appearance, events, battery, settings
 and guide routes returned 200. Hidden-browser checks navigated those pages and
-decoded visible images; no settings or recovery actions were submitted.
+decoded visible images with no page JavaScript errors. The overview measured
+390 px wide at a 390 px viewport. No settings or recovery actions were submitted.
 Liveness remains independent of readiness. No image-delivery endpoint was called.
 
 ## Schedule-change incident
@@ -67,7 +68,18 @@ by 22:58:59 MST, November 6. The same container IDs were retained. The running
 cold snapshot was allowed to restore applications safely rather than interrupted.
 All applications were running and healthy after restoration. This was an
 avoidable interruption caused by this task, not a claim of zero downtime.
-Future schedule changes must stop timers before editing/reloading calendars.
+The queued update began when backup finished. It was stopped during image export,
+before any further application stops or replacements; no restart journal remained.
+Its existing failure notifier accepted a cancellation notification. The failed-unit
+flag was reset only after a successful explicit observation-only updater pass.
+That pass checked all eligible registry references and one mature candidate,
+without changing any container identity, start time or deployment pin.
+The host backup ultimately passed full archive verification at 23:10:28 MST,
+November 6, with 12,618,125,536 archive bytes and 156.7 seconds stop/recovery.
+
+Future schedule changes must stop timers before editing/reloading calendars,
+review elapsed events and queued jobs, and verify a future-only first trigger;
+restarting a calendar timer is not a schedule-only guarantee.
 The deployment itself later changed only Emviary.
 
 ## Rollback and remaining boundaries
