@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Emviary scheduled readiness and backup freshness
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/docker/ops/emviary-watch.py
+UMask=0077
+StateDirectory=emviary-watch
+TimeoutStartSec=150

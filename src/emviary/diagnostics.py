@@ -214,31 +214,58 @@ def management_alerts(service, frame, now=None):
             (frame["id"],),
         ).fetchone()
     slot = service.store.slot_state(frame["id"], "scheduled")
-    recent = now - timedelta(days=2)
-    failed_job = (
-        job
-        and job["status"] == "failed"
-        and job["finished_at"]
-        and (stamp := timestamp(job["finished_at"])) is not None
-        and recent <= stamp <= now
+    # Failures remain unresolved until a later successful preparation replaces them.
+    # Do not silently clear an old error just because its timestamp aged out.
+    failed_job = job and job["status"] == "failed"
+    failed_slot = slot and slot["error"]
+    day = local.date()
+    schedule = service.daily_schedule(frame, day)
+    if now < schedule["prepare_at"]:
+        schedule = service.daily_schedule(frame, day - timedelta(days=1))
+    tomorrow = service.daily_schedule(frame, day + timedelta(days=1))
+    if now >= tomorrow["prepare_at"]:
+        schedule = tomorrow
+    deadline = schedule["prepare_at"] + timedelta(minutes=5)
+    image = service.store.slot_image(frame["id"], "scheduled")
+    # Mirror the scheduler's pre-upgrade cycle compatibility so a deployment
+    # does not report a completed daily preparation as missing.
+    legacy_cycle = (
+        schedule["wake_at"].astimezone(zone).date().isoformat()
+        + ":"
+        + site.prepare_local_time
+        + ":"
+        + service.configuration_hash(frame)
     )
-    failed_slot = (
-        slot
-        and slot["error"]
-        and slot["last_attempt_at"]
-        and (stamp := timestamp(slot["last_attempt_at"])) is not None
-        and recent <= stamp <= now
+    saved_policy = json_object(image["manifest"]).get("policy", {}) if image else {}
+    matching_cycle = slot and (
+        slot["cycle"] == schedule["cycle"]
+        or (
+            slot["cycle"] == legacy_cycle
+            and isinstance(saved_policy, dict)
+            and saved_policy.get("wake_local_time") == policy.wake_local_time
+            and saved_policy.get("weather_max_age_minutes") == policy.weather_max_age_minutes
+        )
     )
-    if failed_job or failed_slot:
+    prepared = (
+        matching_cycle
+        and image
+        and service.image_usable(image, frame, now=schedule["wake_at"])
+        and service.cache_path(image["path"]).is_file()
+    )
+    overdue = now >= deadline and enrolled is not None and enrolled <= deadline and not prepared
+    if failed_job or failed_slot or overdue:
         alerts.append(
             (
                 "image_preparation",
-                "Picture preparation failed",
+                "Picture preparation failed"
+                if failed_job or failed_slot
+                else "Picture preparation overdue",
                 "The service could not prepare a new picture. "
                 "The frame can keep its current picture. Try preparing again.",
             )
         )
 
+    recent = now - timedelta(days=2)
     rows = device_readings(service.store, frame["id"])
     if rows and recent <= timestamp(rows[-1]["recorded_at"]) <= now:
         metrics = rows[-1]["metrics"]

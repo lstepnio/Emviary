@@ -6,6 +6,21 @@ Last publication review: October 27, 2026. This is a resume index, not a release
 
 Read AGENTS.md and the relevant source/setup/quality documentation. Recheck the current branch, working-tree status and task authorization before acting. Existing uncommitted work may belong to another task.
 
+## Latest operational health review
+
+October 28, 2026: source main `98d8a2455b33d74dcdfb557dc6e3dda6c3aaafa4` was
+inspected against production 0.19.0 / `emviary:poc-070` /
+`0918cfd1084a9effac5a3483b1d4210b4b4f538e`. Service, database, artwork integrity,
+daily device reports, weather sources and today's recorded backup verification
+are healthy. Main's recipient guide remains undeployed.
+
+The shared-host cold backup runs at the same 04:15 wake as the frame and caused
+about two minutes of service downtime. The 04:45 host updater failed on a missing
+image reference. The frame still explicitly permits immediate prereleases.
+No live configuration, policy, container lifecycle or firmware changes were made.
+See [the health report](research/HEALTH_CHECK_2026_10_28.md) for evidence,
+monitoring/retention gaps, recommendations and physical-verification limits.
+
 ## Current evidence
 
 Reviewed on branch `codex/review-pending-work`, based on main revision
