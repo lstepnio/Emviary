@@ -4,10 +4,10 @@
 import datetime as dt
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 STATE = Path("/var/lib/emviary-watch/status.json")
 
