@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Docker backup at 05:15 America/Denver
+
+[Timer]
+OnCalendar=*-*-* 05:15:00 America/Denver
+Persistent=false
+Unit=one-docker-backup.service
+
+[Install]
+WantedBy=timers.target

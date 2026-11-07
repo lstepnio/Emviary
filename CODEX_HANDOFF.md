@@ -1,5 +1,13 @@
 # Emviary continuation notes
 
+## November 6 health remediation
+
+Production: application 0.19.1 / emviary:poc-071, source c4dec68.
+See [health fixes](research/HEALTH_FIXES_2026_11_06.md) for fresh backup evidence,
+readiness monitoring, shared maintenance changes, rollback and the timer-triggered
+cold-backup interruption. Prior October 28 observations below are historical.
+
+
 Last publication review: October 27, 2026. This is a resume index, not a release or live-health certificate.
 
 ## Start here

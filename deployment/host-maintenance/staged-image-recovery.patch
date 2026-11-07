@@ -1,0 +1,48 @@
+--- a/server_ops.py
++++ b/server_ops.py
+@@ -38,7 +38,7 @@
+ 
+ 
+ def output(args):
+-    return run(args, stdout=subprocess.PIPE, text=True).stdout.strip()
++    return run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+ 
+ 
+ def write_json(path, data):
+@@ -390,6 +390,23 @@
+     return max(mature)[1] if mature else None
+ 
+ 
++def inspect_staged_candidate(staging, service_name, chosen):
++    """Discard a pruned observation without weakening the one-day delay."""
++    try:
++        return json.loads(output(['docker', 'image', 'inspect', chosen]))[0]
++    except subprocess.CalledProcessError as exc:
++        # Only an absent queued image is recoverable here. Daemon/permission
++        # failures and missing running images must still fail closed.
++        if 'No such image:' not in (exc.stderr or ''):
++            raise
++        pending = staging[service_name]['candidates']
++        for key in list(pending):
++            if pending[key]['image'] == chosen:
++                del pending[key]
++        print('Held: %s (staged image no longer available; observe again)' % service_name)
++        return None
++
++
+ def database_image(image):
+     env = image.get('Config', {}).get('Env', [])
+     return any(v.startswith(('MONGO_VERSION=', 'MYSQL_VERSION=', 'PG_MAJOR=',
+@@ -513,7 +530,11 @@
+             held[s] = 'one-day observation delay'
+             print('Staging for one day: ' + s)
+             continue
+-        new = json.loads(output(['docker', 'image', 'inspect', chosen]))[0]
++        new = inspect_staged_candidate(staging, s, chosen)
++        write_json(staging_path, staging)
++        if new is None:
++            held[s] = 'staged image missing; observation required'
++            continue
+         oldmajor, newmajor = major_version(old), major_version(new)
+         if (scheduled and database_image(new) and oldmajor is not None
+                 and newmajor is not None and oldmajor != newmajor):
