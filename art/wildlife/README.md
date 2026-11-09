@@ -37,6 +37,16 @@ seasonal rotation windows. Bison illustrations represent Colorado's managed
 conservation herds. Individual reference links, prompts, and render hashes are
 in [the expansion manifest](../provenance/colorado-wildlife/expansion-2026-11-09.json).
 
+## Mule deer, elk, bighorn sheep and black bear variants
+
+Each of these animals has three illustrations. The mule deer adds a buck and
+spotted fawn, the elk adds a bugling bull and resting calf, and the bighorn
+sheep adds a walking ewe and resting lamb. Black bears gain cinnamon and
+blonde color phases. The antlered, rut and juvenile illustrations have their
+own seasonal windows. Both new bear colors follow the original bear's April
+through November eligibility. See [the variant manifest](../provenance/colorado-wildlife/variants-2026-11-09.json)
+for references, prompts and packed-render hashes.
+
 ## Wally
 
 Wally, a domestic dog, appears in four photo-guided illustrations: seated,

@@ -1,5 +1,6 @@
 from datetime import date
 
+import pytest
 from test_owner import sign_in
 
 from emviary import render
@@ -23,7 +24,7 @@ def test_region_and_season_filters_match_colorado_without_using_bird_reports(ser
     site = service.settings.config.site("denver-gift")
     winter = eligible_wildlife(service.settings.artworks, site, "2026-01-08")
     summer = eligible_wildlife(service.settings.artworks, site, "2026-07-08")
-    assert len(winter) == 24 and len(summer) == 32
+    assert len(winter) == 26 and len(summer) == 39
     assert len({a["scientific_name"] for a in summer}) == 23
     assert all("US-CO" in a["regions"] for a in summer)
     elsewhere = site.model_copy(
@@ -67,7 +68,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 
     policy = FramePolicy(show_location_name=True).model_dump()
     animals = [a for a in service.settings.artworks if a.get("category") == "wildlife"]
-    assert len(animals) == 32
+    assert len(animals) == 40
     for art in animals:
         with closing(Image.open(service.settings.art_dir / art["asset"])) as image:
             assert image.mode == "RGBA"
@@ -92,9 +93,11 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 def test_wildlife_library_search_and_subject_filter(service, frame, tmp_path, monkeypatch):
     client, _ = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage/artwork?frame=" + frame[0] + "&category=wildlife")
-    assert page.status_code == 200 and "32 artworks" in page.text
-    assert "Colorado · Mammal" in page.text and "Mule Deer" in page.text
+    assert page.status_code == 200 and "40 artworks" in page.text
+    assert "Colorado · Mammal" in page.text
     assert "Black-capped Chickadee" not in page.text
+    page = client.get("/manage/artwork?q=mule+deer&category=wildlife")
+    assert page.status_code == 200 and "3 artworks" in page.text and "Mule Deer" in page.text
     page = client.get("/manage/artwork?q=riparian&category=wildlife")
     assert "Raccoon" in page.text and "Beaver" in page.text
     assert "Pronghorn" not in page.text
@@ -114,13 +117,19 @@ def test_wildlife_avoids_recent_species_then_uses_the_oldest(service):
     assert choose_wildlife(animals, "0" * 64, history[:-1]) == animals[-1]
 
 
-def test_wally_variants_share_one_rotation_identity(service):
+@pytest.mark.parametrize(
+    ("name", "expected_count"),
+    [("Wally", 4), ("Mule Deer", 3), ("Elk", 3), ("Bighorn Sheep", 3), ("Black Bear", 3)],
+)
+def test_variants_share_one_rotation_identity(service, name, expected_count):
     from emviary.wildlife import choose_wildlife
 
     animals = [a for a in service.settings.artworks if a.get("category") == "wildlife"]
-    wally = [a for a in animals if a["common_name"] == "Wally"]
-    assert {a["pose"] for a in wally} == {"seated", "standing", "resting", "walking"}
-    assert len({a["scientific_name"] for a in wally}) == 1
-    history = [dict(artwork=wally[0], artworks=[wally[0]])]
+    variants = [a for a in animals if a["common_name"] == name]
+    assert len(variants) == expected_count
+    assert len({a["scientific_name"] for a in variants}) == 1
+    if name == "Wally":
+        assert {a["pose"] for a in variants} == {"seated", "standing", "resting", "walking"}
+    history = [dict(artwork=variants[0], artworks=[variants[0]])]
     for seed in range(len(animals)):
-        assert choose_wildlife(animals, f"{seed:016x}", history) not in wally
+        assert choose_wildlife(animals, f"{seed:016x}", history) not in variants

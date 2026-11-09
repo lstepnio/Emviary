@@ -1,0 +1,86 @@
+{
+  "generation_method": "Built-in OpenAI image generation using Emviary species illustrations as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-mule-deer-buck-v1",
+      "asset": "wildlife/mule-deer-buck-v1.png",
+      "asset_sha256": "339dc3a5ca5764ad57daa12e820e21802967f29c40004fe25d3294cec75df20c",
+      "subject": "Antlered mule deer buck",
+      "reference": "https://cpw.state.co.us/species/mule-deer",
+      "style_reference": "wildlife/mule-deer-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. Adult Colorado mule deer buck standing in three-quarter side view looking left. Broad mule-like ears, evenly forked tall antlers with no palmate structure, warm gray-brown coat and crisp white rump patch with a slender black-tipped tail, sturdy long legs and cloven hooves. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "8415fbc7025d2b5123567d98a7bc859d595ae34d61dbaf1435d0ab65a560714f"
+    },
+    {
+      "id": "emviary-wildlife-mule-deer-fawn-v1",
+      "asset": "wildlife/mule-deer-fawn-v1.png",
+      "asset_sha256": "b4531ec6762c9bb39dd3d6f2272542d096ec362be3352d01f2f320492e0263de",
+      "subject": "Spotted mule deer fawn",
+      "reference": "https://cpw.state.co.us/species/mule-deer",
+      "style_reference": "wildlife/mule-deer-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One young Colorado mule deer fawn taking a cautious step to the right. A small slender body and disproportionately large mule-like ears, warm reddish-brown summer coat with pale rows of irregular white spots, white rump and a short slender black-tipped tail. Very long delicate legs and small cloven hooves. No antlers. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "fad10b5447fd5f725f9081e174a83c88ccf8102a1d043632bb4bc1dad8cc7e1a"
+    },
+    {
+      "id": "emviary-wildlife-elk-bull-v1",
+      "asset": "wildlife/elk-bull-v1.png",
+      "asset_sha256": "e8b231a03b5d7b4a4e2bbd29b1339bffffb9932b882a41d0657a9946de1b09b4",
+      "subject": "Rocky Mountain elk bull bugling",
+      "reference": "https://cpw.state.co.us/species/elk",
+      "style_reference": "wildlife/elk-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One mature Rocky Mountain elk bull bugling in full side view facing left, head raised slightly, mouth open, throat stretched naturally. Tall swept-back elk antlers with separate long pointed tines on each main beam, sturdy neck with a dark shaggy mane, tan body, pale rump and very short tail. All antler tips, four hooves and tail within view. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "6e2ea1105f2fa4afbe3d7fdca94024d1a528b8ce6b4b79e919fe86e3116740b0"
+    },
+    {
+      "id": "emviary-wildlife-elk-calf-v1",
+      "asset": "wildlife/elk-calf-v1.png",
+      "asset_sha256": "e15abd908d773cd33aaeb501bda3ee1ff274cf0560ac86e0554d8359bcdd6b79",
+      "subject": "Rocky Mountain elk calf resting",
+      "reference": "https://cpw.state.co.us/species/elk",
+      "style_reference": "wildlife/elk-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One Rocky Mountain elk calf resting with its legs folded naturally under its body and head held alert, facing right. Long ears, young long elk muzzle, warm chestnut summer coat with fine cream spots across the flank, subtle cream rump patch, short tail and cloven hooves. No antlers, no other animal. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "46806367109c18c619a6e5ea3e5d5871eb9b66401d61426a594718831eb4d78d"
+    },
+    {
+      "id": "emviary-wildlife-bighorn-sheep-ewe-v1",
+      "asset": "wildlife/bighorn-sheep-ewe-v1.png",
+      "asset_sha256": "d756c8824019fafee5f94b7ab34ee24b12e8282225cfd1acc262ebf93df2a24d",
+      "subject": "Rocky Mountain bighorn ewe",
+      "reference": "https://cpw.state.co.us/species/rocky-mountain-bighorn-sheep",
+      "style_reference": "wildlife/bighorn-sheep-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One adult Rocky Mountain bighorn ewe in a surefooted mid-stride, facing right. Short slender horns curving backward, no ram curls, no woolly domestic sheep coat. Short gray-brown hair, light muzzle and large white rump patch, compact muscular body, four correct cloven hooves. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "8f3df37d5ee5711ee2871f73fae1ed3c0ef22a665d864ad73bb728a0102b7c39"
+    },
+    {
+      "id": "emviary-wildlife-bighorn-sheep-lamb-v1",
+      "asset": "wildlife/bighorn-sheep-lamb-v1.png",
+      "asset_sha256": "6418ec391b27684ea18fee780a69e5364baa59ccc348ca502124814a37730758",
+      "subject": "Rocky Mountain bighorn lamb",
+      "reference": "https://cpw.state.co.us/species/rocky-mountain-bighorn-sheep",
+      "style_reference": "wildlife/bighorn-sheep-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One young Rocky Mountain bighorn sheep lamb settled on folded legs, head erect with perked ears, looking slightly left. Small natural horn buds, muted gray-tan short coat, creamy muzzle and rump, compact proportions with realistic hooves. No adult spiral horns, no domestic fleece, no rocks. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "3aebf05734afe88561ec197838530c4a548da0f915ef9f3b0f3a27da280f6f4d"
+    },
+    {
+      "id": "emviary-wildlife-black-bear-cinnamon-v1",
+      "asset": "wildlife/black-bear-cinnamon-v1.png",
+      "asset_sha256": "c5db1fa2a7f6e95a7c6c0ab24fd86d913c19e04fb83a400089a49281a6162033",
+      "subject": "Cinnamon-phase American black bear",
+      "reference": "https://cpw.state.co.us/species/black-bear",
+      "style_reference": "wildlife/black-bear-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One adult American black bear of the cinnamon color phase walking quietly left in a clear side profile. Cinnamon and rusty-brown fur with dark shadow masses, long straight facial profile, large rounded upright ears, broad paws with short curved claws, even shoulder line with no pronounced shoulder hump, no grizzly anatomy. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "a9745366a7103e81c9d60f48d05b2d7e950c0449725f1efd7014e8516a38ef09"
+    },
+    {
+      "id": "emviary-wildlife-black-bear-blonde-v1",
+      "asset": "wildlife/black-bear-blonde-v1.png",
+      "asset_sha256": "f977192f327441dcd248a9b69b0113942081be0f7baea77b9e7475dcdb4768e8",
+      "subject": "Blonde-phase American black bear",
+      "reference": "https://cpw.state.co.us/species/black-bear",
+      "style_reference": "wildlife/black-bear-v1.png",
+      "prompt": "Create one transparent PNG wildlife cutout for the Emviary Colorado e-paper art library. The attached artwork is an existing illustration of the same species and a reference for style and anatomical character. One adult American black bear of the blonde color phase lowering its head while foraging in a three-quarter view facing right. Warm honey-blonde shaggy fur with ochre shadows and a dark nose, tall rounded ears, relatively straight facial profile and low shoulder line without a pronounced hump. Entire animal, four short-clawed paws and compact tail. No grizzly anatomy, grass or food props. Make this a distinct new artwork in the same refined realistic gouache and dry-brush natural history style, with clean edges, natural texture, crisp eyes, warm restrained colors and readable shadow shapes on an 800 × 480 six-color display. Center the complete animal with generous margin around every silhouette detail. True transparent alpha. No background, cast shadow, horizon, props, border, text, scenery, extra limbs or extra animals.",
+      "packed_preview_sha256": "ac28e647010abd734dac76f3055304726ecb2d9027f7ddb1a1be8c819b85cc67"
+    }
+  ]
+}

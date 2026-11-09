@@ -1,5 +1,16 @@
 # Emviary continuation notes
 
+## November 9 seasonal wildlife variants
+
+Eight additional illustrations give mule deer, elk, bighorn sheep and black
+bear three variants each. The catalog retains the existing species identities
+and rotation schedule. All eight packed previews passed, and the live library
+returned all eight thumbnails in four groups of three. Owner readiness and
+the host monitor reported ready after the art-only reload on 0.19.2.
+Catalog SHA-256 is `bf81069a63bbc021cf67841419b65bf4612781c007be839274f8684b1093dfdc`.
+The previous catalog is under `/docker/backups/emviary-deployments/colorado-wildlife-variants-20261109T185352Z`.
+Physical display of these compositions remains unconfirmed.
+
 ## November 9 Colorado wildlife expansion
 
 The live 0.19.2 library now includes 16 new illustrations covering ten new
