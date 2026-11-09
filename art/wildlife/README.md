@@ -23,3 +23,11 @@ output with Stucki dithering. Rendered images retain the current weather, names,
 border and seasonal controls. Masters are preserved; scaling, color mapping,
 dithering, paper-white and neutral-text preservation happen on the backend.
 Physical panel review remains separate from the digital preview inspection.
+
+## Wally
+
+Wally, a domestic dog, appears in four photo-guided illustrations: seated,
+standing, resting with his plaid bandana, and walking. They use the same solo
+animal slots and repeat avoidance as the Colorado collection. All four share a
+single species identity and are eligible year-round. The original photos are
+private. See [artwork provenance](../provenance/wally.json).

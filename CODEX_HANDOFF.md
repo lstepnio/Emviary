@@ -1,5 +1,25 @@
 # Emviary continuation notes
 
+## November 9 Wally artwork
+
+Added four Wally portraits to the local and live catalogs on `emviary:poc-071`.
+The 21 focused tests and all four Spectra 6 packed render checks passed. The
+live library returned all four thumbnails and tomorrow's 800 × 480 preview.
+No physical display confirmation was collected. The previous live catalog is
+in `/docker/backups/emviary-deployments/wally-art-20261109T170406Z`.
+
+The catalog reload rebuilt today's scheduled image without a slot error.
+Readiness compared its new forecast timestamp against today's past wake and
+flagged preparation overdue.
+
+Fixed in 0.19.2 (`emviary:poc-072`, source `99eedaa`). Readiness now uses
+on-time scheduled job evidence for past wakes and validates the current slot
+for upcoming wakes. All 86 focused tests passed. On an isolated production
+snapshot the previous image flagged overdue, the new image cleared it, and
+removing on-time job evidence restored the warning. Live owner readiness and
+the host monitor reported ready. All four Wally entries remained visible.
+Private rollback is under `/docker/backups/emviary-deployments/readiness-after-wake-20261109`.
+
 ## November 6 health remediation
 
 Production: application 0.19.1 / emviary:poc-071, source c4dec68.
