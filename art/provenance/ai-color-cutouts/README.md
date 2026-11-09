@@ -1,6 +1,7 @@
 # Original AI bird variants
 
-One new original illustration for each of the catalogue's 63 bird species.
+The initial collection contains one original illustration for each of the 63
+bird species in the catalog at the time.
 These are standalone transparent PNGs, generated from species-specific text
 briefs using OpenAI's built-in image generation. No existing artwork, bird
 photograph or previously generated image was supplied as an image reference.
@@ -52,3 +53,13 @@ seasonal windows inside the existing March through October species window.
 The immature White-crowned Sparrow is eligible from August through March.
 All 14 were reviewed in packed solo and trio layouts. Physical panel
 appearance remains unverified.
+
+
+## Four new Colorado species
+
+`colorado-new-species-2026-11-09.json` records three original cutouts each
+for Northern Flicker, Woodhouse's Scrub-Jay, Chipping Sparrow and Cooper's
+Hawk. The reference images are Emviary originals of other species, used
+for style only. The linked Cornell guides supplied identification facts.
+Each cutout was reviewed in the packed solo and trio layouts. No physical
+panel confirmation is implied by approval.

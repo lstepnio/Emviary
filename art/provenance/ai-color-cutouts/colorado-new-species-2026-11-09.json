@@ -1,0 +1,621 @@
+{
+  "generation_method": "Built-in OpenAI image generation using existing Emviary originals as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "seasonal_sources": [
+    "https://www.nps.gov/colm/learn/nature/birds.htm",
+    "https://spl.cde.state.co.us/artemis/ucbserials/ucb201012internet/ucb201012vol9internet.pdf",
+    "https://science.ebird.org/en/status-and-trends/species/chispa/range-map"
+  ],
+  "review": {
+    "packed_outputs": [
+      {
+        "name": "solo-emviary-ai-colaptes-auratus-v1",
+        "artwork_ids": [
+          "emviary-ai-colaptes-auratus-v1"
+        ],
+        "sha256": "04b7e3849b5a547d04a2169c96e334b3993a6f15e6f3e125d4c4602ea7db5460"
+      },
+      {
+        "name": "solo-emviary-ai-aphelocoma-woodhouseii-v1",
+        "artwork_ids": [
+          "emviary-ai-aphelocoma-woodhouseii-v1"
+        ],
+        "sha256": "df75c2e4f26a657f2714be25fff058751b52a10cfa6bf4def38e0c255e974633"
+      },
+      {
+        "name": "solo-emviary-ai-spizella-passerina-v1",
+        "artwork_ids": [
+          "emviary-ai-spizella-passerina-v1"
+        ],
+        "sha256": "ca4fe9f5d638ad0e5e42b8e7be73e64840bcfa15f1ad1e78292d4a01bfc6bb46"
+      },
+      {
+        "name": "solo-emviary-ai-astur-cooperii-v1",
+        "artwork_ids": [
+          "emviary-ai-astur-cooperii-v1"
+        ],
+        "sha256": "dfcbea37b6c101d942de8d53ec94c7de4877e3a888b453f894abd8e2d23bc781"
+      },
+      {
+        "name": "solo-emviary-ai-colaptes-auratus-v2",
+        "artwork_ids": [
+          "emviary-ai-colaptes-auratus-v2"
+        ],
+        "sha256": "6324ab3ea5020c53d193d427bd42d01c86856874b6d0d77ae1fb6900e5cb2ffa"
+      },
+      {
+        "name": "solo-emviary-ai-aphelocoma-woodhouseii-v2",
+        "artwork_ids": [
+          "emviary-ai-aphelocoma-woodhouseii-v2"
+        ],
+        "sha256": "601db66eadee81955898449ebd82a80da15ca67464993b3e862101be7c8c5080"
+      },
+      {
+        "name": "solo-emviary-ai-spizella-passerina-v2",
+        "artwork_ids": [
+          "emviary-ai-spizella-passerina-v2"
+        ],
+        "sha256": "b42261b0fd8fe351227cab7fdc06aff18d56041efd5f5cee3309bdfc5f5ba766"
+      },
+      {
+        "name": "solo-emviary-ai-astur-cooperii-v2",
+        "artwork_ids": [
+          "emviary-ai-astur-cooperii-v2"
+        ],
+        "sha256": "1c36357484c52d3f4156b804000f1faaa0c3fc03e6e2205a0e47904725ea1283"
+      },
+      {
+        "name": "solo-emviary-ai-colaptes-auratus-v3",
+        "artwork_ids": [
+          "emviary-ai-colaptes-auratus-v3"
+        ],
+        "sha256": "76806af20fc8a1e09dd56fe9fe6532b949d581df472d498202595dccbf28e246"
+      },
+      {
+        "name": "solo-emviary-ai-aphelocoma-woodhouseii-v3",
+        "artwork_ids": [
+          "emviary-ai-aphelocoma-woodhouseii-v3"
+        ],
+        "sha256": "33909adfaa5306d80661f9d141c0a99b8c37ae5e1adb9b628253c7c849d21f95"
+      },
+      {
+        "name": "solo-emviary-ai-spizella-passerina-v3",
+        "artwork_ids": [
+          "emviary-ai-spizella-passerina-v3"
+        ],
+        "sha256": "918bd5d20c3cf270113c22b43e92202bdc006e8edd5612e912bb5dbe723ddc51"
+      },
+      {
+        "name": "solo-emviary-ai-astur-cooperii-v3",
+        "artwork_ids": [
+          "emviary-ai-astur-cooperii-v3"
+        ],
+        "sha256": "4323fa04b8771acd9332fca1c9a5bc96449932470561232823890a2901cc8cba"
+      },
+      {
+        "name": "trio-01",
+        "artwork_ids": [
+          "emviary-ai-colaptes-auratus-v1",
+          "emviary-ai-aphelocoma-woodhouseii-v1",
+          "emviary-ai-spizella-passerina-v1"
+        ],
+        "sha256": "23ae9e12472bd3e22957896bbe91c4bf5d2349437cfae04350f175df98a9f45c"
+      },
+      {
+        "name": "trio-02",
+        "artwork_ids": [
+          "emviary-ai-astur-cooperii-v1",
+          "emviary-ai-colaptes-auratus-v2",
+          "emviary-ai-aphelocoma-woodhouseii-v2"
+        ],
+        "sha256": "d1dbe2367892c862c7ebb69d4c8d6defa3ce5673694451eda2c1337d449f5669"
+      },
+      {
+        "name": "trio-03",
+        "artwork_ids": [
+          "emviary-ai-spizella-passerina-v2",
+          "emviary-ai-astur-cooperii-v2",
+          "emviary-ai-colaptes-auratus-v3"
+        ],
+        "sha256": "db43b6093762a56d122eca87dfaa05a65cda9bac1df95fc627929d492fbe0a40"
+      },
+      {
+        "name": "trio-04",
+        "artwork_ids": [
+          "emviary-ai-aphelocoma-woodhouseii-v3",
+          "emviary-ai-spizella-passerina-v3",
+          "emviary-ai-astur-cooperii-v3"
+        ],
+        "sha256": "a17e2efb65624e15355264dc4053530d13b31d4c7cfe325b9700cf35c56aa66c"
+      }
+    ]
+  },
+  "artworks": [
+    {
+      "id": "emviary-ai-colaptes-auratus-v1",
+      "scientific_name": "Colaptes auratus",
+      "common_name": "Northern Flicker",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-colaptes-auratus-v1.png",
+      "asset_sha256": "62b7a868782a26bcf529d28392bc4b79e85d079c9636183ed61973ccda26fcf6",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Male foraging for ants. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Northern_flicker/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Western red-shafted adult male in profile, walking left and reaching toward the ground with its long slightly downcurved bill. Warm gray face and crown, clear RED malar moustache stripe along cheek, NO red patch on nape, black crescent chest bib, distinct round black spots on buff underparts, brown back with narrow black bars, long pointed tail with a little salmon-red shaft visible.",
+      "reference_images": [
+        "masters/emviary-ai-dryobates-villosus-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Northern Flicker (Colaptes auratus). Western red-shafted adult male in profile, walking left and reaching toward the ground with its long slightly downcurved bill. Warm gray face and crown, clear RED malar moustache stripe along cheek, NO red patch on nape, black crescent chest bib, distinct round black spots on buff underparts, brown back with narrow black bars, long pointed tail with a little salmon-red shaft visible. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "29ca5f5208d5d2c7da32f096def9bcf988af76d6da4d1ca0c1e25a05eaae0962"
+    },
+    {
+      "id": "emviary-ai-colaptes-auratus-v2",
+      "scientific_name": "Colaptes auratus",
+      "common_name": "Northern Flicker",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-colaptes-auratus-v2.png",
+      "asset_sha256": "ad4b4b5a3091401bbc195ce8b2fa7ac2f8e968a74d744e0a89eb11a14a8d6337",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Female climbing. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Northern_flicker/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Western red-shafted adult FEMALE Northern Flicker clinging upright on right side of a very short narrow bark-covered snag, three-quarter body facing right and head turned toward the viewer. Smooth gray face and crown, no colored moustache, no red nape, black crescent chest bib, black dots on warm buff belly, barred brown back and pointed tail. No black and white head stripes.",
+      "reference_images": [
+        "masters/emviary-ai-dryobates-villosus-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Northern Flicker (Colaptes auratus). Western red-shafted adult FEMALE Northern Flicker clinging upright on right side of a very short narrow bark-covered snag, three-quarter body facing right and head turned toward the viewer. Smooth gray face and crown, no colored moustache, no red nape, black crescent chest bib, black dots on warm buff belly, barred brown back and pointed tail. No black and white head stripes. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "d32c196560588ba38c06fce527a2a0d44060d392b83a714f133a932ddd1369f9"
+    },
+    {
+      "id": "emviary-ai-colaptes-auratus-v3",
+      "scientific_name": "Colaptes auratus",
+      "common_name": "Northern Flicker",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-colaptes-auratus-v3.png",
+      "asset_sha256": "9edf7843a87c98aedd38bc6de39d5af6bedd1b20ac3f5a8ae525484b162afb45",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Red-shafted flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Northern_flicker/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult male western red-shafted Northern Flicker in flight to the right, both wings spread in a shallow upstroke showing warm salmon-red underwing linings and reddish flight feather shafts. Gray face with red moustache, black breast crescent, spotted buff underside, brown back and visible white rump at base of tail where anatomy permits. Anatomically plausible slightly oblique side view. No red nape.",
+      "reference_images": [
+        "masters/emviary-ai-dryobates-villosus-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Northern Flicker (Colaptes auratus). Adult male western red-shafted Northern Flicker in flight to the right, both wings spread in a shallow upstroke showing warm salmon-red underwing linings and reddish flight feather shafts. Gray face with red moustache, black breast crescent, spotted buff underside, brown back and visible white rump at base of tail where anatomy permits. Anatomically plausible slightly oblique side view. No red nape. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "f8dba88636c44712af2c9c27aa79c48bbfd606a793876f641ceb1c40409217c2"
+    },
+    {
+      "id": "emviary-ai-aphelocoma-woodhouseii-v1",
+      "scientific_name": "Aphelocoma woodhouseii",
+      "common_name": "Woodhouse's Scrub-Jay",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-aphelocoma-woodhouseii-v1.png",
+      "asset_sha256": "ca992f619c6a2f1f03a288162cfa08ee1de6dea3fdf94ee80c8e8bee6a7b6c3e",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Perched with a pinyon seed. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Woodhouses_Scrub-Jay/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult interior western Woodhouse's Scrub-Jay, perched facing left on a tiny pinyon sprig, holding one pinyon seed at the tip of its fairly straight pointed black bill. Lanky body with a long loose tail, dusty medium-blue crown, wings and tail, gray-brown back, pale throat with subtle broken pale blue partial necklace and gray belly. Flat uncrested crown.",
+      "reference_images": [
+        "masters/emviary-ai-cyanocitta-stelleri-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Woodhouse's Scrub-Jay (Aphelocoma woodhouseii). Adult interior western Woodhouse's Scrub-Jay, perched facing left on a tiny pinyon sprig, holding one pinyon seed at the tip of its fairly straight pointed black bill. Lanky body with a long loose tail, dusty medium-blue crown, wings and tail, gray-brown back, pale throat with subtle broken pale blue partial necklace and gray belly. Flat uncrested crown. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "f4aa9650bb221cee4fe5987e14073522ebc5b0d58a51b94fad20f246f724bcf0"
+    },
+    {
+      "id": "emviary-ai-aphelocoma-woodhouseii-v2",
+      "scientific_name": "Aphelocoma woodhouseii",
+      "common_name": "Woodhouse's Scrub-Jay",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-aphelocoma-woodhouseii-v2.png",
+      "asset_sha256": "cbaab613c96b86d6c06f9ad7e6977e336560c855ff8c8c2d068844d291fbab4f",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Hopping on the ground. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Woodhouses_Scrub-Jay/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult Woodhouse's Scrub-Jay, right-facing in a grounded hopping pose with one foot lifted, long tail lifted diagonally and head turned slightly toward us. Restrained dusty blue crown and wings, gray-brown mantle, pale throat and light gray underparts, broken partial pale-blue necklace, straight pointed black bill. Smooth crown with no crest.",
+      "reference_images": [
+        "masters/emviary-ai-cyanocitta-stelleri-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Woodhouse's Scrub-Jay (Aphelocoma woodhouseii). Adult Woodhouse's Scrub-Jay, right-facing in a grounded hopping pose with one foot lifted, long tail lifted diagonally and head turned slightly toward us. Restrained dusty blue crown and wings, gray-brown mantle, pale throat and light gray underparts, broken partial pale-blue necklace, straight pointed black bill. Smooth crown with no crest. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "3ca6e9bae21ad6650b672668aa4342bcf10af9484dc12d7547102b5b7ce9ce88"
+    },
+    {
+      "id": "emviary-ai-aphelocoma-woodhouseii-v3",
+      "scientific_name": "Aphelocoma woodhouseii",
+      "common_name": "Woodhouse's Scrub-Jay",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-aphelocoma-woodhouseii-v3.png",
+      "asset_sha256": "f96b22d244dcb7d5002af865f7d5bf7f11bcf69128491a05bf166f4787538273",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Flying between branches. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Woodhouses_Scrub-Jay/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult Woodhouse's Scrub-Jay in flight toward the left with wings up in a natural shallow V, long loosely fanned blue tail trailing. Blue crown and wing coverts with darker neutral flight feathers, gray-brown mantle, whitish throat and gray underparts with a pale partial blue necklace. Flat crown; no crest, white wingbars or barred tail.",
+      "reference_images": [
+        "masters/emviary-ai-cyanocitta-stelleri-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Woodhouse's Scrub-Jay (Aphelocoma woodhouseii). Adult Woodhouse's Scrub-Jay in flight toward the left with wings up in a natural shallow V, long loosely fanned blue tail trailing. Blue crown and wing coverts with darker neutral flight feathers, gray-brown mantle, whitish throat and gray underparts with a pale partial blue necklace. Flat crown; no crest, white wingbars or barred tail. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "34d4960017fe3f104fd76886abf7e40ccb60f40f6c756ffbfb2d91fcb05995cd"
+    },
+    {
+      "id": "emviary-ai-spizella-passerina-v1",
+      "scientific_name": "Spizella passerina",
+      "common_name": "Chipping Sparrow",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "masters/emviary-ai-spizella-passerina-v1.png",
+      "asset_sha256": "bd58b7a4d0cb0f7017a767da67eab8a58136ccbb34a371d0eaaa550b7ded43f9",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Breeding adult singing. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Chipping_Sparrow/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Small slender breeding adult Chipping Sparrow, facing right, looking slightly up and singing with small black conical bill parted on a tiny simple twig. One uniform rich rusty chestnut crown, thin BLACK stripe continuing through the eye to the bill, pale gray eyebrow, frosty plain gray underparts with no streaks, brown streaked back and two fine light wingbars. No black and white crown stripes.",
+      "reference_images": [
+        "masters/emviary-ai-zonotrichia-leucophrys-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Chipping Sparrow (Spizella passerina). Small slender breeding adult Chipping Sparrow, facing right, looking slightly up and singing with small black conical bill parted on a tiny simple twig. One uniform rich rusty chestnut crown, thin BLACK stripe continuing through the eye to the bill, pale gray eyebrow, frosty plain gray underparts with no streaks, brown streaked back and two fine light wingbars. No black and white crown stripes. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "180d72a0d34b7288a4a985e085bf5124de203a2e5649d716bcc819da4b05c120"
+    },
+    {
+      "id": "emviary-ai-spizella-passerina-v2",
+      "scientific_name": "Spizella passerina",
+      "common_name": "Chipping Sparrow",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "masters/emviary-ai-spizella-passerina-v2.png",
+      "asset_sha256": "f03caa566d532cdbad5c27e5135b6642c0a05997721ce09ef68382a4b9eb4721",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Breeding adult foraging. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Chipping_Sparrow/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Small adult breeding Chipping Sparrow facing left in a low foraging step, head angled down slightly. Uniform reddish chestnut cap, slim black eyeline reaching black small pointed conical bill, pale gray eyebrow and face, clear unstreaked pale gray breast, brown streaked back and two subtle pale wingbars. Longish slender slightly notched tail. No crown stripes or breast spot.",
+      "reference_images": [
+        "masters/emviary-ai-zonotrichia-leucophrys-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Chipping Sparrow (Spizella passerina). Small adult breeding Chipping Sparrow facing left in a low foraging step, head angled down slightly. Uniform reddish chestnut cap, slim black eyeline reaching black small pointed conical bill, pale gray eyebrow and face, clear unstreaked pale gray breast, brown streaked back and two subtle pale wingbars. Longish slender slightly notched tail. No crown stripes or breast spot. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "5ddea05bd4d2b4366884d4088c96d7dee9790f1bb71880e00723efa0ccba8c00"
+    },
+    {
+      "id": "emviary-ai-spizella-passerina-v3",
+      "scientific_name": "Spizella passerina",
+      "common_name": "Chipping Sparrow",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "masters/emviary-ai-spizella-passerina-v3.png",
+      "asset_sha256": "991d4509aa94786ef20d82d3dcd5220f047962b0be9be43ea146e55dab32912a",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Breeding adult in flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Chipping_Sparrow/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "A single small adult breeding Chipping Sparrow making a short right-facing flutter in side view, both wings raised and wingtip feathers distinct, feet curled in, slim lightly notched tail and subtly visible plain gray rump, chestnut cap, black bill and black eyeline, plain pale gray underparts, restrained warm brown wings with fine pale wingbars. No striped crown.",
+      "reference_images": [
+        "masters/emviary-ai-zonotrichia-leucophrys-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Chipping Sparrow (Spizella passerina). A single small adult breeding Chipping Sparrow making a short right-facing flutter in side view, both wings raised and wingtip feathers distinct, feet curled in, slim lightly notched tail and subtly visible plain gray rump, chestnut cap, black bill and black eyeline, plain pale gray underparts, restrained warm brown wings with fine pale wingbars. No striped crown. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "fdbd66580d09c4656adaef01044f75fa04f75aea8515b36b2cc4214105a47bbb"
+    },
+    {
+      "id": "emviary-ai-astur-cooperii-v1",
+      "scientific_name": "Astur cooperii",
+      "common_name": "Cooper's Hawk",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-astur-cooperii-v1.png",
+      "asset_sha256": "71f965af2c5b2df1432c0a2fc2ba6f2d087a0593ae26aaad7298fc5da0bb4c1c",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Perched adult. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Coopers_Hawk/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult Cooper's Hawk perched on a small bare branch in right-facing three-quarter view. Large angular head with dark slate cap contrasting with pale gray nape and cheek, red eyes, modest hooked bill, blue-gray back, fine rusty horizontal barring across pale chest, strong yellow feet. Very long banded tail visible with rounded white tip. No falcon moustache.",
+      "reference_images": [
+        "masters/emviary-ai-falco-sparverius-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Cooper's Hawk (Astur cooperii). Adult Cooper's Hawk perched on a small bare branch in right-facing three-quarter view. Large angular head with dark slate cap contrasting with pale gray nape and cheek, red eyes, modest hooked bill, blue-gray back, fine rusty horizontal barring across pale chest, strong yellow feet. Very long banded tail visible with rounded white tip. No falcon moustache. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "d1a0011546a175fd31ae7fc72c82c23463cb327c51366ed9d6fb403dcb0ff4dc"
+    },
+    {
+      "id": "emviary-ai-astur-cooperii-v2",
+      "scientific_name": "Astur cooperii",
+      "common_name": "Cooper's Hawk",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-astur-cooperii-v2.png",
+      "asset_sha256": "d91a67bcba10727669c7e0d2552e80db793ed232cbc4ea40cf9129ceeff218ac",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Adult gliding. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Coopers_Hawk/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Adult Cooper's Hawk gliding to the left in an oblique underside view. Broad SHORT rounded wings, long narrow banded tail with clearly rounded white tip, angular head projects forward past the wrists, reddish fine barring on pale underparts, blue-gray upper plumage, dark cap and red eye. Naturally tucked feet. Not a falcon, no pointed wingtips.",
+      "reference_images": [
+        "masters/emviary-ai-falco-sparverius-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Cooper's Hawk (Astur cooperii). Adult Cooper's Hawk gliding to the left in an oblique underside view. Broad SHORT rounded wings, long narrow banded tail with clearly rounded white tip, angular head projects forward past the wrists, reddish fine barring on pale underparts, blue-gray upper plumage, dark cap and red eye. Naturally tucked feet. Not a falcon, no pointed wingtips. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "150a9e62a4903aebb24e3fe5091628c0639dfad973351adc18d4bde852b180c0"
+    },
+    {
+      "id": "emviary-ai-astur-cooperii-v3",
+      "scientific_name": "Astur cooperii",
+      "common_name": "Cooper's Hawk",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-astur-cooperii-v3.png",
+      "asset_sha256": "e6fea2b6b869a8943432cdc8f5ced32067fddfb44d72411a1a5126d744e8bf98",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Juvenile looking back. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Coopers_Hawk/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json",
+      "subject": "Juvenile Cooper's Hawk perched on a very short angled twig, body in profile facing left while looking over shoulder to right. Brown upperparts, pale white underparts with distinct vertical narrow brown teardrop streaking on breast, yellow eye and feet, broad head, long brown banded rounded tail with thin white edge. No falcon facial stripes.",
+      "reference_images": [
+        "masters/emviary-ai-falco-sparverius-v1.png"
+      ],
+      "prompt": "Create a NEW single-bird Emviary cutout of Cooper's Hawk (Astur cooperii). Juvenile Cooper's Hawk perched on a very short angled twig, body in profile facing left while looking over shoulder to right. Brown upperparts, pale white underparts with distinct vertical narrow brown teardrop streaking on breast, yellow eye and feet, broad head, long brown banded rounded tail with thin white edge. No falcon facial stripes. The attached different bird demonstrates only the exact Emviary ART STYLE; never copy its species markings, body shape, proportions, pose, or branch. Use clean natural-history field guide illustration, fine dark ink contours, layered feather linework and subdued watercolor/gouache colors, and a confident readable silhouette at small size on a six-color e-paper panel. Avoid oversaturated blues and manufactured texture. Frame the full, unclipped bird and any tiny support specifically requested with generous clear transparent margin on every side. TRUE alpha transparency. No background, paper tint, text, border, shadow, scenic objects or other animals.",
+      "prompt_sha256": "b40d023ed76594ee97ffbfa6949b9aa33d387f22782a32e36c62d83da0dd2ce6"
+    }
+  ]
+}
