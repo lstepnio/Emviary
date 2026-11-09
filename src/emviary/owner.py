@@ -25,6 +25,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
 from .battery import battery_summary, install_battery_routes
+from .compositions import artwork_label
 from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
 from .display_history import HISTORY_NOTE, reported_label
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
@@ -1677,6 +1678,7 @@ def attach_owner(app, service):
                 str(a.get(k, ""))
                 for k in (
                     "common_name",
+                    "color_phase",
                     "scientific_name",
                     "credit",
                     "id",
@@ -1878,7 +1880,7 @@ def attach_owner(app, service):
             )
         body += '<div class="card-grid artwork-grid">'
         for art in works[(p - 1) * 24 : p * 24]:
-            art_id, name = escape(art["id"]), escape(art["common_name"])
+            art_id, name = escape(art["id"]), escape(artwork_label(art))
             excluded_art = art["id"] in excluded
             label = (
                 "Deleted"

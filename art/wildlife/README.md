@@ -70,6 +70,21 @@ The additions share their original species identities and eligibility months.
 See [the third variant manifest](../provenance/colorado-wildlife/variants-seven-2026-11-09.json)
 for references, prompts and packed-render hashes.
 
+## Three portraits for every wild mammal
+
+Moose adds a resting calf, American bison adds a grazing cow, mountain goat
+adds a bedded adult, mountain lion adds a spotted cub, Abert's squirrel adds
+a leaping gray-phase portrait, and red fox adds a cross-phase portrait. The
+moose calf is eligible from May through September. See
+[the final variant manifest](../provenance/colorado-wildlife/variants-six-2026-11-09.json).
+
+Red, black and cross are coat phases of red fox (*Vulpes vulpes*), as described
+by [Colorado Parks and Wildlife](https://cpw.state.co.us/species/red-fox).
+The catalog keeps the species name and adds a coat phase label to each portrait.
+Red fox, Abert's squirrel and black bear use this convention in the library,
+management cards and rendered artwork. Each species continues to share one
+rotation identity. Wally retains his four portraits.
+
 ## Wally
 
 Wally, a domestic dog, appears in four photo-guided illustrations: seated,

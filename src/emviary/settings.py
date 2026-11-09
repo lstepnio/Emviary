@@ -297,6 +297,10 @@ class Settings:
                 raise ValueError("Artwork must have a supported, explicit license")
             if artwork.get("kind", "cutout") not in {"cutout", "plate", "field_study"}:
                 raise ValueError("Unsupported artwork layout")
+            if "color_phase" in artwork:
+                phase = artwork["color_phase"]
+                if not isinstance(phase, str) or not 1 <= len(phase.strip()) <= 24:
+                    raise ValueError("Artwork color phase must be a short label")
             if artwork.get("kind") == "field_study" and artwork["approved"]:
                 raise ValueError("Field-study plates are reference only on this panel")
             bird_count = artwork.get("depicted_birds", 1)

@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
+from .compositions import artwork_label
 from .store import stable_json
 
 RENDER_VERSION = 20
@@ -458,7 +459,7 @@ def _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir, neutr
             font, lines = fitted_lines(
                 art_dir,
                 draw,
-                item["common_name"],
+                artwork_label(item),
                 width,
                 24 if len(birds) == 1 else 19,
                 17,

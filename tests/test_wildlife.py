@@ -24,7 +24,7 @@ def test_region_and_season_filters_match_colorado_without_using_bird_reports(ser
     site = service.settings.config.site("denver-gift")
     winter = eligible_wildlife(service.settings.artworks, site, "2026-01-08")
     summer = eligible_wildlife(service.settings.artworks, site, "2026-07-08")
-    assert len(winter) == 40 and len(summer) == 63
+    assert len(winter) == 45 and len(summer) == 69
     assert len({a["scientific_name"] for a in summer}) == 23
     assert all("US-CO" in a["regions"] for a in summer)
     elsewhere = site.model_copy(
@@ -68,7 +68,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 
     policy = FramePolicy(show_location_name=True).model_dump()
     animals = [a for a in service.settings.artworks if a.get("category") == "wildlife"]
-    assert len(animals) == 64
+    assert len(animals) == 70
     for art in animals:
         with closing(Image.open(service.settings.art_dir / art["asset"])) as image:
             assert image.mode == "RGBA"
@@ -93,7 +93,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 def test_wildlife_library_search_and_subject_filter(service, frame, tmp_path, monkeypatch):
     client, _ = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage/artwork?frame=" + frame[0] + "&category=wildlife")
-    assert page.status_code == 200 and "64 artworks" in page.text
+    assert page.status_code == 200 and "70 artworks" in page.text
     assert "Colorado · Mammal" in page.text
     assert "Black-capped Chickadee" not in page.text
     page = client.get("/manage/artwork?q=mule+deer&category=wildlife")
@@ -137,6 +137,12 @@ def test_wildlife_avoids_recent_species_then_uses_the_oldest(service):
         ("Fox Squirrel", 3),
         ("Colorado Chipmunk", 3),
         ("Golden-mantled Ground Squirrel", 3),
+        ("Moose", 3),
+        ("American Bison", 3),
+        ("Mountain Goat", 3),
+        ("Mountain Lion", 3),
+        ("Abert's Squirrel", 3),
+        ("Red Fox", 3),
     ],
 )
 def test_variants_share_one_rotation_identity(service, name, expected_count):
@@ -151,3 +157,46 @@ def test_variants_share_one_rotation_identity(service, name, expected_count):
     history = [dict(artwork=variants[0], artworks=[variants[0]])]
     for seed in range(len(animals)):
         assert choose_wildlife(animals, f"{seed:016x}", history) not in variants
+
+
+def test_coat_phases_use_species_identity_and_visible_labels(service, tmp_path, monkeypatch):
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    page = client.get("/library", params={"q": "Red Fox"})
+    assert page.status_code == 200 and "1 species match" in page.text
+    assert "<h2>Red Fox</h2>" in page.text and "3 illustrations" in page.text
+    assert 'data-artwork-id="emviary-wildlife-red-fox-v1"' in page.text
+    assert all(f">{label} phase</span>" in page.text for label in ("Red", "Black", "Cross"))
+    page = client.get("/library", params={"q": "Red Fox (black phase)"})
+    assert 'data-artwork-id="emviary-wildlife-red-fox-black-v1"' in page.text
+    assert 'alt="Red Fox (black phase)"' in page.text
+    page = client.get("/manage/artwork", params={"q": "black phase", "category": "wildlife"})
+    assert "Red Fox (black phase)" in page.text
+    assert "Abert&#x27;s Squirrel (black phase)" in page.text
+    assert "Black Bear (black phase)" in page.text
+
+
+def test_coat_phase_appears_on_the_panel_when_names_are_enabled(service, tmp_path, monkeypatch):
+    art = next(
+        a for a in service.settings.artworks if a["id"] == "emviary-wildlife-red-fox-black-v1"
+    )
+    policy = FramePolicy(show_species_name=True).model_dump()
+    plan = dict(
+        local_date="2026-07-12",
+        seed="fox",
+        policy=policy,
+        artworks=[art],
+        special_day=None,
+        location_label="COLORADO",
+        inputs={},
+        layout=dict(name="solo", bird_count=0),
+    )
+    captured = []
+    fitted_lines = render.fitted_lines
+
+    def capture(art_dir, draw, label, *args):
+        captured.append(label)
+        return fitted_lines(art_dir, draw, label, *args)
+
+    monkeypatch.setattr(render, "fitted_lines", capture)
+    render.compose(service.settings.art_dir, art, plan, tmp_path / "fox.png")
+    assert "Red Fox (black phase)" in captured
