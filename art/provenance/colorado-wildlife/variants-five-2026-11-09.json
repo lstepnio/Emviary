@@ -1,0 +1,106 @@
+{
+  "generation_method": "Built-in OpenAI image generation using Emviary species illustrations as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-pronghorn-doe-v1",
+      "asset": "wildlife/pronghorn-doe-v1.png",
+      "asset_sha256": "542253d42e19dcba926c4ab01574c7d229693ada4deff882f34274ab9b7819d2",
+      "subject": "Pronghorn doe in full stride",
+      "reference": "https://cpw.state.co.us/species/pronghorn",
+      "style_reference": "wildlife/pronghorn-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult female North American pronghorn running lightly to the right, slim tawny and cream body, white throat stripes, wide white rump and tiny tail, small unbranched dark horn spikes, fine legs and cloven hooves. No male black cheek patches, no antlers. Use a true pronghorn silhouette and show all four legs distinctly. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "5ddccb77dbcc4936a73907a951c479aa2de34774118dde9e35e927d13f642127"
+    },
+    {
+      "id": "emviary-wildlife-pronghorn-fawn-v1",
+      "asset": "wildlife/pronghorn-fawn-v1.png",
+      "asset_sha256": "17f305fc7e65d5fc4a9219cd0818fa8c4fde09e5d9c1742bcf3cbbc409a149b8",
+      "subject": "Pronghorn fawn resting",
+      "reference": "https://cpw.state.co.us/species/pronghorn",
+      "style_reference": "wildlife/pronghorn-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One young North American pronghorn fawn bedded with legs tucked naturally, head lifted and turned left. Large pointed ears and long slim face, tan-gray back, cream chest and white rump, tiny tail, no horns and no white spots. No mother or grass. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "eb253341ad593c8ea29a26935d13cee99df5f06cea05fef449c449dcd26e9a4b"
+    },
+    {
+      "id": "emviary-wildlife-coyote-trotting-v1",
+      "asset": "wildlife/coyote-trotting-v1.png",
+      "asset_sha256": "837d5deba2e83bb576bf9c1b18db836f157462f94f5411e7ad0642f93a17ee3a",
+      "subject": "Coyote in an easy trot",
+      "reference": "https://cpw.state.co.us/species/coyote",
+      "style_reference": "wildlife/coyote-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult Colorado coyote trotting left, slim angular frame, long pointed muzzle and tall pointed ears, grizzled gray-tawny coat, cream chest and low bushy dark-tipped tail. All four legs are naturally articulated. Authentic coyote, with no wolf bulk or fox tail. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "4579ab6afa8dd265b1a05da490cd5083752521c0f64fc65128df7882083e06ce"
+    },
+    {
+      "id": "emviary-wildlife-coyote-howling-v1",
+      "asset": "wildlife/coyote-howling-v1.png",
+      "asset_sha256": "5e34a7d76a00daa298b32b67bd7f920fae9cf704a2226734f2c5e1c4f98460cf",
+      "subject": "Coyote howling with head raised",
+      "reference": "https://cpw.state.co.us/species/coyote",
+      "style_reference": "wildlife/coyote-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult Colorado coyote seated facing three-quarters right, head tilted up in a howl, jaw just open, tall triangular ears, slender muzzle, gray-tawny fur with pale throat and lower chest, bushy dark-tipped tail laid to one side. Show both forepaws, the whole head and tail. Natural quiet field-guide pose. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "93f5138df6aa7c3c947af6e2e6b71a485156f9205bfefa1694a1faf96a2f8600"
+    },
+    {
+      "id": "emviary-wildlife-bobcat-stalking-v1",
+      "asset": "wildlife/bobcat-stalking-v1.png",
+      "asset_sha256": "cddd633fdf309e40a972dcf6e69f9baee400d5f9706ecf2e6400d7b7b09b74c5",
+      "subject": "Bobcat in a low stalking stride",
+      "reference": "https://cpw.state.co.us/species/bobcat",
+      "style_reference": "wildlife/bobcat-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult Colorado bobcat low in a deliberate stalking stride facing left. Short black-tipped bobbed tail clearly separated from the back legs, compact but long-legged feline frame, spotted reddish-tan coat, short black ear tufts, dark bars on forelegs and white cheek ruff. Full body and anatomically correct feet. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "54292866aaa497df83085898de0b3e7f678ea74ea8a0cbb9ccb9f7c80efe4365"
+    },
+    {
+      "id": "emviary-wildlife-bobcat-resting-v1",
+      "asset": "wildlife/bobcat-resting-v1.png",
+      "asset_sha256": "ab3b97baf8bb7ebe504949c4029883290d4e69de80dafc62e6f2e6014a7382c7",
+      "subject": "Bobcat resting with paws forward",
+      "reference": "https://cpw.state.co.us/species/bobcat",
+      "style_reference": "wildlife/bobcat-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult Colorado bobcat resting low with head upright and both forepaws extended, three-quarter view facing right. Gray-tawny spotted fur, barred legs, black-and-white face ruff and tiny black ear tufts. Show the short bobtail at the rear of the body, no long tail. Calm alert eyes. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "0e5c44647b5681be26065725858f15e2eaa389e8834b6e88c9eb708e61136097"
+    },
+    {
+      "id": "emviary-wildlife-american-pika-haying-v1",
+      "asset": "wildlife/american-pika-haying-v1.png",
+      "asset_sha256": "00231098bb6cd0e1c06372508fbb5137ca1fceb0a6b11f30bfc332ae28c0e6fd",
+      "subject": "American pika carrying alpine grass",
+      "reference": "https://cpw.state.co.us/species/american-pika",
+      "style_reference": "wildlife/american-pika-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One tiny American pika in a natural low three-quarter side pose, carrying two or three short stems of alpine grass in its mouth. Compact gray-brown body, round ears with pale margins, short limbs, tiny paws and no visible tail. Small blade ends fully visible, no pile of hay, rock or scenery. Neither a mouse nor a squirrel. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "663c3e6933b300b146510d875de32494d6ec0cc420ff32b66bf521943c88f6a7"
+    },
+    {
+      "id": "emviary-wildlife-american-pika-scurrying-v1",
+      "asset": "wildlife/american-pika-scurrying-v1.png",
+      "asset_sha256": "73bbbe3a44cfe11053f19d70c6368e95224fedcf2bb86a98b40b1a433dfabf0e",
+      "subject": "American pika in a low scurry",
+      "reference": "https://cpw.state.co.us/species/american-pika",
+      "style_reference": "wildlife/american-pika-v1.png",
+      "prompt": "Create one new, isolated American pika for Emviary's Colorado e-paper library. Reference image shows the original seated pose and the gouache natural history style. The new pose is a distinct low scurry in strict left-facing profile: nose and compact body held nearly horizontal, forepaws reaching forward, hindquarters tucked in a short springy running step. Small rounded pale-rimmed ears, a blunt short muzzle, small dark eyes, plush warm gray-brown winter fur, very short legs and no visible tail. Show one complete anatomically accurate pika with all ears and paws visible, ample margin. Rich realistic gouache and dry brush, clear broad tones, completely transparent alpha around the animal, no ground, props, vegetation, shadow or words. Do not reproduce the original upright pose.",
+      "packed_preview_sha256": "dd89f6da607c9b3706c03d3e1a60620e8dccb4bbd25a70ef52188fa979cdb79d"
+    },
+    {
+      "id": "emviary-wildlife-yellow-bellied-marmot-sunning-v1",
+      "asset": "wildlife/yellow-bellied-marmot-sunning-v1.png",
+      "asset_sha256": "6a98c02d4430c4f3bf0a94eec4a618480053fb46567da5d5c5aa1a659e62ede6",
+      "subject": "Yellow-bellied marmot sunning",
+      "reference": "https://cpw.state.co.us/species/yellow-bellied-marmot",
+      "style_reference": "wildlife/yellow-bellied-marmot-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult yellow-bellied marmot stretched flat on its belly with rear legs relaxed and head raised, facing left. Stocky large ground squirrel body, grizzled brown back, warm yellowish belly and chest, a pale muzzle patch and small round ears. Whole short bushy tail and all visible paws in frame, no rock surface. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "a27fc21774a817e34ee72abd537be56d71c6ca444dfe2400e74c1c5bf5360d25"
+    },
+    {
+      "id": "emviary-wildlife-yellow-bellied-marmot-sentinel-v1",
+      "asset": "wildlife/yellow-bellied-marmot-sentinel-v1.png",
+      "asset_sha256": "7c4975fd95923624fd2b5f8a6797c94f824b3e48c38e985d6f64ddef59b7795d",
+      "subject": "Yellow-bellied marmot standing watch",
+      "reference": "https://cpw.state.co.us/species/yellow-bellied-marmot",
+      "style_reference": "wildlife/yellow-bellied-marmot-v1.png",
+      "prompt": "Create one transparent PNG cutout for the Emviary Colorado wildlife e-paper art library. The attached artwork shows the same species and is the style and anatomy reference. One adult yellow-bellied marmot standing upright as an alert sentinel, facing three-quarters right. Small rounded ears, white patch between dark eyes and short muzzle, golden yellow underside, brown gray grizzled back, sturdy front paws near the chest and thick medium-length bushy tail fully visible curling to the side. No burrow or ground. Make a distinct illustration in the collection's refined realistic gouache and dry-brush natural history style with clean edges, crisp eyes, natural fur texture, warm restrained colors, and broad readable shadows on an 800 × 480 six-color display. Center the entire animal, leaving generous clear margin around every silhouette detail. True transparent alpha. No scenery, ground, cast shadow, border, words, extra animals or extra limbs.",
+      "packed_preview_sha256": "e926c36fc0f6493bc25be919da6a9bfbfdbb1291f6d88cb79e0e4e02b65c74b7"
+    }
+  ]
+}

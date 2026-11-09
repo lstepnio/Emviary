@@ -1,5 +1,16 @@
 # Emviary continuation notes
 
+## November 9 pronghorn, coyote, bobcat, pika and marmot variants
+
+Ten new illustrations give these five animals three portraits each. Their
+existing species identities and rotation schedule are preserved. All ten
+packed Spectra 6 previews and 51 focused tests passed. The live 0.19.2 library
+returned five groups of three, all ten thumbnails decoded, and owner and host
+readiness reported ready. Live catalog SHA-256 is
+`4bd744a12f62846b1dcbab02900950beaf622a80cd3edf183a638243fa97838c`.
+The previous catalog is under `/docker/backups/emviary-deployments/colorado-five-variants-20261109T190830Z`.
+Physical display of these compositions remains unconfirmed.
+
 ## November 9 seasonal wildlife variants
 
 Eight additional illustrations give mule deer, elk, bighorn sheep and black
