@@ -1,0 +1,66 @@
+{
+  "generation_method": "Built-in OpenAI image generation using Emviary species illustrations as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-moose-calf-v1",
+      "asset": "wildlife/moose-calf-v1.png",
+      "asset_sha256": "2cc409c337ad48968bd8338d54fd2176fb975dbb1b179e2ad02ce2194f65fe4d",
+      "subject": "Resting calf",
+      "reference": "https://cpw.state.co.us/species/moose",
+      "style_reference": "wildlife/moose-cow-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One young Colorado Shiras moose calf lying with long legs naturally tucked, head lifted looking slightly left. Russet juvenile coat, long broad overhanging muzzle, small throat bell, prominent oval ears, slender legs, tiny tail and no antlers. Show the full body, separate paws and rump clearly. No spots or adult moose. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "4461776f930067db04e3045c58ddb58d86b07b273ea104ac166a729e7ab65a12"
+    },
+    {
+      "id": "emviary-wildlife-american-bison-cow-v1",
+      "asset": "wildlife/american-bison-cow-v1.png",
+      "asset_sha256": "d6faea8c4311c2d067b2a292a2c087eb3bed12cc5e74b4925dd401604673eab2",
+      "subject": "Grazing cow",
+      "reference": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Mountain-Parks/Bison-Conservation",
+      "style_reference": "wildlife/american-bison-bull-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One adult female American plains bison in a side view grazing pose facing left, lowering her large head in a natural posture. Smaller and leaner than a bull with a distinct shoulder hump and dense dark wool at her neck and forequarters. Short inward curved black horns, brown back, narrow hindquarters, thin tufted tail and natural four cloven hooves. Whole silhouette. No grass or herd. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "f2b8132008002197c9006980b3c8667cfb87c628013d9bd1187efd7f000d47aa"
+    },
+    {
+      "id": "emviary-wildlife-mountain-goat-bedded-v1",
+      "asset": "wildlife/mountain-goat-bedded-v1.png",
+      "asset_sha256": "2f83a292d6dd4b3424c7c8840320058700c29051d62a2dc228e6da4f400284be",
+      "subject": "Bedded adult",
+      "reference": "https://cpw.state.co.us/species/mountain-goat",
+      "style_reference": "wildlife/mountain-goat-adult-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One adult Rocky Mountain mountain goat bedded facing right in a calm three-quarter pose with forelegs naturally folded, head upright. Long ivory-white wool with subtle cool shadow planes, short slender black swept-back horns, compact ears and black muzzle, black cloven feet and short tail visible. No curl horns or domestic goat beard. No ground or rock. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "eb6bc93ae3371f3e4e91ba6ebaba17e914fe63d29fbdd7c0650ab200326a7f8c"
+    },
+    {
+      "id": "emviary-wildlife-mountain-lion-cub-v1",
+      "asset": "wildlife/mountain-lion-cub-v1.png",
+      "asset_sha256": "b93d8e7b5efc5e59a9b5308c4f418f2ee7a7812321bb04ca9496b7316288d2b9",
+      "subject": "Spotted cub",
+      "reference": "https://cpw.state.co.us/species/mountain-lion",
+      "style_reference": "wildlife/mountain-lion-resting-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One young Rocky Mountain mountain lion cub, sitting upright in three-quarter front view, alert with one forepaw slightly forward. Naturally spotted tawny cub coat, round ears, pale chin, broad feet and long tapering tail with a dark tip curving beside the body. Recognizable cougar cub proportions. No exaggerated kitten head, no second animal or scenery. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "bf941e9a57dd7974bc406b4d22be22fde3a4cd2c31aa81d02b3058aeb52d5ef9"
+    },
+    {
+      "id": "emviary-wildlife-aberts-squirrel-leaping-v1",
+      "asset": "wildlife/aberts-squirrel-leaping-v1.png",
+      "asset_sha256": "3e7acaab00be5b355afde02ebe26068d7eba5724c84c74ff8f82bd206a08083a",
+      "subject": "Gray phase, leaping",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "style_reference": "wildlife/aberts-squirrel-gray-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One gray-phase Abert's squirrel in a low compact leap to the right. Distinct long black ear tufts, salt-and-pepper gray coat, narrow russet dorsal stripe, white underside, long bushy gray tail with white underside curved up behind it. Four paws in a natural leap. Keep all tufts and tail visible. No branch or nuts. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "0f9c694763232d84594d927c8c33fbc59a24506d0153a4d8d5ce10491912486b"
+    },
+    {
+      "id": "emviary-wildlife-red-fox-cross-v1",
+      "asset": "wildlife/red-fox-cross-v1.png",
+      "asset_sha256": "7041b100f3d89587bfaca10e774631f85dffc71fdebc2ce1db62ecbb8c5708d2",
+      "subject": "Cross phase",
+      "reference": "https://cpw.state.co.us/species/red-fox",
+      "style_reference": "wildlife/red-fox-v1.png",
+      "prompt": "Create one transparent PNG for the Emviary Colorado wildlife e-paper collection. The reference is an existing illustration of the same species; match its anatomy and refined natural history gouache and dry-brush style. One adult cross-phase red fox, Vulpes vulpes, standing on all four paws facing three-quarter left with head turned toward the viewer, russet-orange cheek and flanks, strongly visible dark dorsal stripe meeting a dark band over the shoulders, black legs and ear backs, bushy dark mixed-russet tail with a small white tip. The black shoulder cross and rusty sides make a natural cross-phase red fox. Slender muzzle and sharp upright fox ears, no dog markings. Full body, isolated. Use restrained natural earth colors, crisp readable eyes, realistic fur texture and broad tones for an 800 × 480 six-color display. Show the entire animal centered, with generous clear margins around ears, feet, horns and tail. True transparent alpha. No scenery, ground, cast shadow, border, text, extra limbs, or extra animals.",
+      "packed_preview_sha256": "d9d52139c03932cd5024407d24ec131b1a298ca762dfaee608c37363ed2cb2f1"
+    }
+  ]
+}

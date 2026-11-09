@@ -6,6 +6,13 @@ import json
 from .store import stable_json
 
 
+def artwork_label(artwork):
+    """Describe a coat phase while keeping the species name and identity intact."""
+    name = artwork["common_name"]
+    phase = artwork.get("color_phase")
+    return f"{name} ({phase})" if phase else name
+
+
 def composition_key(image_or_plan):
     plan = json.loads(image_or_plan["manifest"]) if "manifest" in image_or_plan else image_or_plan
     policy = plan.get("policy", {})

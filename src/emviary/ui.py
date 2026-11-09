@@ -419,6 +419,7 @@ padding-left:0;text-decoration:underline;text-underline-offset:3px}
 #artwork-bulk [data-selection-count]{font-size:13px;color:var(--muted)}
 .library-help{margin-top:24px}
 .variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.variant-grid .artwork-meta{display:block;margin:4px 0 0}
 @media(max-width:760px){#artwork-library .toolbar>label{flex:1 1 120px}
 #artwork-library .toolbar>label:first-child{flex-basis:100%}}
 @media(max-width:1000px){.sticky-actions{position:static;backdrop-filter:none}}

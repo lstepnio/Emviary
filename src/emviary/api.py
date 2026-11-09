@@ -12,6 +12,7 @@ from starlette.background import BackgroundTask
 
 from . import __version__
 from .branding import BIRD_ICON
+from .compositions import artwork_label
 from .diagnostics import parse_metrics
 from .firmware_updates import FirmwareUpdates
 from .offline_cache import offline_header
@@ -379,9 +380,12 @@ def create_app(service=None, schedule=True):
 
         groups = {}
         for artwork in artworks:
-            searchable = " ".join(
-                str(artwork.get(key, ""))
-                for key in ("common_name", "scientific_name", "source", "credit")
+            searchable = (
+                artwork_label(artwork)
+                + " "
+                + " ".join(
+                    str(artwork.get(key, "")) for key in ("scientific_name", "source", "credit")
+                )
             )
             if q.casefold() not in searchable.casefold():
                 continue
@@ -433,7 +437,7 @@ def create_app(service=None, schedule=True):
             '<section id="artwork-library" data-library-path="/library" '
             f'data-first-page="{p}" data-last-page="{p}" data-total-pages="{total_pages}">'
             '<header class="page-header"><p class="eyebrow">The collection</p>'
-            '<h1>Artwork library</h1><p class="intro">Explore the bird illustrations '
+            '<h1>Artwork library</h1><p class="intro">Explore the birds and other animals '
             "from the frame.</p></header>"
             '<p class="quiet">'
             + str(species_count)
@@ -445,7 +449,7 @@ def create_app(service=None, schedule=True):
             '<form class="toolbar library-filters" method="get" action="/library">'
             '<label>Search<input type="search" name="q" value="'
             + escape(q, quote=True)
-            + '" placeholder="Find a bird"></label>'
+            + '" placeholder="Find an animal"></label>'
             + select(
                 "sort",
                 "Sort",
@@ -485,20 +489,29 @@ def create_app(service=None, schedule=True):
         )
         cards = []
         for name, variants in ordered[(p - 1) * 24 : p * 24]:
-            variants.sort(key=lambda a: (not a["approved"], a["id"]))
+            # Phase groups keep the first curated coat as the species cover.
+            has_phases = any(a.get("color_phase") for a in variants)
+            variants.sort(key=lambda a: (not a["approved"], "" if has_phases else a["id"]))
             artwork = variants[0]
             images = []
             for number, item in enumerate(variants, start=1):
                 identifier = escape(item["id"], quote=True)
+                phase = item.get("color_phase")
                 images.append(
                     '<a href="/art/' + identifier + '" target="_blank" rel="noopener">'
                     '<img class="artwork-thumb" loading="lazy" src="/art-thumbnail/'
                     + identifier
                     + '" alt="'
-                    + escape(item["common_name"], quote=True)
+                    + escape(artwork_label(item), quote=True)
                     + ", illustration "
                     + str(number)
-                    + '"></a>'
+                    + '">'
+                    + (
+                        f'<span class="artwork-meta">{escape(phase.capitalize())}</span>'
+                        if phase
+                        else ""
+                    )
+                    + "</a>"
                 )
             cards.append(
                 '<article class="card library-card artwork-card" data-artwork-id="'
@@ -510,10 +523,16 @@ def create_app(service=None, schedule=True):
                 'loading="lazy" src="/art-thumbnail/'
                 + escape(artwork["id"], quote=True)
                 + '" alt="'
-                + escape(artwork["common_name"], quote=True)
+                + escape(artwork_label(artwork), quote=True)
                 + '"></a></div><div class="artwork-heading"><h2>'
                 + escape(artwork["common_name"])
-                + '</h2></div><p class="artwork-meta">'
+                + "</h2></div>"
+                + (
+                    f'<p class="artwork-meta">{escape(artwork["color_phase"].capitalize())}</p>'
+                    if artwork.get("color_phase")
+                    else ""
+                )
+                + '<p class="artwork-meta">'
                 + "Species renders: "
                 + str(counts.get(name, 0))
                 + "</p>"
@@ -532,7 +551,7 @@ def create_app(service=None, schedule=True):
             '<div class="card-grid artwork-grid">' + "".join(cards) + "</div>"
             if cards
             else '<section class="empty-state"><h2>No artwork matches</h2>'
-            "<p>Try a different bird name or broaden the filters.</p>"
+            "<p>Try a different animal name or broaden the filters.</p>"
             '<a class="button secondary" href="/library">Browse all artwork</a></section>'
         )
         if total_pages > 1:
