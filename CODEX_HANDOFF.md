@@ -1,5 +1,24 @@
 # Emviary continuation notes
 
+## November 9 completed wildlife variants and coat labels
+
+Deployed 0.19.3 (`emviary:poc-073`, runtime source `6131511`). Six portraits
+bring the collection to 70 illustrations across 23 rotation identities. All
+22 wild species have three illustrations. Wally has four. The red, black and
+cross red fox coats retain one *Vulpes vulpes* identity. The public library,
+management gallery and new frame compositions display the coat phase for
+red fox, Abert's squirrel and black bear.
+
+All six new packed previews, the three red fox label previews and 76 focused
+tests passed. Live artwork and changed source files match the tested files by
+SHA-256. The Red Fox gallery at 390 px fits the viewport and expands to all
+three labels. Owner readiness and the host monitor reported ready. No new
+composition has physical display confirmation from this check.
+
+The catalog SHA-256 is `ecba7ecbd920aba894483d6fbff07b3b439734756751d02a147e71a952a9b76a`.
+The verified application backup is `pre-wildlife-coat-phases-20261109`.
+Rollback files are under `/docker/backups/emviary-deployments/wildlife-coat-phases-20261109`.
+
 ## November 9 riparian and small mammal variants
 
 Fourteen additional illustrations give the raccoon, beaver, both prairie dogs,
