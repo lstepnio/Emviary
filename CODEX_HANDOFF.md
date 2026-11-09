@@ -1,5 +1,20 @@
 # Emviary continuation notes
 
+## November 9 Colorado bird variants
+
+The live 0.19.3 catalog now includes 14 new cutouts for seven species, with
+three live illustrations per species and 183 bird illustrations total.
+Previously removed art stays removed. Each new illustration passed solo and
+three-bird Spectra 6 preview review. Seeded selection verified eligibility,
+unchanged species weights and no duplicate species within a trio. All 39
+focused tests passed, and all 14 live masters and thumbnails matched the
+release checks. Service readiness and the host monitor reported ready.
+
+Catalog SHA-256: `94dfdcc1f91cabd60f5cd4b11f7f7e59fdb9922a6011cc8f17052bc9e717a87a`.
+Rollback catalog: `/docker/backups/emviary-deployments/colorado-bird-variants-20261109T215816Z/catalog.json`.
+See [Colorado bird coverage](art/COLORADO-BIRD-COVERAGE.md) for collection gaps.
+Physical display of the new art remains unconfirmed.
+
 ## November 9 completed wildlife variants and coat labels
 
 Deployed 0.19.3 (`emviary:poc-073`, runtime source `6131511`). Six portraits

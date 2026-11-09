@@ -1,0 +1,720 @@
+{
+  "generation_method": "Built-in OpenAI image generation using existing Emviary originals as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "review": {
+    "packed_outputs": [
+      {
+        "name": "solo-emviary-ai-meleagris-gallopavo-v2",
+        "artwork_ids": [
+          "emviary-ai-meleagris-gallopavo-v2"
+        ],
+        "sha256": "269d06a72a560c3399e48bbe8d06850745fcd01c43e7bd9f7e4f0c4afab96907"
+      },
+      {
+        "name": "solo-emviary-ai-haliaeetus-leucocephalus-v2",
+        "artwork_ids": [
+          "emviary-ai-haliaeetus-leucocephalus-v2"
+        ],
+        "sha256": "600eb1d58fa7b39768da6abe40208364d72fcd786f018a936e47079310c6f8bd"
+      },
+      {
+        "name": "solo-emviary-ai-ardea-herodias-v2",
+        "artwork_ids": [
+          "emviary-ai-ardea-herodias-v2"
+        ],
+        "sha256": "5b4fbf3ae378bd5c3b2ff6b8e4b92cf1deac707ae7dca6b3ff8bd437c7d493af"
+      },
+      {
+        "name": "solo-emviary-ai-egretta-thula-v2",
+        "artwork_ids": [
+          "emviary-ai-egretta-thula-v2"
+        ],
+        "sha256": "c949a928c868d19ac2a38613d5a8293c00fe27bc285a781906720a9a36afca86"
+      },
+      {
+        "name": "solo-emviary-ai-recurvirostra-americana-v2",
+        "artwork_ids": [
+          "emviary-ai-recurvirostra-americana-v2"
+        ],
+        "sha256": "ac1940ade29d457b7c722c2f4240d212fb897640f0c724357fe6fa63d31a7861"
+      },
+      {
+        "name": "solo-emviary-ai-poecile-gambeli-v2",
+        "artwork_ids": [
+          "emviary-ai-poecile-gambeli-v2"
+        ],
+        "sha256": "e5b548af9ca8a62ba1bf057f76edc05d84108bb0508c2badb3631ae4cb79b5a0"
+      },
+      {
+        "name": "solo-emviary-ai-zonotrichia-leucophrys-v2",
+        "artwork_ids": [
+          "emviary-ai-zonotrichia-leucophrys-v2"
+        ],
+        "sha256": "894e24a79a4281e0402e27454c4e2e8d1d52d528a9b5c327c79b021cddd9ee07"
+      },
+      {
+        "name": "solo-emviary-ai-meleagris-gallopavo-v3",
+        "artwork_ids": [
+          "emviary-ai-meleagris-gallopavo-v3"
+        ],
+        "sha256": "658a5ce9dc5144ec555dca949db638ffd1d89d5c3e1f09e65d167f220e6b9917"
+      },
+      {
+        "name": "solo-emviary-ai-haliaeetus-leucocephalus-v3",
+        "artwork_ids": [
+          "emviary-ai-haliaeetus-leucocephalus-v3"
+        ],
+        "sha256": "d0490ba914b5bde242f9c65bb98bf87fd3fa955a3cd243d676fa51a125245059"
+      },
+      {
+        "name": "solo-emviary-ai-ardea-herodias-v3",
+        "artwork_ids": [
+          "emviary-ai-ardea-herodias-v3"
+        ],
+        "sha256": "9db4e772b2b02efd1a4aef19c6c7ac30dad3b5662d159f7b7e08c448117c11bc"
+      },
+      {
+        "name": "solo-emviary-ai-egretta-thula-v3",
+        "artwork_ids": [
+          "emviary-ai-egretta-thula-v3"
+        ],
+        "sha256": "4f9f81919ad0d24a556f7a66c8621a714e15847bf64c176d29d7bdcc511c5957"
+      },
+      {
+        "name": "solo-emviary-ai-recurvirostra-americana-v3",
+        "artwork_ids": [
+          "emviary-ai-recurvirostra-americana-v3"
+        ],
+        "sha256": "6351ac9cd2fbbec77e0945ec1e65d820b20009cfdc5155c82e879c3ca53855de"
+      },
+      {
+        "name": "solo-emviary-ai-poecile-gambeli-v3",
+        "artwork_ids": [
+          "emviary-ai-poecile-gambeli-v3"
+        ],
+        "sha256": "1f3f2d3d32961d6df64db8f3b88357ac3fecd3af14e9a2b15560cea36ae3b587"
+      },
+      {
+        "name": "solo-emviary-ai-zonotrichia-leucophrys-v3",
+        "artwork_ids": [
+          "emviary-ai-zonotrichia-leucophrys-v3"
+        ],
+        "sha256": "af60de1e92973e1d5975a42eb367e3b8ef29aa8d71f4bbbe8cd0523f4146bc44"
+      },
+      {
+        "name": "trio-01",
+        "artwork_ids": [
+          "emviary-ai-meleagris-gallopavo-v2",
+          "emviary-ai-haliaeetus-leucocephalus-v2",
+          "emviary-ai-ardea-herodias-v2"
+        ],
+        "sha256": "28dee13e2c212cee651ba36b1588a0b28f7149a71e8fa4d696d0c03703f355b8"
+      },
+      {
+        "name": "trio-02",
+        "artwork_ids": [
+          "emviary-ai-egretta-thula-v2",
+          "emviary-ai-recurvirostra-americana-v2",
+          "emviary-ai-poecile-gambeli-v2"
+        ],
+        "sha256": "b825884bb04a6b563b3882e37ae869f6eb3b2918f476dce77b0a8344fe3ff14e"
+      },
+      {
+        "name": "trio-03",
+        "artwork_ids": [
+          "emviary-ai-zonotrichia-leucophrys-v2",
+          "emviary-ai-meleagris-gallopavo-v3",
+          "emviary-ai-haliaeetus-leucocephalus-v3"
+        ],
+        "sha256": "1c7e09e8b582c0a04e344e8a2d0fd3bcee89777a6b8e8a348e1ef021e56a3105"
+      },
+      {
+        "name": "trio-04",
+        "artwork_ids": [
+          "emviary-ai-ardea-herodias-v3",
+          "emviary-ai-egretta-thula-v3",
+          "emviary-ai-recurvirostra-americana-v3"
+        ],
+        "sha256": "a2ec5e0e6d7e905ad4ee8efd0f87245197004919c61581ad0bdfc0a738ea9ac4"
+      },
+      {
+        "name": "trio-05",
+        "artwork_ids": [
+          "emviary-ai-poecile-gambeli-v3",
+          "emviary-ai-zonotrichia-leucophrys-v3",
+          "emviary-ai-turdus-migratorius-v1"
+        ],
+        "sha256": "bca6370d09800ae0baaaeea31680c4a4d86a971a18c2522fe412b248a8835dd2"
+      }
+    ]
+  },
+  "artworks": [
+    {
+      "id": "emviary-ai-meleagris-gallopavo-v2",
+      "scientific_name": "Meleagris gallopavo",
+      "common_name": "Wild Turkey",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-meleagris-gallopavo-v2.png",
+      "asset_sha256": "10e6b12431f6ac91074dfbe4e628fd4e5d22cb35cb6af12cb518d671529f72f9",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Displaying tom. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Wild_Turkey/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult male Wild Turkey, three-quarter front with a full broad fan with warm chestnut outer tail tips, lowered wing tips, iridescent dark bronze feathers, blue head and red wattles. Anatomically accurate fan and body, show complete feet.",
+      "reference_images": [
+        "masters/emviary-ai-meleagris-gallopavo-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult male Wild Turkey, three-quarter front with a full broad fan with warm chestnut outer tail tips, lowered wing tips, iridescent dark bronze feathers, blue head and red wattles. Anatomically accurate fan and body, show complete feet. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "ce9bdae7a8fd7f20a452802aa0e2d0081d9f537d708d499f4fff8ebfa5fe3c00"
+    },
+    {
+      "id": "emviary-ai-meleagris-gallopavo-v3",
+      "scientific_name": "Meleagris gallopavo",
+      "common_name": "Wild Turkey",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-meleagris-gallopavo-v3.png",
+      "asset_sha256": "d40a5ee971a13da3a4b186bddc37378f14222d85e19f0fc84c8320efbcf5d82f",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Foraging hen. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Wild_Turkey/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult female Wild Turkey stepping left, profile, head lowered slightly while looking for food. Dark brown finely barred plumage, smaller sparsely feathered blue-gray head, no adult male beard or large wattles, folded tail.",
+      "reference_images": [
+        "masters/emviary-ai-meleagris-gallopavo-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult female Wild Turkey stepping left, profile, head lowered slightly while looking for food. Dark brown finely barred plumage, smaller sparsely feathered blue-gray head, no adult male beard or large wattles, folded tail. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "0b94e82cbc475faf49a1b20376270f955298a63ed606f8ad7949ace462e739bb"
+    },
+    {
+      "id": "emviary-ai-haliaeetus-leucocephalus-v2",
+      "scientific_name": "Haliaeetus leucocephalus",
+      "common_name": "Bald Eagle",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-haliaeetus-leucocephalus-v2.png",
+      "asset_sha256": "24af2f73c1637be060574beb87df005a86ddf38ca5988c09d83241511df38616",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Adult in flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Bald_Eagle/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Bald Eagle gliding right, side and slightly underside view, wings spread showing two broad wings held level with fingered tips, clean white head and short white tail, dark brown body and wings, yellow heavy hooked bill, feet tucked naturally.",
+      "reference_images": [
+        "masters/emviary-ai-haliaeetus-leucocephalus-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Bald Eagle gliding right, side and slightly underside view, wings spread showing two broad wings held level with fingered tips, clean white head and short white tail, dark brown body and wings, yellow heavy hooked bill, feet tucked naturally. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "8567ed00250e607dcecfbf390f81e4437b098607090198191bfd389f5d4f871c"
+    },
+    {
+      "id": "emviary-ai-haliaeetus-leucocephalus-v3",
+      "scientific_name": "Haliaeetus leucocephalus",
+      "common_name": "Bald Eagle",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-haliaeetus-leucocephalus-v3.png",
+      "asset_sha256": "eeaba54dcde1c0262f8cfaf74c24905e24d82823dd0fbb17a5939d5f847e5182",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Adult looking back. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Bald_Eagle/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Bald Eagle perched upright on a very short pale weathered snag, front three-quarter body with head turned back over its right shoulder, white head and tail, dark brown layered folded wings, yellow bill and feet; feet grip branch naturally.",
+      "reference_images": [
+        "masters/emviary-ai-haliaeetus-leucocephalus-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Bald Eagle perched upright on a very short pale weathered snag, front three-quarter body with head turned back over its right shoulder, white head and tail, dark brown layered folded wings, yellow bill and feet; feet grip branch naturally. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "845f83a342fd98ffaa4e89590a58d03a0ecd3973f9a588c8d166b2d9ef355e5c"
+    },
+    {
+      "id": "emviary-ai-ardea-herodias-v2",
+      "scientific_name": "Ardea herodias",
+      "common_name": "Great Blue Heron",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-ardea-herodias-v2.png",
+      "asset_sha256": "f1cdef77480dd57360c40e150b5c68fd57342a6a1411fe08cfbeac1a78469540",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Heron in flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Great_Blue_Heron/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Great Blue Heron flying toward the left, body in lateral view, wings raised in a natural upstroke, long neck visibly tucked into an S, both long legs trailing straight behind, slate blue body, dark flight feathers, white and black head, long yellow spear bill.",
+      "reference_images": [
+        "masters/emviary-ai-ardea-herodias-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Great Blue Heron flying toward the left, body in lateral view, wings raised in a natural upstroke, long neck visibly tucked into an S, both long legs trailing straight behind, slate blue body, dark flight feathers, white and black head, long yellow spear bill. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "38ad228f288a1e3d4154f96441ab70c93705f990098890338de9746a490dbfb7"
+    },
+    {
+      "id": "emviary-ai-ardea-herodias-v3",
+      "scientific_name": "Ardea herodias",
+      "common_name": "Great Blue Heron",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-ardea-herodias-v3.png",
+      "asset_sha256": "5ffe0ce9049fdfc03846b55e7dda9cf489261dbf659980fce442b1a14bec4905",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Heron stalking. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Great_Blue_Heron/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Great Blue Heron stalking toward the right, body horizontal, long neck stretched forward in a shallow S, one long dark leg lifting in a low step and one planted, slate-blue wings, white crown and black superciliary stripe, long pointed yellow bill.",
+      "reference_images": [
+        "masters/emviary-ai-ardea-herodias-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Great Blue Heron stalking toward the right, body horizontal, long neck stretched forward in a shallow S, one long dark leg lifting in a low step and one planted, slate-blue wings, white crown and black superciliary stripe, long pointed yellow bill. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "49c614ee451ebc60367565bc53433166acdf1251394484b54e6664fcc9b4ec79"
+    },
+    {
+      "id": "emviary-ai-egretta-thula-v2",
+      "scientific_name": "Egretta thula",
+      "common_name": "Snowy Egret",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "masters/emviary-ai-egretta-thula-v2.png",
+      "asset_sha256": "231e49a374f0283fd5693ce3ffa5a477c317cd57ec3b8d72726f414dd461ce4d",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Egret in flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Snowy_Egret/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Snowy Egret flying to the left, wings lifted at natural angles, pure white body and wing feathers modeled in restrained cool gray, neck tucked, long black legs trailing with clearly yellow feet, fine pointed black bill, small yellow lores.",
+      "reference_images": [
+        "masters/emviary-ai-egretta-thula-v1.png"
+      ],
+      "prompt": "Revise the second attached illustration to better match the bold readable ink contours of the first attached approved Emviary illustration. Subject: Adult Snowy Egret flying to the left, wings lifted at natural angles, pure white body and wing feathers modeled in restrained cool gray, neck tucked, long black legs trailing with clearly yellow feet, fine pointed black bill, small yellow lores. Keep that single bird pose and complete anatomy. White feathers must read clearly against neutral pale-gray e-paper. Use deliberate continuous dark slate-gray pencil/engraved ink lines on the exterior silhouette, and locally darker gray hatching along overlapping feather groups and shadowed inner wings. White remains the dominant plumage and should not gain gray patches or outlines that look like species markings. Keep the yellow feet and lores, black bill and black legs and the illustration's natural history look. Full bird with transparent margins around every extremity, true alpha, no text, no background, no shadow, no decoration, no frame.",
+      "prompt_sha256": "99a5c3b3572a52d8521033569dd02d0486bfdf154051fd04f3da99e29c6a67b8",
+      "draft_reference": {
+        "asset_sha256": "30ae3f3a983262241e13683567387152f032c6f3e058b0ac496727d4913943be",
+        "generation_prompt": "Create a NEW Emviary single-bird cutout. Adult Snowy Egret flying to the left, wings lifted at natural angles, pure white body and wing feathers modeled in restrained cool gray, neck tucked, long black legs trailing with clearly yellow feet, fine pointed black bill, small yellow lores. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+        "reason": "The first draft needed more edge contrast at three-bird size."
+      }
+    },
+    {
+      "id": "emviary-ai-egretta-thula-v3",
+      "scientific_name": "Egretta thula",
+      "common_name": "Snowy Egret",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "masters/emviary-ai-egretta-thula-v3.png",
+      "asset_sha256": "2f8507aedcad804d1a673c701acb62ae991fb40b9d1d6eb71b7982d76485d418",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Egret taking a step. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Snowy_Egret/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Snowy Egret turning slightly toward the viewer while walking to the right, one foot lifted, show two black legs and bright yellow feet, straight thin black bill and yellow lores, white feathers and modest lacy breeding crest and back plumes, delicate gray modeling.",
+      "reference_images": [
+        "masters/emviary-ai-egretta-thula-v1.png"
+      ],
+      "prompt": "Revise the second attached illustration to better match the bold readable ink contours of the first attached approved Emviary illustration. Subject: Adult Snowy Egret turning slightly toward the viewer while walking to the right, one foot lifted, show two black legs and bright yellow feet, straight thin black bill and yellow lores, white feathers and modest lacy breeding crest and back plumes, delicate gray modeling. Keep that single bird pose and complete anatomy. White feathers must read clearly against neutral pale-gray e-paper. Use deliberate continuous dark slate-gray pencil/engraved ink lines on the exterior silhouette, and locally darker gray hatching along overlapping feather groups and shadowed inner wings. White remains the dominant plumage and should not gain gray patches or outlines that look like species markings. Keep the yellow feet and lores, black bill and black legs and the illustration's natural history look. Full bird with transparent margins around every extremity, true alpha, no text, no background, no shadow, no decoration, no frame.",
+      "prompt_sha256": "a449159b42dc5af2a76b9370e841f89ac16321e52edfbfec4c80874464ec37cb",
+      "draft_reference": {
+        "asset_sha256": "bc5057fd59a6a97a16a90982edf2e5ebb0be2af7ec811476c01c81ae018777d2",
+        "generation_prompt": "Create a NEW Emviary single-bird cutout. Adult Snowy Egret turning slightly toward the viewer while walking to the right, one foot lifted, show two black legs and bright yellow feet, straight thin black bill and yellow lores, white feathers and modest lacy breeding crest and back plumes, delicate gray modeling. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+        "reason": "The first draft needed more edge contrast at three-bird size."
+      }
+    },
+    {
+      "id": "emviary-ai-recurvirostra-americana-v2",
+      "scientific_name": "Recurvirostra americana",
+      "common_name": "American Avocet",
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "asset": "masters/emviary-ai-recurvirostra-americana-v2.png",
+      "asset_sha256": "b8f7896380cd93d8c9ce5afe489e016ea05ff47f333e1ba0f59bcb39b722e6de",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Breeding plumage. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/American_Avocet/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult breeding American Avocet standing on one leg with the second leg visibly folded close against the body, face left, cinnamon orange head and neck, very thin black upward-curving bill, black and white folded wing pattern, pale blue-gray long legs.",
+      "reference_images": [
+        "masters/emviary-ai-recurvirostra-americana-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult breeding American Avocet standing on one leg with the second leg visibly folded close against the body, face left, cinnamon orange head and neck, very thin black upward-curving bill, black and white folded wing pattern, pale blue-gray long legs. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "76f95e37033d36b12bf76a44e8f959d4abbd7416d694bab894156fd07e1a263d"
+    },
+    {
+      "id": "emviary-ai-recurvirostra-americana-v3",
+      "scientific_name": "Recurvirostra americana",
+      "common_name": "American Avocet",
+      "months": [
+        3,
+        8,
+        9,
+        10
+      ],
+      "asset": "masters/emviary-ai-recurvirostra-americana-v3.png",
+      "asset_sha256": "dca0200e7fbecf11c265a40a4b334587818e02c9189b28d6481009e958e35dc8",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Sweeping for food. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/American_Avocet/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult American Avocet in nonbreeding plumage, foraging toward the right with neck angled down, bill clearly thin black with diagnostic upturn, white-gray head and neck, black and white shoulder bands and folded wings, two long pale blue-gray legs with one step forward.",
+      "reference_images": [
+        "masters/emviary-ai-recurvirostra-americana-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult American Avocet in nonbreeding plumage, foraging toward the right with neck angled down, bill clearly thin black with diagnostic upturn, white-gray head and neck, black and white shoulder bands and folded wings, two long pale blue-gray legs with one step forward. Use attached same-species illustration only as the style and field-mark reference; draw the distinctly different pose described. Same clean, restrained natural history field guide look, with dark fine ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility when reduced to 180 pixels on a 6-color e-paper frame. Use delicate internal edge contrast for white plumage. Full single bird, complete silhouette including toes or wingtips, centered with ample transparent padding on every side. TRUE alpha transparency, no background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals, except the tiny snag where specifically requested. For wings or long legs use a wide or tall composition as appropriate.",
+      "prompt_sha256": "48f52420edc12000685553a9f41dc0b8f7b7be40fd110c7062c5002047c481cb"
+    },
+    {
+      "id": "emviary-ai-poecile-gambeli-v2",
+      "scientific_name": "Poecile gambeli",
+      "common_name": "Mountain Chickadee",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-poecile-gambeli-v2.png",
+      "asset_sha256": "12765578b10c5114e05c46a295cd074e88b544f179023de3804160d30cc6a4d5",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Chickadee hanging from a twig. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Mountain_Chickadee/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Mountain Chickadee (Poecile gambeli) feeding upside down from a single very short pine twig above it. Clinging pose; the gray back is below the twig with the bird’s head turned right toward the viewer. Show the distinctly white eyebrow stripe cutting the black cap, black bib, white cheek, gray wings, dark thin feet grasping twig. Different silhouette from reference.",
+      "reference_images": [
+        "masters/emviary-ai-poecile-gambeli-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Mountain Chickadee (Poecile gambeli) feeding upside down from a single very short pine twig above it. Clinging pose; the gray back is below the twig with the bird’s head turned right toward the viewer. Show the distinctly white eyebrow stripe cutting the black cap, black bib, white cheek, gray wings, dark thin feet grasping twig. Different silhouette from reference. Use the supplied same-species artwork as a reference for the art style. Paint the specified pose and field marks. Same clean, restrained natural history field guide look, fine dark ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility at 180 pixels on a six-color e-paper frame. Full single bird, complete silhouette including feet and wingtips, centered with ample transparent padding on every side. TRUE alpha transparency. No background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals except the tiny twig where requested.",
+      "prompt_sha256": "38aa6dba07186291f2e528f140a62f614cc23387557e403cfe47bf19bed2e37c"
+    },
+    {
+      "id": "emviary-ai-poecile-gambeli-v3",
+      "scientific_name": "Poecile gambeli",
+      "common_name": "Mountain Chickadee",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-poecile-gambeli-v3.png",
+      "asset_sha256": "e20258ee14fc217c19a32e162b011b4ab18183ff413ced9226b3282fe13c168b",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Chickadee in a short flight. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/Mountain_Chickadee/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult Mountain Chickadee (Poecile gambeli) in a short right-to-left flutter, wings extended in upstroke, feet drawn in, gray upperparts, white cheeks and slender distinctive white eyebrow stripe through its black cap, black throat and pointed dark bill. Natural short head and rounded body. No branch.",
+      "reference_images": [
+        "masters/emviary-ai-poecile-gambeli-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult Mountain Chickadee (Poecile gambeli) in a short right-to-left flutter, wings extended in upstroke, feet drawn in, gray upperparts, white cheeks and slender distinctive white eyebrow stripe through its black cap, black throat and pointed dark bill. Natural short head and rounded body. No branch. Use the supplied same-species artwork as a reference for the art style. Paint the specified pose and field marks. Same clean, restrained natural history field guide look, fine dark ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility at 180 pixels on a six-color e-paper frame. Full single bird, complete silhouette including feet and wingtips, centered with ample transparent padding on every side. TRUE alpha transparency. No background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals except the tiny twig where requested.",
+      "prompt_sha256": "3e5be7de13841c18c797ec8fd5110aa719860369e21dcdf7a52158ab7ecf53e0"
+    },
+    {
+      "id": "emviary-ai-zonotrichia-leucophrys-v2",
+      "scientific_name": "Zonotrichia leucophrys",
+      "common_name": "White-crowned Sparrow",
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-zonotrichia-leucophrys-v2.png",
+      "asset_sha256": "48a78b39c635b78bfb05ca5f632b87bb9489c017480bbb58a9254ee1aa8f3861",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Sparrow foraging. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/White-crowned_Sparrow/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Adult White-crowned Sparrow, Zonotrichia leucophrys, head low and tilted left foraging on the ground, profile facing right with foot lifting slightly, distinct black-and-white striped crown, small pinkish orange conical bill, unmarked pale gray breast and streaked brown back and two discreet pale wingbars. No ground or props.",
+      "reference_images": [
+        "masters/emviary-ai-zonotrichia-leucophrys-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Adult White-crowned Sparrow, Zonotrichia leucophrys, head low and tilted left foraging on the ground, profile facing right with foot lifting slightly, distinct black-and-white striped crown, small pinkish orange conical bill, unmarked pale gray breast and streaked brown back and two discreet pale wingbars. No ground or props. Use the supplied same-species artwork as a reference for the art style. Paint the specified pose and field marks. Same clean, restrained natural history field guide look, fine dark ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility at 180 pixels on a six-color e-paper frame. Full single bird, complete silhouette including feet and wingtips, centered with ample transparent padding on every side. TRUE alpha transparency. No background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals except the tiny twig where requested.",
+      "prompt_sha256": "306ec4959624626d7f9326d8227aea5cd7551082061ba5e7c3a83430c20aad42"
+    },
+    {
+      "id": "emviary-ai-zonotrichia-leucophrys-v3",
+      "scientific_name": "Zonotrichia leucophrys",
+      "common_name": "White-crowned Sparrow",
+      "months": [
+        1,
+        2,
+        3,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "masters/emviary-ai-zonotrichia-leucophrys-v3.png",
+      "asset_sha256": "aa70a4e361078a2511694808cc46a1f140083716f6bc9934250f4d5eeea87c54",
+      "approved": true,
+      "review_status": "Identification, anatomy and packed solo/trio previews screened; physical panel review pending",
+      "source": "Emviary original AI illustration",
+      "source_url": "https://github.com/lstepnio/Emviary/blob/main/art/provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "credit": "Original illustration created for Emviary. Immature sparrow perched. Identification facts: Cornell Lab of Ornithology.",
+      "style": "modern-natural-history",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "kind": "cutout",
+      "depicted_birds": 1,
+      "composition_max_birds": 3,
+      "identification_url": "https://www.allaboutbirds.org/guide/White-crowned_Sparrow/id",
+      "provenance_file": "provenance/ai-color-cutouts/colorado-variants-2026-11-09.json",
+      "subject": "Immature first-winter White-crowned Sparrow, Zonotrichia leucophrys, perched on a very short thin twig with one dried leaf, three-quarter front facing the left, with russet-brown and creamy buff crown stripes replacing the adult black and white, small pale pink conical bill, plain grayish tan unmarked breast, warm brown wings with two pale wingbars. Bird is main subject, branch no more than width of bird body.",
+      "reference_images": [
+        "masters/emviary-ai-zonotrichia-leucophrys-v1.png"
+      ],
+      "prompt": "Create a NEW Emviary single-bird cutout. Immature first-winter White-crowned Sparrow, Zonotrichia leucophrys, perched on a very short thin twig with one dried leaf, three-quarter front facing the left, with russet-brown and creamy buff crown stripes replacing the adult black and white, small pale pink conical bill, plain grayish tan unmarked breast, warm brown wings with two pale wingbars. Bird is main subject, branch no more than width of bird body. Use the supplied same-species artwork as a reference for the art style. Paint the specified pose and field marks. Same clean, restrained natural history field guide look, fine dark ink contours, layered feather linework, muted watercolor/gouache blocks, strong silhouette and legibility at 180 pixels on a six-color e-paper frame. Full single bird, complete silhouette including feet and wingtips, centered with ample transparent padding on every side. TRUE alpha transparency. No background or paper tint, no ground, scenery, typography, frame, cast shadow, watermark, additional objects or animals except the tiny twig where requested.",
+      "prompt_sha256": "2a8d183d22d25581d34c163d4078c062923319c051d5ea3169ac0f7604e85279"
+    }
+  ]
+}
