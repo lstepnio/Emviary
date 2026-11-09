@@ -176,3 +176,26 @@ def test_due_schedule_is_local_and_manual_prepare_does_not_shift_wake(service, f
     service.prepare_due(datetime(2026, 10, 8, 8, 30, tzinfo=UTC))
     assert service.store.active_image(service.store.frame(frame_id))["local_date"] == "2026-10-08"
     assert json.loads(service.store.frame(frame_id)["policy"])["firmware_rotate_cron"] == ["15 3 *"]
+
+
+def test_full_bird_collection_fits_explicit_frame_policy(service, frame):
+    from emviary.settings import FramePolicy
+
+    identifier = frame[0]
+    saved = service.store.frame(identifier)
+    original = FramePolicy.model_validate_json(saved["policy"]).model_dump()
+    all_birds = sorted(
+        {
+            a["scientific_name"]
+            for a in service.settings.artworks
+            if a.get("category", "bird") == "bird" and a["approved"]
+        }
+    )
+    assert len(all_birds) > 64
+    updated = FramePolicy.model_validate({**original, "allowed_species": all_birds})
+    service.store.set_policy(identifier, updated, expected_revision=saved["config_revision"])
+    persisted = service.store.frame(identifier)
+    assert FramePolicy.model_validate_json(persisted["policy"]).model_dump() == {
+        **original,
+        "allowed_species": all_birds,
+    }

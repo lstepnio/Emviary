@@ -1,5 +1,26 @@
 # Emviary continuation notes
 
+## November 9 four new Colorado bird species
+
+The live 0.19.4 catalog has 195 bird illustrations across 67 species.
+Northern Flicker, Woodhouse's Scrub-Jay, Chipping Sparrow and Cooper's Hawk
+have three approved cutouts each. Emily's explicit bird selection grew
+from 63 to 67 species, with her other settings preserved. Cooper's Hawk
+reports under either scientific name match the same species.
+
+All 12 masters passed packed solo and trio review. Seeded selection verified
+seasonal eligibility and unchanged per-species weighting. All 48 focused
+tests passed. The release image also rendered a valid packed trio before
+the service switch. All live masters and thumbnails were verified; service
+and host readiness reported ready. Physical display remains unconfirmed.
+
+Image: `emviary:poc-075`, source `f849e27`.
+Catalog SHA-256: `589c2f46613f8b837bc3a37c77ff33d3798b5d6295ae6c1c2602831302da1fc3`.
+Verified application backup: `pre-colorado-new-birds-20261109T221256Z`.
+Rollback files: `/docker/backups/emviary-deployments/colorado-new-birds-20261109T221256Z`.
+Before rolling back to 0.19.3, restore the prior frame species selection
+while 0.19.4 is still running; the older version caps explicit lists at 64.
+
 ## November 9 Colorado bird variants
 
 The live 0.19.3 catalog now includes 14 new cutouts for seven species, with

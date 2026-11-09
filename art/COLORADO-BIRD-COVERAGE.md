@@ -20,12 +20,19 @@ help woodland and wetland coverage, respectively. The cuckoo is a lower
 priority than familiar missing birds. [Colorado Parks and Wildlife lists
 the western population as threatened](https://cpw.state.co.us/threatened-and-endangered-wildlife).
 
+A second expansion adds Northern Flicker (western red-shafted form),
+Woodhouse's Scrub-Jay, Chipping Sparrow and Cooper's Hawk, with three
+illustrations per species. Chipping Sparrow's breeding-plumage art is
+eligible April through September, a conservative window within its Colorado
+spring to fall presence. The other three are eligible year-round.
+Cooper's Hawk uses *Astur cooperii* in the catalog; acoustic reports under
+*Accipiter cooperii* match the same species.
+
 Priorities for future artwork, based on a comparison with regional field
 checklists and the approved catalog:
 
 | Priority | Missing from the bird catalog | Why add them |
 | --- | --- | --- |
-| Front Range and foothills | Northern Flicker, Woodhouse's Scrub-Jay, Chipping Sparrow, Cooper's Hawk | Familiar species across developed areas, woodland edges and foothills. Start with the western red-shafted form of the flicker under the Northern Flicker species identity. |
 | Summer visitors | Common Grackle, Cliff Swallow, Brown-headed Cowbird, Bullock's Oriole | Broaden seasonal coverage alongside the existing Red-winged Blackbird and Barn Swallow. |
 | Warblers | Yellow-rumped Warbler, Wilson's Warbler | There are no approved wood-warbler species in the catalog. Start with conspicuous regional migrants. |
 | Ponds and streams | Killdeer, Common Merganser, Green-winged Teal | Add an inland shorebird and more waterfowl beyond Mallard and Canada Goose. |
@@ -40,6 +47,7 @@ Sources: [Bird Conservancy of the Rockies Front Range backyard guide](https://ww
 [NPS Colorado National Monument bird guide](https://www.nps.gov/colm/learn/nature/birds.htm),
 [NPS Great Sand Dunes bird checklist](https://www.nps.gov/grsa/learn/nature/upload/bird-checklist-2006-508.pdf),
 [NPS Black Canyon of the Gunnison bird checklist](https://www.nps.gov/blca/learn/upload/BLCA_Bird_Checklist_2025_508.pdf),
+[University of Colorado Boulder County bird records](https://spl.cde.state.co.us/artemis/ucbserials/ucb201012internet/ucb201012vol9internet.pdf),
 [Colorado Parks and Wildlife wetlands guide](https://cpw.state.co.us/wetlands),
 and [NPS White-tailed Ptarmigan guide](https://www.nps.gov/romo/learn/nature/ptarmigan.htm).
 This is a coverage audit, not a statewide abundance ranking. Use local
