@@ -10343,6 +10343,474 @@
         "transparent_master": true,
         "packed_preview_validated": true
       }
+    },
+    {
+      "id": "emviary-wildlife-mule-deer-buck-v1",
+      "common_name": "Mule Deer",
+      "scientific_name": "Odocoileus hemionus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "habitats": [
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "months": [
+        1,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/mule-deer-buck-v1.png",
+      "asset_sha256": "339dc3a5ca5764ad57daa12e820e21802967f29c40004fe25d3294cec75df20c",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mule-deer",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Antlered mule deer buck.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mule-deer-fawn-v1",
+      "common_name": "Mule Deer",
+      "scientific_name": "Odocoileus hemionus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "habitats": [
+        "foothills",
+        "woodland",
+        "grassland"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "asset": "wildlife/mule-deer-fawn-v1.png",
+      "asset_sha256": "b4531ec6762c9bb39dd3d6f2272542d096ec362be3352d01f2f320492e0263de",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mule-deer",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Spotted mule deer fawn.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-elk-bull-v1",
+      "common_name": "Elk",
+      "scientific_name": "Cervus canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "mountain-meadow",
+        "woodland"
+      ],
+      "habitats": [
+        "mountain-meadow",
+        "woodland"
+      ],
+      "months": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "asset": "wildlife/elk-bull-v1.png",
+      "asset_sha256": "e8b231a03b5d7b4a4e2bbd29b1339bffffb9932b882a41d0657a9946de1b09b4",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "bugling",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/elk",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Rocky Mountain elk bull bugling.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-elk-calf-v1",
+      "common_name": "Elk",
+      "scientific_name": "Cervus canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "mountain-meadow",
+        "woodland"
+      ],
+      "habitats": [
+        "mountain-meadow",
+        "woodland"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "asset": "wildlife/elk-calf-v1.png",
+      "asset_sha256": "e15abd908d773cd33aaeb501bda3ee1ff274cf0560ac86e0554d8359bcdd6b79",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/elk",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Rocky Mountain elk calf resting.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bighorn-sheep-ewe-v1",
+      "common_name": "Bighorn Sheep",
+      "scientific_name": "Ovis canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "rocky-mountain",
+        "alpine"
+      ],
+      "habitats": [
+        "rocky-mountain",
+        "alpine"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/bighorn-sheep-ewe-v1.png",
+      "asset_sha256": "d756c8824019fafee5f94b7ab34ee24b12e8282225cfd1acc262ebf93df2a24d",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/rocky-mountain-bighorn-sheep",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Rocky Mountain bighorn ewe.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bighorn-sheep-lamb-v1",
+      "common_name": "Bighorn Sheep",
+      "scientific_name": "Ovis canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "rocky-mountain",
+        "alpine"
+      ],
+      "habitats": [
+        "rocky-mountain",
+        "alpine"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/bighorn-sheep-lamb-v1.png",
+      "asset_sha256": "6418ec391b27684ea18fee780a69e5364baa59ccc348ca502124814a37730758",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/rocky-mountain-bighorn-sheep",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Rocky Mountain bighorn lamb.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-bear-cinnamon-v1",
+      "common_name": "Black Bear",
+      "scientific_name": "Ursus americanus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills",
+        "color phase",
+        "cinnamon"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "asset": "wildlife/black-bear-cinnamon-v1.png",
+      "asset_sha256": "c5db1fa2a7f6e95a7c6c0ab24fd86d913c19e04fb83a400089a49281a6162033",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/black-bear",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Cinnamon-phase American black bear.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-bear-blonde-v1",
+      "common_name": "Black Bear",
+      "scientific_name": "Ursus americanus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills",
+        "color phase",
+        "blonde"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "asset": "wildlife/black-bear-blonde-v1.png",
+      "asset_sha256": "f977192f327441dcd248a9b69b0113942081be0f7baea77b9e7475dcdb4768e8",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/black-bear",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Blonde-phase American black bear.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [
