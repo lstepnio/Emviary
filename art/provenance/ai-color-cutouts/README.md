@@ -39,3 +39,16 @@ uv run python tools/preview_ai_birds.py \
 
 The review tool deliberately bypasses seasonal selection so that every asset
 can be inspected at once. Runtime selection still applies each asset's months.
+
+## Colorado single-cutout expansion
+
+The [Colorado bird coverage audit](../../COLORADO-BIRD-COVERAGE.md) identifies
+species with one illustration in the live library. The
+`colorado-variants-2026-11-09.json` manifest records the 14 follow-up
+illustrations for seven such species. This batch used the original Emviary
+cutouts as style references. Each new illustration retains its species
+identity. American Avocet's cinnamon and gray plumage variants use narrower
+seasonal windows inside the existing March through October species window.
+The immature White-crowned Sparrow is eligible from August through March.
+All 14 were reviewed in packed solo and trio layouts. Physical panel
+appearance remains unverified.
