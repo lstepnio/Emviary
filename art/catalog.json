@@ -9375,6 +9375,974 @@
         "transparent_master": true,
         "packed_preview_validated": true
       }
+    },
+    {
+      "id": "emviary-wildlife-moose-bull-v1",
+      "common_name": "Moose",
+      "scientific_name": "Alces alces",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "riparian",
+        "woodland"
+      ],
+      "habitats": [
+        "riparian",
+        "woodland"
+      ],
+      "months": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/moose-bull-v1.png",
+      "asset_sha256": "6fed3b313e1c868e3baa58ca7a316e1bb7df9a30da28694892ce22ec3f91d6e1",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/moose",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Adult Shiras bull with antlers.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-moose-cow-v1",
+      "common_name": "Moose",
+      "scientific_name": "Alces alces",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "riparian",
+        "woodland"
+      ],
+      "habitats": [
+        "riparian",
+        "woodland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/moose-cow-v1.png",
+      "asset_sha256": "2810eeae12329693e45dfd6aa4c9a6421dd536aae6ae84d7b0267b69ecf67ee2",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/moose",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Adult Shiras cow.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-american-bison-bull-v1",
+      "common_name": "American Bison",
+      "scientific_name": "Bison bison",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland"
+      ],
+      "habitats": [
+        "grassland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/american-bison-bull-v1.png",
+      "asset_sha256": "b177980f1a0edefd74e85b582233949ab9b95347e8c670b2a096e965f56a9c66",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Mountain-Parks/Bison-Conservation",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Adult bull from Colorado's managed plains bison herds.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-american-bison-calf-v1",
+      "common_name": "American Bison",
+      "scientific_name": "Bison bison",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland"
+      ],
+      "habitats": [
+        "grassland"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/american-bison-calf-v1.png",
+      "asset_sha256": "18651b6d6f9143cb059612297d715e40bd3e533e532c5510a61468c4b7480751",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Mountain-Parks/Bison-Conservation",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Calf from Colorado's managed plains bison herds.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mountain-goat-adult-v1",
+      "common_name": "Mountain Goat",
+      "scientific_name": "Oreamnos americanus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "rocky"
+      ],
+      "habitats": [
+        "alpine",
+        "rocky"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/mountain-goat-adult-v1.png",
+      "asset_sha256": "c5cb7576e02146b03a4b392183cb17ba4c69e09982fba35747e355168f7f025f",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mountain-goat",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Adult mountain goat.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mountain-goat-kid-v1",
+      "common_name": "Mountain Goat",
+      "scientific_name": "Oreamnos americanus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "rocky"
+      ],
+      "habitats": [
+        "alpine",
+        "rocky"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/mountain-goat-kid-v1.png",
+      "asset_sha256": "19696a48eea1edc0df2d7d4d601ea58e060d2b80acb3229197c884ad847fb3d0",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mountain-goat",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Young mountain goat.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mountain-lion-walking-v1",
+      "common_name": "Mountain Lion",
+      "scientific_name": "Puma concolor",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/mountain-lion-walking-v1.png",
+      "asset_sha256": "aa36964b2f6591fc9dd19a0ba513a078efabea1b2587d4c9e26bad9cd58f7aca",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mountain-lion",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Walking mountain lion.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-mountain-lion-resting-v1",
+      "common_name": "Mountain Lion",
+      "scientific_name": "Puma concolor",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/mountain-lion-resting-v1.png",
+      "asset_sha256": "de36ddb5cb5711f5de3d867e4f4c7a001752732366c57a28a443988638b6f61b",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/mountain-lion",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Resting mountain lion.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-v1",
+      "common_name": "Black-tailed Prairie Dog",
+      "scientific_name": "Cynomys ludovicianus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland"
+      ],
+      "habitats": [
+        "grassland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/black-tailed-prairie-dog-v1.png",
+      "asset_sha256": "5a8ebcfcdf3c031f7096d72993a8a0c763d1775550aa39b104201ef30e58abe0",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "upright",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Black-tailed Prairie Dog.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-v1",
+      "common_name": "Gunnison's Prairie Dog",
+      "scientific_name": "Cynomys gunnisoni",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "shrubland"
+      ],
+      "habitats": [
+        "grassland",
+        "shrubland"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/gunnisons-prairie-dog-v1.png",
+      "asset_sha256": "24331642c87b66311950e1aba1058d0e6a32a1441eb68a55061a34a3b89b7288",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Gunnison's Prairie Dog.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-v1",
+      "common_name": "Fox Squirrel",
+      "scientific_name": "Sciurus niger",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/fox-squirrel-v1.png",
+      "asset_sha256": "1db9c306a0ead463818e9b0380a88a08534ab1607db22a76b6bfc34bf8b9f8e6",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/tree-squirrels",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Fox Squirrel.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-aberts-squirrel-gray-v1",
+      "common_name": "Abert's Squirrel",
+      "scientific_name": "Sciurus aberti",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland"
+      ],
+      "habitats": [
+        "woodland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/aberts-squirrel-gray-v1.png",
+      "asset_sha256": "c379ef7676885dcc0ff28079d560de613a0e0d0b503a8296e145d512c93f9fdd",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/tree-squirrels",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Gray phase of Abert's squirrel.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-aberts-squirrel-black-v1",
+      "common_name": "Abert's Squirrel",
+      "scientific_name": "Sciurus aberti",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "black phase",
+        "melanistic"
+      ],
+      "habitats": [
+        "woodland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/aberts-squirrel-black-v1.png",
+      "asset_sha256": "46429156bcad014729dce4a6d6f728242bd267e796fe342789d238b7ab0ba73f",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/tree-squirrels",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Black squirrel color phase of Abert's squirrel.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-v1",
+      "common_name": "Colorado Chipmunk",
+      "scientific_name": "Neotamias quadrivittatus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/colorado-chipmunk-v1.png",
+      "asset_sha256": "9d2691c5edc31135ab0666fdfc1ec86dee2c4ee5d2a953a90761fe6bced86a0a",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/chipmunks",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Colorado Chipmunk.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-v1",
+      "common_name": "Golden-mantled Ground Squirrel",
+      "scientific_name": "Callospermophilus lateralis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/golden-mantled-ground-squirrel-v1.png",
+      "asset_sha256": "06746a462fb2772a9bb1bc76fde789b0f4d59a39247794dc0209940e2a5649a2",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Golden-mantled Ground Squirrel.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-red-fox-black-v1",
+      "common_name": "Red Fox",
+      "scientific_name": "Vulpes vulpes",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "grassland",
+        "urban",
+        "black phase",
+        "melanistic"
+      ],
+      "habitats": [
+        "woodland",
+        "grassland",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/red-fox-black-v1.png",
+      "asset_sha256": "20936a4695d7faaf54a0f440f3129c41be56731f98d9dc979483ede1892bf9b0",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/red-fox",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Black fox color phase of the red fox.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [

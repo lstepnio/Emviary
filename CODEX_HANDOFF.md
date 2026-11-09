@@ -1,5 +1,15 @@
 # Emviary continuation notes
 
+## November 9 Colorado wildlife expansion
+
+The live 0.19.2 library now includes 16 new illustrations covering ten new
+Colorado species and a black-phase red fox. All 16 packed Spectra 6 renders
+passed, as did 42 focused tests. Live thumbnails and variant groups were
+verified, and owner readiness and the host monitor reported ready.
+The live catalog SHA-256 is `a3c87ddd034d514c338f26fbbb39a35e6616c31655be9321325761fbd8b2c299`.
+The previous catalog is under `/docker/backups/emviary-deployments/colorado-wildlife-20261109T183609Z`.
+Frame display of the new compositions remains unconfirmed.
+
 ## November 9 Wally artwork
 
 Added four Wally portraits to the local and live catalogs on `emviary:poc-071`.

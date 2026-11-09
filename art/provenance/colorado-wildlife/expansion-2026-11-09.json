@@ -1,0 +1,154 @@
+{
+  "generation_method": "Built-in OpenAI image generation using existing Emviary art as the style reference",
+  "style_references": [
+    "wildlife/red-fox-v1.png",
+    "wildlife/bighorn-sheep-v1.png"
+  ],
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-moose-bull-v1",
+      "asset": "wildlife/moose-bull-v1.png",
+      "asset_sha256": "6fed3b313e1c868e3baa58ca7a316e1bb7df9a30da28694892ce22ec3f91d6e1",
+      "subject": "Adult Shiras bull with antlers",
+      "reference": "https://cpw.state.co.us/species/moose",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Mature Colorado Shiras bull moose standing three-quarter profile facing left. Broad palmated antlers, long drooping muzzle and throat bell, dark brown coat, lanky pale lower legs, high shoulder and narrow hindquarters. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Moose at a small display size.",
+      "packed_preview_sha256": "c6ffb4dfbd441de48a3825e4ae1a302f7add9a1974dcfeb984c0b9bada601151"
+    },
+    {
+      "id": "emviary-wildlife-moose-cow-v1",
+      "asset": "wildlife/moose-cow-v1.png",
+      "asset_sha256": "2810eeae12329693e45dfd6aa4c9a6421dd536aae6ae84d7b0267b69ecf67ee2",
+      "subject": "Adult Shiras cow",
+      "reference": "https://cpw.state.co.us/species/moose",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Adult Shiras cow moose in full-body relaxed stride facing right, long overhanging muzzle, dark brown torso and paler long lower legs, large ears, small throat bell, antlerless. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Moose at a small display size.",
+      "packed_preview_sha256": "13ca2706e2be6cc956bcb3b98bd49c3468078cff97fd0f9c83a01e684bfcdbdb"
+    },
+    {
+      "id": "emviary-wildlife-american-bison-bull-v1",
+      "asset": "wildlife/american-bison-bull-v1.png",
+      "asset_sha256": "b177980f1a0edefd74e85b582233949ab9b95347e8c670b2a096e965f56a9c66",
+      "subject": "Adult bull from Colorado's managed plains bison herds",
+      "reference": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Mountain-Parks/Bison-Conservation",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Adult American plains bison bull, standing three-quarter view facing right, massive high shoulder hump, shaggy chocolate forequarters and beard, short black curved horns, shorter russet coat over hindquarters, complete tail and cloven hooves. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize American Bison at a small display size.",
+      "packed_preview_sha256": "0450ebd8904cef751c1b0ab751acc973bca4d2042d1d3b243fe88bc3c753a144"
+    },
+    {
+      "id": "emviary-wildlife-american-bison-calf-v1",
+      "asset": "wildlife/american-bison-calf-v1.png",
+      "asset_sha256": "18651b6d6f9143cb059612297d715e40bd3e533e532c5510a61468c4b7480751",
+      "subject": "Calf from Colorado's managed plains bison herds",
+      "reference": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Parks-Recreation/Mountain-Parks/Bison-Conservation",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Very young American plains bison calf, one full-body calf walking left with one hoof lifted, warm cinnamon-orange coat, small subtle shoulder hump, round muzzle and short woolly tail. No developed horns, no other bison. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize American Bison at a small display size.",
+      "packed_preview_sha256": "4ffd0b4e75b96b095b1f8e128c021d2dd998a10e8179bfbc46ee2f67ba13eb35"
+    },
+    {
+      "id": "emviary-wildlife-mountain-goat-adult-v1",
+      "asset": "wildlife/mountain-goat-adult-v1.png",
+      "asset_sha256": "c5cb7576e02146b03a4b392183cb17ba4c69e09982fba35747e355168f7f025f",
+      "subject": "Adult mountain goat",
+      "reference": "https://cpw.state.co.us/species/mountain-goat",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Adult Rocky Mountain goat in alert three-quarter standing pose facing left, shaggy ivory white fleece with neutral gray shadows, black nose and two slender short black swept-back horns, short tail and dark cloven hooves. No curled horns. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Mountain Goat at a small display size.",
+      "packed_preview_sha256": "c854445250284095b1c8a49621fa04a0a787d6422e3b63f126ef5cd6f81dcbaa"
+    },
+    {
+      "id": "emviary-wildlife-mountain-goat-kid-v1",
+      "asset": "wildlife/mountain-goat-kid-v1.png",
+      "asset_sha256": "19696a48eea1edc0df2d7d4d601ea58e060d2b80acb3229197c884ad847fb3d0",
+      "subject": "Young mountain goat",
+      "reference": "https://cpw.state.co.us/species/mountain-goat",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. One mountain goat kid, entire figure taking a lively little step to the right with one front hoof raised. Compact white fleece with cool shadows, small upright ears, short black horn buds, black nose, compact cloven feet. Natural body proportions. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Mountain Goat at a small display size.",
+      "packed_preview_sha256": "ec1d6574a9502bc073ecedfd6cd10c917af03bb1129eb46fe18a73e432715de1"
+    },
+    {
+      "id": "emviary-wildlife-mountain-lion-walking-v1",
+      "asset": "wildlife/mountain-lion-walking-v1.png",
+      "asset_sha256": "aa36964b2f6591fc9dd19a0ba513a078efabea1b2587d4c9e26bad9cd58f7aca",
+      "subject": "Walking mountain lion",
+      "reference": "https://cpw.state.co.us/species/mountain-lion",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Colorado adult mountain lion walking left in low relaxed stride, powerful broad shoulders, small rounded dark-backed ears, tawny coat with pale chin and underbelly, long muscular tail with darker tip, four clearly articulated feline feet, solid coat. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Mountain Lion at a small display size.",
+      "packed_preview_sha256": "140e2d4770e491ea18c89cb8170854619b4bc0aba094ee8814068271d12c0d9f"
+    },
+    {
+      "id": "emviary-wildlife-mountain-lion-resting-v1",
+      "asset": "wildlife/mountain-lion-resting-v1.png",
+      "asset_sha256": "de36ddb5cb5711f5de3d867e4f4c7a001752732366c57a28a443988638b6f61b",
+      "subject": "Resting mountain lion",
+      "reference": "https://cpw.state.co.us/species/mountain-lion",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Adult cougar resting low in a sphinx-like pose facing slightly right, both forepaws visible, alert rounded ears and eyes, golden tan coat with pale chin, long dark-tipped tail resting in a natural curve to the side. Solid coat. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Mountain Lion at a small display size.",
+      "packed_preview_sha256": "57cf0eea92dc941e2e8beef3614c622dcefbac043d17452c4b87334088fc0965"
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-v1",
+      "asset": "wildlife/black-tailed-prairie-dog-v1.png",
+      "asset_sha256": "5a8ebcfcdf3c031f7096d72993a8a0c763d1775550aa39b104201ef30e58abe0",
+      "subject": "Black-tailed Prairie Dog",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Black-tailed prairie dog standing upright as a sentry, tiny rounded ears, tawny grizzled brown back, lighter cream belly, front paws tucked at chest, stout rounded body and clearly visible short narrow tail with a black tip. No burrow or ground. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Black-tailed Prairie Dog at a small display size.",
+      "packed_preview_sha256": "dbd3419aee4b59d317458654ef2340b815ff8619d0c8c65fd85a6c1451a8580d"
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-v1",
+      "asset": "wildlife/gunnisons-prairie-dog-v1.png",
+      "asset_sha256": "24331642c87b66311950e1aba1058d0e6a32a1441eb68a55061a34a3b89b7288",
+      "subject": "Gunnison's Prairie Dog",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. One adult Gunnison’s prairie dog in a low crouched foraging pose, facing left with head slightly raised, yellowish gray buff coat, finely grizzled darker back, small ears, stout rounded body, short tail with pale buff-white tip fully in view. No food or ground. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Gunnison’s Prairie Dog at a small display size.",
+      "packed_preview_sha256": "ff50d89d615732f2e497b60d75e07664a78fd73c5ee78c421903911c001c4fcf"
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-v1",
+      "asset": "wildlife/fox-squirrel-v1.png",
+      "asset_sha256": "1db9c306a0ead463818e9b0380a88a08534ab1607db22a76b6bfc34bf8b9f8e6",
+      "subject": "Fox Squirrel",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Adult eastern fox squirrel upright and seated, robust gray-brown back, warm rusty orange belly and cheeks, small rounded ears without tufts, huge bushy cinnamon-and-gray tail curling behind the body. One nut held naturally in front paws. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Fox Squirrel at a small display size.",
+      "packed_preview_sha256": "9969f6212ef98e20cfabb0985e4c428a24efbaf4a8adb4f23caf7e9f704e162d"
+    },
+    {
+      "id": "emviary-wildlife-aberts-squirrel-gray-v1",
+      "asset": "wildlife/aberts-squirrel-gray-v1.png",
+      "asset_sha256": "c379ef7676885dcc0ff28079d560de613a0e0d0b503a8296e145d512c93f9fdd",
+      "subject": "Gray phase of Abert's squirrel",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Gray-phase Abert’s squirrel, seated with paws close to chest, long distinct black winter ear tufts, salt-and-pepper gray coat, russet stripe on upper back, white belly and broad grizzled tail with white underside. No scenery. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Abert’s Squirrel at a small display size.",
+      "packed_preview_sha256": "c4353de4e554d2df835268709978033329a6e190d34d20ef305690828d0d8448"
+    },
+    {
+      "id": "emviary-wildlife-aberts-squirrel-black-v1",
+      "asset": "wildlife/aberts-squirrel-black-v1.png",
+      "asset_sha256": "46429156bcad014729dce4a6d6f728242bd267e796fe342789d238b7ab0ba73f",
+      "subject": "Black squirrel color phase of Abert's squirrel",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Black-phase Abert’s squirrel in low three-quarter walking pose, conspicuous tall tufted ears and full bushy raised tail, dark charcoal coat with cool slate highlights to preserve form and face. True black morph, no orange belly or white coat. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Abert’s Squirrel at a small display size.",
+      "packed_preview_sha256": "c3bcac8df6927f71ab92c4f607e88f54031d9870e19079b9e22d2152d47a1f7e"
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-v1",
+      "asset": "wildlife/colorado-chipmunk-v1.png",
+      "asset_sha256": "9d2691c5edc31135ab0666fdfc1ec86dee2c4ee5d2a953a90761fe6bced86a0a",
+      "subject": "Colorado Chipmunk",
+      "reference": "https://cpw.state.co.us/species/chipmunks",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Colorado chipmunk perched on its hind feet, small sleek body, clearly alternating dark and pale stripes on back, visible dark stripe through each eye and pale eyebrow, warm russet flanks, small paws and full narrow bushy tail. No surface or props. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Colorado Chipmunk at a small display size.",
+      "packed_preview_sha256": "84b4723505151783cb6f2302bace5c2560780dcdeeec112388a1fba82d9ef8b9"
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-v1",
+      "asset": "wildlife/golden-mantled-ground-squirrel-v1.png",
+      "asset_sha256": "06746a462fb2772a9bb1bc76fde789b0f4d59a39247794dc0209940e2a5649a2",
+      "subject": "Golden-mantled Ground Squirrel",
+      "reference": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Golden-mantled ground squirrel low in a three-quarter foraging stance, richly golden copper mantle over head and shoulders, prominent white stripe edged with black on each side of the back, pale belly and narrow tail. Face absolutely unstriped, with a pale eye ring. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Golden-mantled Ground Squirrel at a small display size.",
+      "packed_preview_sha256": "6e6fc976aefc5db280964ac10a9f5f72ae7687b18319681e2eee772a09af4d11"
+    },
+    {
+      "id": "emviary-wildlife-red-fox-black-v1",
+      "asset": "wildlife/red-fox-black-v1.png",
+      "asset_sha256": "20936a4695d7faaf54a0f440f3129c41be56731f98d9dc979483ede1892bf9b0",
+      "subject": "Black fox color phase of the red fox",
+      "reference": "https://cpw.state.co.us/species/red-fox",
+      "prompt": "Create one polished, transparent PNG for Emviary's Colorado wildlife collection, a natural history picture frame with a six-color e-paper panel. Reference image is illustration style only. Melanistic black color phase of the red fox, full-body calm walking profile, pointed upright fox ears and long narrow muzzle, long bushy tail with tiny white tip. Charcoal fur with very subtle silver highlights for legibility. No orange fur, no collar, no canine round paws. Carefully observed natural anatomy. Match the collection's rich matte gouache and dry-brush realism, restrained natural earth colors, crisp readable eyes, clean body contours, and broad light/dark shapes. Show one whole animal centered, every ear, horn, paw or hoof and tail fully visible, with generous clear margins around the complete silhouette. True transparent alpha around the animal. No horizon, background, base, shadow, decorative elements, text, outline border, extra animals or extra legs. The viewer should recognize Red Fox at a small display size.",
+      "packed_preview_sha256": "c342aff76209052499cdf6164a8c49edddeac73c59851707b5e36df6322a46a2"
+    }
+  ]
+}

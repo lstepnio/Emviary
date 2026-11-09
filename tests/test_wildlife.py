@@ -23,7 +23,8 @@ def test_region_and_season_filters_match_colorado_without_using_bird_reports(ser
     site = service.settings.config.site("denver-gift")
     winter = eligible_wildlife(service.settings.artworks, site, "2026-01-08")
     summer = eligible_wildlife(service.settings.artworks, site, "2026-07-08")
-    assert len(winter) == 14 and len(summer) == 16
+    assert len(winter) == 24 and len(summer) == 32
+    assert len({a["scientific_name"] for a in summer}) == 23
     assert all("US-CO" in a["regions"] for a in summer)
     elsewhere = site.model_copy(
         update={"bird_area": "local", "weather_location": Location(latitude=47, longitude=-122)}
@@ -66,7 +67,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 
     policy = FramePolicy(show_location_name=True).model_dump()
     animals = [a for a in service.settings.artworks if a.get("category") == "wildlife"]
-    assert len(animals) == 16
+    assert len(animals) == 32
     for art in animals:
         with closing(Image.open(service.settings.art_dir / art["asset"])) as image:
             assert image.mode == "RGBA"
@@ -91,7 +92,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 def test_wildlife_library_search_and_subject_filter(service, frame, tmp_path, monkeypatch):
     client, _ = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage/artwork?frame=" + frame[0] + "&category=wildlife")
-    assert page.status_code == 200 and "16 artworks" in page.text
+    assert page.status_code == 200 and "32 artworks" in page.text
     assert "Colorado · Mammal" in page.text and "Mule Deer" in page.text
     assert "Black-capped Chickadee" not in page.text
     page = client.get("/manage/artwork?q=riparian&category=wildlife")
