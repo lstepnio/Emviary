@@ -1,5 +1,18 @@
 # Emviary continuation notes
 
+## November 9 riparian and small mammal variants
+
+Fourteen additional illustrations give the raccoon, beaver, both prairie dogs,
+fox squirrel, Colorado chipmunk and golden-mantled ground squirrel three
+portraits each. The live catalog has 64 mammal illustrations across 23 species
+identities, all with multiple portraits. All 14 packed Spectra 6 previews and
+58 focused tests passed. The live library returned seven groups of three and
+all 14 new thumbnails decoded. Owner readiness and the host monitor reported
+ready after the art-only reload on 0.19.2. Live catalog SHA-256 is
+`561b578f5a431f3fa64541b356d5d2354ee496ccee437e92037c153b8d4a734a`.
+The previous catalog is under `/docker/backups/emviary-deployments/colorado-seven-variants-20261109T204425Z`.
+Physical display of these compositions remains unconfirmed.
+
 ## November 9 pronghorn, coyote, bobcat, pika and marmot variants
 
 Ten new illustrations give these five animals three portraits each. Their

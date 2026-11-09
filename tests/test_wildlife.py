@@ -24,7 +24,7 @@ def test_region_and_season_filters_match_colorado_without_using_bird_reports(ser
     site = service.settings.config.site("denver-gift")
     winter = eligible_wildlife(service.settings.artworks, site, "2026-01-08")
     summer = eligible_wildlife(service.settings.artworks, site, "2026-07-08")
-    assert len(winter) == 32 and len(summer) == 49
+    assert len(winter) == 40 and len(summer) == 63
     assert len({a["scientific_name"] for a in summer}) == 23
     assert all("US-CO" in a["regions"] for a in summer)
     elsewhere = site.model_copy(
@@ -68,7 +68,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 
     policy = FramePolicy(show_location_name=True).model_dump()
     animals = [a for a in service.settings.artworks if a.get("category") == "wildlife"]
-    assert len(animals) == 50
+    assert len(animals) == 64
     for art in animals:
         with closing(Image.open(service.settings.art_dir / art["asset"])) as image:
             assert image.mode == "RGBA"
@@ -93,7 +93,7 @@ def test_every_wildlife_master_composes_without_cropping_or_fake_bird_counts(ser
 def test_wildlife_library_search_and_subject_filter(service, frame, tmp_path, monkeypatch):
     client, _ = sign_in(service, tmp_path, monkeypatch)
     page = client.get("/manage/artwork?frame=" + frame[0] + "&category=wildlife")
-    assert page.status_code == 200 and "50 artworks" in page.text
+    assert page.status_code == 200 and "64 artworks" in page.text
     assert "Colorado · Mammal" in page.text
     assert "Black-capped Chickadee" not in page.text
     page = client.get("/manage/artwork?q=mule+deer&category=wildlife")
@@ -130,6 +130,13 @@ def test_wildlife_avoids_recent_species_then_uses_the_oldest(service):
         ("Bobcat", 3),
         ("American Pika", 3),
         ("Yellow-bellied Marmot", 3),
+        ("Raccoon", 3),
+        ("Beaver", 3),
+        ("Black-tailed Prairie Dog", 3),
+        ("Gunnison's Prairie Dog", 3),
+        ("Fox Squirrel", 3),
+        ("Colorado Chipmunk", 3),
+        ("Golden-mantled Ground Squirrel", 3),
     ],
 )
 def test_variants_share_one_rotation_identity(service, name, expected_count):

@@ -11419,6 +11419,854 @@
         "transparent_master": true,
         "packed_preview_validated": true
       }
+    },
+    {
+      "id": "emviary-wildlife-raccoon-walking-v1",
+      "common_name": "Raccoon",
+      "scientific_name": "Procyon lotor",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/raccoon-walking-v1.png",
+      "asset_sha256": "8e16c10d24240aca57eba0ab3663906999270f6b1ad9562b2eb09768a7e50d7a",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/raccoon",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Raccoon walking with its ringed tail extended.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-raccoon-reaching-v1",
+      "common_name": "Raccoon",
+      "scientific_name": "Procyon lotor",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "riparian",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/raccoon-reaching-v1.png",
+      "asset_sha256": "5b042ebeb42cba4aaa122fbaf265aec23321968281b1780ecbe8b4f4cafbc8bf",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "upright",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/raccoon",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Raccoon rising to reach with a forepaw.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-beaver-walking-v1",
+      "common_name": "Beaver",
+      "scientific_name": "Castor canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "riparian",
+        "wetland"
+      ],
+      "habitats": [
+        "riparian",
+        "wetland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/beaver-walking-v1.png",
+      "asset_sha256": "5e263577a1f71286113353476a12ac5418d3952d309454c91834acdc9726eff5",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/beaver",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Beaver walking with its paddle tail visible.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-beaver-gnawing-v1",
+      "common_name": "Beaver",
+      "scientific_name": "Castor canadensis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "riparian",
+        "wetland"
+      ],
+      "habitats": [
+        "riparian",
+        "wetland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/beaver-gnawing-v1.png",
+      "asset_sha256": "ef98444452789d44f3dc0cc054e77fec3c7bf9b3a4e799451c8eadc7edd6524f",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/beaver",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Beaver gnawing a willow twig.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-running-v1",
+      "common_name": "Black-tailed Prairie Dog",
+      "scientific_name": "Cynomys ludovicianus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland"
+      ],
+      "habitats": [
+        "grassland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/black-tailed-prairie-dog-running-v1.png",
+      "asset_sha256": "32433b7ba748b0d905fb46bc9e8e698c4f6e5afbe1e5155dc331e87b920f5626",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "running",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Black-tailed prairie dog in a short run.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-grazing-v1",
+      "common_name": "Black-tailed Prairie Dog",
+      "scientific_name": "Cynomys ludovicianus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland"
+      ],
+      "habitats": [
+        "grassland"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/black-tailed-prairie-dog-grazing-v1.png",
+      "asset_sha256": "ae980f8c7435f52049e21a129813ac4e47250e3ef2e2ba8a72b8892207de0f00",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Black-tailed prairie dog nibbling grass.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-upright-v1",
+      "common_name": "Gunnison's Prairie Dog",
+      "scientific_name": "Cynomys gunnisoni",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "shrubland"
+      ],
+      "habitats": [
+        "grassland",
+        "shrubland"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/gunnisons-prairie-dog-upright-v1.png",
+      "asset_sha256": "4b2bd6c91d0b69b68d099682e67fe894e8d7d85bac9b1b1f8d8dc7b3ac61d111",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "upright",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Gunnison's prairie dog standing watch.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-resting-v1",
+      "common_name": "Gunnison's Prairie Dog",
+      "scientific_name": "Cynomys gunnisoni",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "shrubland"
+      ],
+      "habitats": [
+        "grassland",
+        "shrubland"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/gunnisons-prairie-dog-resting-v1.png",
+      "asset_sha256": "d66a577483429d21fa39d3a6bfeb9d51387926305768c0c5149152f0e22abda5",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/prairie-dogs",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Gunnison's prairie dog stretched out resting.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-leaping-v1",
+      "common_name": "Fox Squirrel",
+      "scientific_name": "Sciurus niger",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/fox-squirrel-leaping-v1.png",
+      "asset_sha256": "3863c1e6c3cf23e7e35e4c60958abb06e6e5d127bebf3a66b02420785b0a0ebf",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "leaping",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/tree-squirrels",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Fox squirrel in a compact leap.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-resting-v1",
+      "common_name": "Fox Squirrel",
+      "scientific_name": "Sciurus niger",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "urban"
+      ],
+      "habitats": [
+        "woodland",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/fox-squirrel-resting-v1.png",
+      "asset_sha256": "4a0d1a984e1c4184f302f969711bf1c13cd8e8ae5a7b0e1cc7d683f2d204f0fa",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/tree-squirrels",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Fox squirrel stretched out resting.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-scurrying-v1",
+      "common_name": "Colorado Chipmunk",
+      "scientific_name": "Neotamias quadrivittatus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/colorado-chipmunk-scurrying-v1.png",
+      "asset_sha256": "e31f41f46996e9c0d91376833b1ca37084633d6e3b0be09f53f26e5d7e32d07b",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "running",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/chipmunks",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Colorado chipmunk scurrying.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-feeding-v1",
+      "common_name": "Colorado Chipmunk",
+      "scientific_name": "Neotamias quadrivittatus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "asset": "wildlife/colorado-chipmunk-feeding-v1.png",
+      "asset_sha256": "dea79187583b5812822e95b9b099ac4093dc1fac6a89bd8cbe1709398fe0c4e5",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/chipmunks",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Colorado chipmunk feeding on a seed.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-upright-v1",
+      "common_name": "Golden-mantled Ground Squirrel",
+      "scientific_name": "Callospermophilus lateralis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/golden-mantled-ground-squirrel-upright-v1.png",
+      "asset_sha256": "88e0ad627b1b538c3febb91273d16721a7135db49480b21b75cf682f0debf8e3",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "upright",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Golden-mantled ground squirrel standing alert.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-running-v1",
+      "common_name": "Golden-mantled Ground Squirrel",
+      "scientific_name": "Callospermophilus lateralis",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "rocky"
+      ],
+      "habitats": [
+        "woodland",
+        "rocky"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/golden-mantled-ground-squirrel-running-v1.png",
+      "asset_sha256": "69db464eb7724e4a9f990f1d9b706990941c8ed76f47189ded451439d1a00cd6",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "running",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Golden-mantled ground squirrel in a low dash.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [
