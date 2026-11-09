@@ -26,7 +26,7 @@ def verified_backups(service, stamp):
     )
 
 
-def healthy_service(service, frame):
+def healthy_service(service, frame, monkeypatch):
     row = service.store.frame(frame[0])
     policy = json.loads(row["policy"])
     policy["weather_cues"] = False
@@ -43,7 +43,9 @@ def healthy_service(service, frame):
         .astimezone(ZoneInfo(service.settings.config.site(row["site_id"]).timezone))
         .date()
     )
-    service.prepare_due(now=service.daily_schedule(row, day)["prepare_at"])
+    prepare_at = service.daily_schedule(row, day)["prepare_at"]
+    monkeypatch.setattr("emviary.service.utcnow", lambda: prepare_at.isoformat())
+    service.prepare_due(now=prepare_at)
     verified_backups(service, service.clock())
 
 
@@ -92,7 +94,7 @@ def test_readiness_auth_health_and_no_preparation_side_effects(
     response = client.get("/manage/readiness")
     assert response.status_code == 503
     assert response.json()["backups"]["local_status"] == "missing"
-    healthy_service(service, frame)
+    healthy_service(service, frame, monkeypatch)
     calls = service.providers.calls
     with service.store.connect() as db:
         job_count = db.execute("SELECT count(*) FROM jobs").fetchone()[0]
@@ -117,7 +119,7 @@ def test_cli_readiness_matches_shared_summary_and_failure_exit(service, frame, m
         cli.main()
     assert result.value.code == 1
     assert json.loads(capsys.readouterr().out) == readiness_summary(service)
-    healthy_service(service, frame)
+    healthy_service(service, frame, monkeypatch)
     cli.main()
     assert json.loads(capsys.readouterr().out)["status"] == "ready"
 

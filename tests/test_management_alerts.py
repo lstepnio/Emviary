@@ -2,6 +2,9 @@ import json
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import pytest
+from test_freshness import install_weather
+
 from emviary.diagnostics import management_alerts, management_alerts_section, parse_metrics
 from emviary.owner import escape
 
@@ -245,7 +248,7 @@ def test_absent_daily_preparation_warns_at_deadline_and_recovers(service, frame)
     # A missing payload must not pass merely because its database slot is complete.
     image = service.store.slot_image(frame[0], "scheduled")
     service.cache_path(image["path"]).unlink()
-    assert "image_preparation" in codes(service, row, service.clock())
+    assert "image_preparation" in codes(service, row, schedule["prepare_at"] + timedelta(minutes=5))
 
 
 def test_old_unresolved_job_failure_does_not_expire(service, frame):
@@ -273,4 +276,45 @@ def test_scheduler_compatible_legacy_preparation_is_not_reported_missing(service
             "UPDATE prepared_slots SET cycle=? WHERE frame_id=? AND purpose='scheduled'",
             (legacy_cycle, frame[0]),
         )
-    assert "image_preparation" not in codes(service, row, service.clock())
+    assert "image_preparation" not in codes(
+        service, row, schedule["prepare_at"] + timedelta(minutes=5)
+    )
+
+
+@pytest.mark.parametrize("completed_before_wake", [True, False])
+def test_daytime_catalog_change_preserves_only_on_time_scheduled_preparation(
+    service, frame, monkeypatch, completed_before_wake
+):
+    clock, _ = install_weather(service, monkeypatch)
+    row = service.store.frame(frame[0])
+    day = service.clock().astimezone(ZoneInfo("America/Denver")).date()
+    schedule = service.daily_schedule(row, day)
+    prepare_at, wake_at = schedule["prepare_at"], schedule["wake_at"]
+    row = update_frame(
+        service,
+        frame[0],
+        created_at=(prepare_at - timedelta(hours=1)).isoformat(),
+        last_contact=wake_at.isoformat(),
+    )
+    # Record actual completion time separately from the scheduler's start time.
+    clock[0] = prepare_at
+    monkeypatch.setattr("emviary.service.utcnow", lambda: clock[0].isoformat())
+    if completed_before_wake:
+        service.prepare_due(now=prepare_at)
+    else:
+        service.prepare(frame[0], day.isoformat(), offline=True)
+
+    # Reload the catalog and replace the mutable scheduled slot after the wake.
+    service.settings.catalog = {**service.settings.catalog, "curation": "Added a new artwork"}
+    after_wake = wake_at + timedelta(hours=3)
+    clock[0] = after_wake
+    service.prepare_due(now=after_wake)
+    replacement = service.store.slot_image(frame[0], "scheduled")
+    assert replacement["created_at"] == after_wake.isoformat()
+    assert json.loads(replacement["manifest"])["inputs"]["open_meteo"]["fetched_at"] == (
+        after_wake.isoformat()
+    )
+    assert ("image_preparation" in codes(service, row, after_wake)) is not completed_before_wake
+
+    tomorrow = service.daily_schedule(row, day + timedelta(days=1))
+    assert "image_preparation" in codes(service, row, tomorrow["prepare_at"] + timedelta(minutes=5))

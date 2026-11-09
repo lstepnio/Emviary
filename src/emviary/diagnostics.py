@@ -1,6 +1,7 @@
 """Bounded, owner-only device diagnostics carried by existing image requests."""
 
 import base64
+import hashlib
 from datetime import UTC, datetime, timedelta
 from ipaddress import IPv4Address
 from typing import Literal
@@ -119,6 +120,41 @@ def signal_label(value):
     return f"{quality} · {value} dBm"
 
 
+def _prepared_before_wake(service, frame, schedule, day, legacy_cycle, current_hash, policy):
+    # Jobs retain the original configuration even when a daytime rebuild replaces
+    # the scheduled slot. The scheduled profile distinguishes them from previews
+    # and button navigation renders for the same date.
+    with service.store.connect() as db:
+        jobs = db.execute(
+            "SELECT profile_hash,plan,finished_at FROM jobs "
+            "WHERE frame_id=? AND local_date=? AND status='done'",
+            (frame["id"], day),
+        ).fetchall()
+    for job in jobs:
+        finished = timestamp(job["finished_at"])
+        if finished is None or finished > schedule["wake_at"]:
+            continue
+        plan = json_object(job["plan"])
+        saved_hash = plan.get("configuration_hash")
+        if not isinstance(saved_hash, str) or not saved_hash:
+            continue
+        cycle = schedule["cycle"].replace(current_hash, saved_hash, 1)
+        profile = hashlib.sha256(f"{saved_hash}:scheduled:{cycle}".encode()).hexdigest()
+        if job["profile_hash"] == profile:
+            return True
+        saved_policy = plan.get("policy")
+        if (
+            isinstance(saved_policy, dict)
+            and saved_policy.get("wake_local_time") == policy.wake_local_time
+            and saved_policy.get("weather_max_age_minutes") == policy.weather_max_age_minutes
+        ):
+            cycle = legacy_cycle.replace(current_hash, saved_hash, 1)
+            profile = hashlib.sha256(f"{saved_hash}:scheduled:{cycle}".encode()).hexdigest()
+            if job["profile_hash"] == profile:
+                return True
+    return False
+
+
 def management_alerts(service, frame, now=None):
     """Read existing evidence only; a sleeping frame never needs an extra check-in."""
     from .settings import FramePolicy
@@ -229,13 +265,9 @@ def management_alerts(service, frame, now=None):
     image = service.store.slot_image(frame["id"], "scheduled")
     # Mirror the scheduler's pre-upgrade cycle compatibility so a deployment
     # does not report a completed daily preparation as missing.
-    legacy_cycle = (
-        schedule["wake_at"].astimezone(zone).date().isoformat()
-        + ":"
-        + site.prepare_local_time
-        + ":"
-        + service.configuration_hash(frame)
-    )
+    scheduled_day = schedule["wake_at"].astimezone(zone).date().isoformat()
+    current_hash = service.configuration_hash(frame)
+    legacy_cycle = f"{scheduled_day}:{site.prepare_local_time}:{current_hash}"
     saved_policy = json_object(image["manifest"]).get("policy", {}) if image else {}
     matching_cycle = slot and (
         slot["cycle"] == schedule["cycle"]
@@ -246,12 +278,17 @@ def management_alerts(service, frame, now=None):
             and saved_policy.get("weather_max_age_minutes") == policy.weather_max_age_minutes
         )
     )
-    prepared = (
-        matching_cycle
-        and image
-        and service.image_usable(image, frame, now=schedule["wake_at"])
-        and service.cache_path(image["path"]).is_file()
-    )
+    if now >= schedule["wake_at"]:
+        prepared = _prepared_before_wake(
+            service, frame, schedule, scheduled_day, legacy_cycle, current_hash, policy
+        )
+    else:
+        prepared = (
+            matching_cycle
+            and image
+            and service.image_usable(image, frame, now=schedule["wake_at"])
+            and service.cache_path(image["path"]).is_file()
+        )
     overdue = now >= deadline and enrolled is not None and enrolled <= deadline and not prepared
     if failed_job or failed_slot or overdue:
         alerts.append(
