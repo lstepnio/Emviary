@@ -47,6 +47,16 @@ own seasonal windows. Both new bear colors follow the original bear's April
 through November eligibility. See [the variant manifest](../provenance/colorado-wildlife/variants-2026-11-09.json)
 for references, prompts and packed-render hashes.
 
+## Pronghorn, coyote, bobcat, pika and marmot variants
+
+The pronghorn gains a running doe and resting fawn. The coyote gains trotting
+and howling poses, and the bobcat gains stalking and resting poses. The pika
+is shown gathering grass and scurrying. The marmot gains sunning and sentinel
+poses, both within its existing May through September rotation window. The
+pronghorn fawn and haying pika have summer rotation windows. Each animal's
+three portraits share one species identity. See [the second variant manifest](../provenance/colorado-wildlife/variants-five-2026-11-09.json)
+for references and render checks.
+
 ## Wally
 
 Wally, a domestic dog, appears in four photo-guided illustrations: seated,

@@ -10811,6 +10811,614 @@
         "transparent_master": true,
         "packed_preview_validated": true
       }
+    },
+    {
+      "id": "emviary-wildlife-pronghorn-doe-v1",
+      "common_name": "Pronghorn",
+      "scientific_name": "Antilocapra americana",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "plains"
+      ],
+      "habitats": [
+        "grassland",
+        "plains"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/pronghorn-doe-v1.png",
+      "asset_sha256": "542253d42e19dcba926c4ab01574c7d229693ada4deff882f34274ab9b7819d2",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "running",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/pronghorn",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Pronghorn doe in full stride.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-pronghorn-fawn-v1",
+      "common_name": "Pronghorn",
+      "scientific_name": "Antilocapra americana",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "plains"
+      ],
+      "habitats": [
+        "grassland",
+        "plains"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "asset": "wildlife/pronghorn-fawn-v1.png",
+      "asset_sha256": "17f305fc7e65d5fc4a9219cd0818fa8c4fde09e5d9c1742bcf3cbbc409a149b8",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/pronghorn",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Pronghorn fawn resting.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-coyote-trotting-v1",
+      "common_name": "Coyote",
+      "scientific_name": "Canis latrans",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "habitats": [
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/coyote-trotting-v1.png",
+      "asset_sha256": "837d5deba2e83bb576bf9c1b18db836f157462f94f5411e7ad0642f93a17ee3a",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "trotting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/coyote",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Coyote in an easy trot.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-coyote-howling-v1",
+      "common_name": "Coyote",
+      "scientific_name": "Canis latrans",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "habitats": [
+        "grassland",
+        "foothills",
+        "urban"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/coyote-howling-v1.png",
+      "asset_sha256": "5e34a7d76a00daa298b32b67bd7f920fae9cf704a2226734f2c5e1c4f98460cf",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "howling",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/coyote",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Coyote howling with head raised.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bobcat-stalking-v1",
+      "common_name": "Bobcat",
+      "scientific_name": "Lynx rufus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/bobcat-stalking-v1.png",
+      "asset_sha256": "cddd633fdf309e40a972dcf6e69f9baee400d5f9706ecf2e6400d7b7b09b74c5",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "stalking",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/bobcat",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Bobcat in a low stalking stride.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-bobcat-resting-v1",
+      "common_name": "Bobcat",
+      "scientific_name": "Lynx rufus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "habitats": [
+        "woodland",
+        "foothills",
+        "scrub"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/bobcat-resting-v1.png",
+      "asset_sha256": "ab3b97baf8bb7ebe504949c4029883290d4e69de80dafc62e6f2e6014a7382c7",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/bobcat",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Bobcat resting with paws forward.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-american-pika-haying-v1",
+      "common_name": "American Pika",
+      "scientific_name": "Ochotona princeps",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "talus"
+      ],
+      "habitats": [
+        "alpine",
+        "talus"
+      ],
+      "months": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/american-pika-haying-v1.png",
+      "asset_sha256": "00231098bb6cd0e1c06372508fbb5137ca1fceb0a6b11f30bfc332ae28c0e6fd",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "foraging",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/american-pika",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. American pika carrying alpine grass.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-american-pika-scurrying-v1",
+      "common_name": "American Pika",
+      "scientific_name": "Ochotona princeps",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "talus"
+      ],
+      "habitats": [
+        "alpine",
+        "talus"
+      ],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/american-pika-scurrying-v1.png",
+      "asset_sha256": "73bbbe3a44cfe11053f19d70c6368e95224fedcf2bb86a98b40b1a433dfabf0e",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "running",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/american-pika",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. American pika in a low scurry.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-yellow-bellied-marmot-sunning-v1",
+      "common_name": "Yellow-bellied Marmot",
+      "scientific_name": "Marmota flaviventris",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "mountain-meadow"
+      ],
+      "habitats": [
+        "alpine",
+        "mountain-meadow"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/yellow-bellied-marmot-sunning-v1.png",
+      "asset_sha256": "6a98c02d4430c4f3bf0a94eec4a618480053fb46567da5d5c5aa1a659e62ede6",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/yellow-bellied-marmot",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Yellow-bellied marmot sunning.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
+    },
+    {
+      "id": "emviary-wildlife-yellow-bellied-marmot-sentinel-v1",
+      "common_name": "Yellow-bellied Marmot",
+      "scientific_name": "Marmota flaviventris",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "wildlife",
+        "mammal",
+        "alpine",
+        "mountain-meadow"
+      ],
+      "habitats": [
+        "alpine",
+        "mountain-meadow"
+      ],
+      "months": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "asset": "wildlife/yellow-bellied-marmot-sentinel-v1.png",
+      "asset_sha256": "7c4975fd95923624fd2b5f8a6797c94f824b3e48c38e985d6f64ddef59b7795d",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "upright",
+      "source": "Emviary original AI wildlife illustration",
+      "source_url": "https://cpw.state.co.us/species/yellow-bellied-marmot",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with an Emviary style reference",
+      "credit": "Original illustration created for Emviary. Yellow-bellied marmot standing watch.",
+      "review_status": "Species markings, silhouette and 800x480 six-color packed preview screened. Physical panel review pending.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [
