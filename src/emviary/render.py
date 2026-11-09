@@ -52,6 +52,12 @@ def season_for(month):
     return "autumn"
 
 
+def _bird_name_key(name):
+    key = name.casefold()
+    # BirdWeather returns the former genus for the same eBird species.
+    return "astur cooperii" if key == "accipiter cooperii" else key
+
+
 def choose_art(
     artworks, local_date, inputs, recent_species, seed, recent_artworks=(), recent_styles=()
 ):
@@ -59,16 +65,19 @@ def choose_art(
     eligible = [a for a in artworks if a["approved"] and month in a["months"]]
     if not eligible:
         raise ValueError("No approved seasonally eligible artwork")
-    counts = {
-        b["scientific_name"].casefold(): b["count"]
-        for b in inputs.get("birdweather", {}).get("birds", [])
-    }
+    counts = {}
+    for bird in inputs.get("birdweather", {}).get("birds", []):
+        key = _bird_name_key(bird["scientific_name"])
+        counts[key] = max(counts.get(key, 0), bird["count"])
     species = sorted({a["scientific_name"] for a in eligible})
-    reported = {b["scientific_name"].casefold() for b in inputs.get("ebird", {}).get("birds", [])}
+    reported = {
+        _bird_name_key(b["scientific_name"]) for b in inputs.get("ebird", {}).get("birds", [])
+    }
     weights = []
     for name in species:
-        weight = 1 + 2 * math.log1p(min(counts.get(name.casefold(), 0), 100))
-        if name.casefold() in reported:
+        key = _bird_name_key(name)
+        weight = 1 + 2 * math.log1p(min(counts.get(key, 0), 100))
+        if key in reported:
             weight += 2  # Presence bonus, independent of individual or acoustic counts.
         if name in recent_species and len(species) > 1:
             weight *= 0.05

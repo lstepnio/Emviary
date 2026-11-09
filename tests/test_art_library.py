@@ -70,3 +70,29 @@ def test_breeding_plumage_and_migrant_art_are_seasonal(service):
     plate = next(a for a in service.settings.artworks if a.get("kind") == "plate")
     with TestClient(create_app(service, schedule=False)) as client:
         assert client.get("/art/" + plate["id"]).headers["content-type"] == "image/jpeg"
+
+
+def test_coopers_hawk_evidence_uses_one_species_across_provider_names():
+    names = ("Astur cooperii", "Accipiter cooperii")
+    catalog = [
+        {"id": name, "scientific_name": name, "approved": True, "months": [6]}
+        for name in (names[0], "Colaptes auratus")
+    ]
+
+    def draws(*, acoustic=(), checklist=()):
+        inputs = {
+            "birdweather": {
+                "birds": [{"scientific_name": name, "count": count} for name, count in acoustic]
+            },
+            "ebird": {"birds": [{"scientific_name": name} for name in checklist]},
+        }
+        return [
+            render.choose_art(catalog, "2026-06-15", inputs, [], str(seed))["scientific_name"]
+            for seed in range(200)
+        ]
+
+    current = draws(acoustic=[(names[0], 12)], checklist=[names[0]])
+    assert current == draws(acoustic=[(names[1], 12)], checklist=[names[0]])
+    assert current == draws(acoustic=[(names[0], 12)], checklist=[names[1]])
+    assert current == draws(acoustic=[(names[0], 12), (names[1], 12)], checklist=names)
+    assert current.count(names[0]) > draws().count(names[0])
