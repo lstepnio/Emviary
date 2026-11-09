@@ -210,7 +210,7 @@ class FramePolicy(Model):
     max_birds: Literal[1, 2, 3] = 3
     wildlife_per_month: Literal[0, 2] = 0
     special_days: list[SpecialDay] = Field(default_factory=list, max_length=128)
-    allowed_species: list[str] = Field(default_factory=list, max_length=64)
+    allowed_species: list[str] = Field(default_factory=list, max_length=128)
     seasonal_themes: bool = True
     processing_preset: Literal["balanced", "dynamic", "vivid", "soft"] = "balanced"
     dither_algorithm: Literal["floyd-steinberg", "stucki", "burkes", "sierra"] = "stucki"
