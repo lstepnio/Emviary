@@ -57,6 +57,19 @@ pronghorn fawn and haying pika have summer rotation windows. Each animal's
 three portraits share one species identity. See [the second variant manifest](../provenance/colorado-wildlife/variants-five-2026-11-09.json)
 for references and render checks.
 
+## Riparian and small mammal variants
+
+The last seven subjects with a single portrait each now have three. Raccoons
+gain walking and reaching poses, while beavers are shown walking and gnawing
+a willow twig. Black-tailed prairie dogs gain running and grazing poses;
+Gunnison's prairie dogs gain sentinel and resting poses. Fox squirrels gain
+leaping and resting poses, Colorado chipmunks gain running and feeding poses,
+and golden-mantled ground squirrels gain upright and running poses.
+
+The additions share their original species identities and eligibility months.
+See [the third variant manifest](../provenance/colorado-wildlife/variants-seven-2026-11-09.json)
+for references, prompts and packed-render hashes.
+
 ## Wally
 
 Wally, a domestic dog, appears in four photo-guided illustrations: seated,

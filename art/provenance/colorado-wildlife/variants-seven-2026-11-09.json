@@ -1,0 +1,146 @@
+{
+  "generation_method": "Built-in OpenAI image generation using Emviary species illustrations as style references",
+  "display_target": "800x480 Spectra 6, balanced preset, Stucki dithering",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-raccoon-walking-v1",
+      "asset": "wildlife/raccoon-walking-v1.png",
+      "asset_sha256": "8e16c10d24240aca57eba0ab3663906999270f6b1ad9562b2eb09768a7e50d7a",
+      "subject": "Raccoon walking with its ringed tail extended",
+      "reference": "https://cpw.state.co.us/species/raccoon",
+      "style_reference": "wildlife/raccoon-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One raccoon in left-facing full-body profile taking a quiet step with one forepaw lifted. Compact shoulders, gray-brown grizzled coat, black mask outlined in cream, rounded ears, hand-like black front paws and a thick low tail with visible dark rings. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "ec12decba5b21ed63aeff3df9cf19e6e1ff119c281472486ca60f9d731be88ee"
+    },
+    {
+      "id": "emviary-wildlife-raccoon-reaching-v1",
+      "asset": "wildlife/raccoon-reaching-v1.png",
+      "asset_sha256": "5b042ebeb42cba4aaa122fbaf265aec23321968281b1780ecbe8b4f4cafbc8bf",
+      "subject": "Raccoon rising to reach with a forepaw",
+      "reference": "https://cpw.state.co.us/species/raccoon",
+      "style_reference": "wildlife/raccoon-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One raccoon briefly balanced upright on both hind feet, body angled slightly right, one forepaw reaching forward at chest height, second paw close to chest. Broad black eye mask, cream face edges, gray-brown coat and full dark-ringed tail resting behind it. Naturally curved back and realistic hand-like paws. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "1be136ebe51116b1721a08948e049433eaece3f9532a18f15ab14e2089fc1ada"
+    },
+    {
+      "id": "emviary-wildlife-beaver-walking-v1",
+      "asset": "wildlife/beaver-walking-v1.png",
+      "asset_sha256": "5e263577a1f71286113353476a12ac5418d3952d309454c91834acdc9726eff5",
+      "subject": "Beaver walking with its paddle tail visible",
+      "reference": "https://cpw.state.co.us/species/beaver",
+      "style_reference": "wildlife/beaver-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One North American beaver walking low to the left, full side profile. Broad blunt muzzle, small round ears, chestnut-brown coat with deep shadows, small forepaws, large webbed hind feet, broad dark flat scaly paddle-shaped tail trailing fully visible to the right. No otter or muskrat tail. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "e8ace2c1cac9c3627bc4023ba500907026a89904a795542a1d0ebef51b881ba0"
+    },
+    {
+      "id": "emviary-wildlife-beaver-gnawing-v1",
+      "asset": "wildlife/beaver-gnawing-v1.png",
+      "asset_sha256": "ef98444452789d44f3dc0cc054e77fec3c7bf9b3a4e799451c8eadc7edd6524f",
+      "subject": "Beaver gnawing a willow twig",
+      "reference": "https://cpw.state.co.us/species/beaver",
+      "style_reference": "wildlife/beaver-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One North American beaver in a low three-quarter crouch facing right, holding a short willow twig horizontally between both front paws and nibbling the bark. Small visible amber incisors, dense rich brown fur, small round ears, wide body, fully visible broad flat scaly tail laid out to the left. No log, water or scenery. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "77329c03f5c4cd28ba6beb6a5f22a566a92eedd435119e87602eeeca9f90226e"
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-running-v1",
+      "asset": "wildlife/black-tailed-prairie-dog-running-v1.png",
+      "asset_sha256": "32433b7ba748b0d905fb46bc9e8e698c4f6e5afbe1e5155dc331e87b920f5626",
+      "subject": "Black-tailed prairie dog in a short run",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "style_reference": "wildlife/black-tailed-prairie-dog-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One black-tailed prairie dog in a low compact bounding stride, facing right in profile. Sandy tawny grizzled coat, cream underside, small round ears, blunt face, all four short legs naturally articulated and a short slim tail extended with unmistakable black tip. No bushy squirrel tail. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "5cfd14c86a2846515c07a4b6b5a6c62d4d5995528c8af4428071d39c6c46a9a5"
+    },
+    {
+      "id": "emviary-wildlife-black-tailed-prairie-dog-grazing-v1",
+      "asset": "wildlife/black-tailed-prairie-dog-grazing-v1.png",
+      "asset_sha256": "ae980f8c7435f52049e21a129813ac4e47250e3ef2e2ba8a72b8892207de0f00",
+      "subject": "Black-tailed prairie dog nibbling grass",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "style_reference": "wildlife/black-tailed-prairie-dog-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One black-tailed prairie dog down on all fours in a close three-quarter pose facing left, head slightly lowered while nibbling a single short green blade of grass. Buff coat, cream underparts, small round ears, short tail with a clearly visible black tip curled outward. Compact stocky form and small paws. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "7a49bb26595088c213006f40ee027eac3b36cfbc10c43f26c2cde74c5f656ddd"
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-upright-v1",
+      "asset": "wildlife/gunnisons-prairie-dog-upright-v1.png",
+      "asset_sha256": "4b2bd6c91d0b69b68d099682e67fe894e8d7d85bac9b1b1f8d8dc7b3ac61d111",
+      "subject": "Gunnison's prairie dog standing watch",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "style_reference": "wildlife/gunnisons-prairie-dog-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One Gunnison's prairie dog upright as a sentinel, angled slightly right. Compact oval body, muted yellowish gray fur and grizzled back, small round ears, front paws drawn close to chest, visible short tail with a pale buff tip curling outward. Tail tip must be light, no black tip. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "1c242459ce53ab5c9b3467a345dd44eb5e51ad2a79c040ed11a020018abe9a13"
+    },
+    {
+      "id": "emviary-wildlife-gunnisons-prairie-dog-resting-v1",
+      "asset": "wildlife/gunnisons-prairie-dog-resting-v1.png",
+      "asset_sha256": "d66a577483429d21fa39d3a6bfeb9d51387926305768c0c5149152f0e22abda5",
+      "subject": "Gunnison's prairie dog stretched out resting",
+      "reference": "https://cpw.state.co.us/species/prairie-dogs",
+      "style_reference": "wildlife/gunnisons-prairie-dog-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One Gunnison's prairie dog lying fully prone with front paws extended and hindquarters settled, head raised looking slightly left. Yellowish gray grizzled back with subdued buff underside, tiny round ears and short tail ending in a light cream tip. No rocks, no black tail tip. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "a2c915b9c205ea7d81a4455f1e1e0539572265150621cac6270efe5675bdc6d5"
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-leaping-v1",
+      "asset": "wildlife/fox-squirrel-leaping-v1.png",
+      "asset_sha256": "3863c1e6c3cf23e7e35e4c60958abb06e6e5d127bebf3a66b02420785b0a0ebf",
+      "subject": "Fox squirrel in a compact leap",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "style_reference": "wildlife/fox-squirrel-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One eastern fox squirrel in a compact horizontal leap facing left, both front paws reaching ahead and hind legs extended back. Gray-brown grizzled back, strong rusty-orange underside and cheeks, small rounded un-tufted ears, full bushy cinnamon and gray tail arched backward. Realistic anatomy, isolated. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "190439ddf6813a8d858a0f8e0ee234b42f098506229a1b9f6e05ceb7b1714642"
+    },
+    {
+      "id": "emviary-wildlife-fox-squirrel-resting-v1",
+      "asset": "wildlife/fox-squirrel-resting-v1.png",
+      "asset_sha256": "4a0d1a984e1c4184f302f969711bf1c13cd8e8ae5a7b0e1cc7d683f2d204f0fa",
+      "subject": "Fox squirrel stretched out resting",
+      "reference": "https://cpw.state.co.us/species/tree-squirrels",
+      "style_reference": "wildlife/fox-squirrel-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One eastern fox squirrel lying low and stretched out, facing right with head upright and front paws forward, huge bushy gray-rust tail curled close beside its body. Clearly visible rusty cheeks and orange underside, grizzled brown back, rounded un-tufted ears. No branch, no acorn, no scenery. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "30b97725b899f04a0bb4aecfa6a8ff5802da32bb1e0f9927f717ddd91f525d76"
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-scurrying-v1",
+      "asset": "wildlife/colorado-chipmunk-scurrying-v1.png",
+      "asset_sha256": "e31f41f46996e9c0d91376833b1ca37084633d6e3b0be09f53f26e5d7e32d07b",
+      "subject": "Colorado chipmunk scurrying",
+      "reference": "https://cpw.state.co.us/species/chipmunks",
+      "style_reference": "wildlife/colorado-chipmunk-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One Colorado chipmunk in a horizontal left-facing scurry, low compact body with slim legs, dark and pale stripes on its back, two crisp dark facial stripes separated by a pale stripe, russet flanks and slender brush-like tail extended behind. Small round ears. Emphasize facial stripes so this reads as a chipmunk. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "14f8dd05b8813977ac241a18d190118ae6bd094ef58bbc131df1972d93b84869"
+    },
+    {
+      "id": "emviary-wildlife-colorado-chipmunk-feeding-v1",
+      "asset": "wildlife/colorado-chipmunk-feeding-v1.png",
+      "asset_sha256": "dea79187583b5812822e95b9b099ac4093dc1fac6a89bd8cbe1709398fe0c4e5",
+      "subject": "Colorado chipmunk feeding on a seed",
+      "reference": "https://cpw.state.co.us/species/chipmunks",
+      "style_reference": "wildlife/colorado-chipmunk-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One Colorado chipmunk in a very low crouch on its haunches angled slightly toward the viewer, holding one tiny seed in its front paws. Show dark face stripes through and below the eyes, pale eyebrow, narrow white back stripes edged black, tawny flanks and the full narrow brushy tail curved beside it. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "cb01fdc485e197578d275557a3cd29a4e7e770136d8d6ff90015f2afeff26e54"
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-upright-v1",
+      "asset": "wildlife/golden-mantled-ground-squirrel-upright-v1.png",
+      "asset_sha256": "88e0ad627b1b538c3febb91273d16721a7135db49480b21b75cf682f0debf8e3",
+      "subject": "Golden-mantled ground squirrel standing alert",
+      "reference": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "style_reference": "wildlife/golden-mantled-ground-squirrel-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One golden-mantled ground squirrel standing upright facing three-quarter left, front paws loosely tucked. Warm copper-gold solid head and shoulders, pale eye ring, pale belly, white side stripe edged black across the back and a modest short tail. Absolutely no dark or light stripes on the face. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "8538a9c3bd90edacbcaf799bf577d6ac6b2ff163f5af9b35378710f12a42f11a"
+    },
+    {
+      "id": "emviary-wildlife-golden-mantled-ground-squirrel-running-v1",
+      "asset": "wildlife/golden-mantled-ground-squirrel-running-v1.png",
+      "asset_sha256": "69db464eb7724e4a9f990f1d9b706990941c8ed76f47189ded451439d1a00cd6",
+      "subject": "Golden-mantled ground squirrel in a low dash",
+      "reference": "https://home.nps.gov/romo/learn/nature/squirrel_chipmunk.htm",
+      "style_reference": "wildlife/golden-mantled-ground-squirrel-v1.png",
+      "prompt": "Create one transparent PNG cutout for Emviary's Colorado wildlife e-paper library. The attached illustration is the same species and the reference for anatomy and style. One golden-mantled ground squirrel in a low right-facing dash with a reaching forepaw, entire body and medium short tail in frame. Rich russet-gold mantle across the shoulders, unstriped golden-brown face with pale eye ring, crisp white stripe edged black on the sides of the back, pale belly. Face must be free of chipmunk stripes. Match the collection's refined realistic natural history gouache and dry brush, crisp eyes, naturally textured fur and broad tonal shapes. Use restrained earth colors and clear shadows for an 800 × 480 six-color panel. Keep the whole animal and any tiny held food visible, centered, with generous transparent margins. True transparent alpha, no scenery, ground, platform, cast shadow, border, lettering, extra animals or extra limbs.",
+      "packed_preview_sha256": "025d125eb1da89fb2b97b3b6e41a0f4f3c3454bb6b21951f9e508cbe6fce4791"
+    }
+  ]
+}
