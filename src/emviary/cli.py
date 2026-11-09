@@ -43,6 +43,7 @@ def main():
     prepare.add_argument("--force", action="store_true")
     prepare.add_argument("--offline", action="store_true")
     commands.add_parser("status")
+    commands.add_parser("readiness")
     owner = commands.add_parser("init-owner")
     owner.add_argument("--password-file", required=True)
     backup = commands.add_parser("backup")
@@ -135,6 +136,14 @@ def main():
             private_file(args.password_file, password + "\n")
             set_password(password)
             result = {"owner_password_file": args.password_file, "password_printed": False}
+        elif args.command == "readiness":
+            from .readiness import readiness_summary
+
+            result = readiness_summary(service)
+            print(json.dumps(result, indent=2))
+            if result["status"] != "ready":
+                parser.exit(1)
+            return
         elif args.command == "status":
             result = service.status()
         elif args.command == "backup":

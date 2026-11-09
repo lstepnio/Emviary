@@ -1,0 +1,32 @@
+{
+  "subject": "Wally (domestic dog)",
+  "method": "Four photo-guided natural history illustrations generated with the built-in OpenAI image tool. The existing Emviary red fox served as the style reference.",
+  "reference_handling": "Private reference photos are retained outside the artwork library.",
+  "review": "Transparent masters validated with the existing 800x480 Spectra 6 renderer and Stucki dithering. Physical panel review pending.",
+  "artworks": [
+    {
+      "id": "emviary-wildlife-wally-seated-v1",
+      "asset": "wildlife/wally-seated-v1.png",
+      "asset_sha256": "2099dec24dbec80d463557338ba41545a7a768a568386a4ad6ed097b44552c2b",
+      "pose": "seated"
+    },
+    {
+      "id": "emviary-wildlife-wally-standing-v1",
+      "asset": "wildlife/wally-standing-v1.png",
+      "asset_sha256": "24705a8894a69fcbf742e3282bd73eb46566e40ffc29420420d6269851da66a6",
+      "pose": "standing"
+    },
+    {
+      "id": "emviary-wildlife-wally-resting-v1",
+      "asset": "wildlife/wally-resting-v1.png",
+      "asset_sha256": "46d5b24a1984f53c020f4b78ba0c55a051c6efe7e613ab32ce50fcca0a0d76dd",
+      "pose": "resting"
+    },
+    {
+      "id": "emviary-wildlife-wally-walking-v1",
+      "asset": "wildlife/wally-walking-v1.png",
+      "asset_sha256": "806cd859590a3d77dce5884f2b68e1ae5f85f147e07791ba3bb14959234f2bbd",
+      "pose": "walking"
+    }
+  ]
+}

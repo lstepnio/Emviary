@@ -190,6 +190,22 @@ def write_local_status(destination, report):
         Path(temporary).unlink(missing_ok=True)
 
 
+def report_remote_attempt(status, checked_at):
+    # Keep latest-attempt evidence separate from the last verified recovery point.
+    record = {"status": status, "checked_at": checked_at}
+    update = (
+        "import json,os,tempfile\n"
+        "from pathlib import Path\n"
+        "root=Path('/docker/appdata/emviary/data')\n"
+        "fd,name=tempfile.mkstemp(prefix='.offhost-attempt-',dir=root)\n"
+        "os.fchmod(fd,0o600)\n"
+        "with os.fdopen(fd,'w') as output:\n"
+        "    json.dump(" + repr(record) + ",output)\n"
+        "os.replace(name,root/'offhost-backup-attempt.json')\n"
+    )
+    ssh_run("python3 -", input=update.encode(), stdout=subprocess.PIPE)
+
+
 def pull(destination=DEFAULT_DESTINATION, max_bytes=None):
     destination = private_directory(destination)
     lock_fd = os.open(destination / ".pull.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
@@ -229,6 +245,7 @@ def pull(destination=DEFAULT_DESTINATION, max_bytes=None):
             "os.replace(name,root/'offhost-backup.json')\n"
         )
         ssh_run("python3 -", input=update.encode(), stdout=subprocess.PIPE)
+        report_remote_attempt("verified", report["checked_at"])
         write_local_status(destination, report)
         return report
 
@@ -243,11 +260,15 @@ def main():
     os.umask(0o077)
     try:
         print(json.dumps(pull(args.destination, args.max_bytes), indent=2))
-    except (OSError, ValueError, RuntimeError, tarfile.TarError, subprocess.TimeoutExpired):
+    except (OSError, ValueError, RuntimeError, tarfile.TarError, subprocess.TimeoutExpired) as exc:
+        checked_at = datetime.now(UTC).isoformat()
+        if not isinstance(exc, BlockingIOError):
+            try:
+                report_remote_attempt("failed", checked_at)
+            except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired):
+                pass  # An unreachable host is covered by stale-success monitoring.
         try:
-            write_local_status(
-                args.destination, {"status": "failed", "checked_at": datetime.now(UTC).isoformat()}
-            )
+            write_local_status(args.destination, {"status": "failed", "checked_at": checked_at})
         except (OSError, ValueError):
             pass
         parser.exit(1, "Verified backup pull failed; no existing backup was replaced.\n")

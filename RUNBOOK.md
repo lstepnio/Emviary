@@ -293,8 +293,9 @@ For full behavior and migration notes see research/REFRESH_FRESHNESS.md.
 ## Reliability controls (application 0.11.0)
 
 Appearance provides firmware release channels (all or stable), a publication-delay
-window and a blocked-version list. Existing automatic/all/zero-delay defaults
-are retained. Rollback-required releases are offered only after the frame reports
+window and a blocked-version list. At application 0.11, existing automatic/all/zero-delay defaults were retained.
+Current new-frame defaults are stable releases with a seven-day delay. Existing
+explicitly saved policies are preserved until the owner changes them. Rollback-required releases are offered only after the frame reports
 that its flashed bootloader matches an approved rollback build. Never flash the
 bootloader through ordinary application OTA. USB migration preserves NVS, the
 partition layout and artwork storage; keep a targeted recovery backup first.
@@ -397,8 +398,10 @@ providers. Preview failures retry three times per day/configuration, at least
 Past compositions and previous/next navigation group weather-only revisions by
 artwork order, layout, greeting, and visible appearance. The currently displayed
 composition is excluded from past cards, and grouping happens before the card
-limit. Retained historical image bytes remain unchanged. History is a record of
-earlier prepared compositions, not proof that every image reached the panel.
+limit. Retained historical image bytes remain unchanged. Past cards include only compositions backed by an authenticated device display
+report. Prepared and delivered images without a report stay out of these cards.
+Missing reports remain gaps; server evidence cannot reconstruct unreported
+offline rotations or independently verify the physical panel.
 Artwork selection also uses distinct composition history instead of giving
 repeated weather renders extra weight. Library counters are labeled as renders.
 
@@ -457,3 +460,24 @@ Retry and restart stages preserve settings. **Restore from cloud** is an explici
 last step that replaces local settings and directly installs Wi-Fi, binding and
 schedule over USB. It does not require a setup hotspot or manual configuration
 import. See the [guided recovery design and acceptance](research/GUIDED_USB_RECOVERY_2026_10.md).
+
+## Operational readiness (application 0.19.1)
+
+`/healthz` remains a liveness check. Owner-authenticated `/manage/readiness`
+returns the same JSON as `emviary readiness`: HTTP 200 / exit 0 when ready,
+HTTP 503 / exit 1 when attention is needed. Evidence includes scheduled contact,
+missing or failed preparation, weather and local/off-host backup freshness.
+The endpoint does not prepare artwork, call weather providers or wake devices.
+Backup verification is overdue after 36 hours. A newer off-host failure remains
+visible alongside the last verified success. Backup-directory write permissions
+are checked so a successful old snapshot cannot hide a broken destination.
+
+`deployment/emviary-watch.*` installs an independent host check every 15 minutes.
+Transient CLI failures retry twice, alerts repeat daily while unresolved, and a
+recovery notification follows renewed readiness. Notification acceptance is not
+human receipt. A physical display check remains separate.
+
+The shared host cold backup is scheduled at 05:15 Denver time, with updates at
+05:45, after the frame's 04:15 wake. Schedule monitoring uses those same times.
+Stop timers before changing calendar schedules, then reload and start them;
+restarting an active timer after changing its calendar can trigger a job at once.

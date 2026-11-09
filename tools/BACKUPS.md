@@ -37,9 +37,20 @@ or deletion. `.last-pull.json` records the latest local outcome without secrets.
 After success, `/docker/appdata/emviary/data/offhost-backup.json` on the host
 (`/data/offhost-backup.json` inside the container) records only verification time, backup
 name, manifest digest and the passed restore rehearsal for the owner UI. A failed
-pull does not refresh the remote success marker.
+pull does not refresh the remote success marker. A separate
+`offhost-backup-attempt.json` receipt records the latest attempt when the host is
+reachable, so a newer failure is visible without erasing the last verified copy.
+If the host cannot be reached, the 36-hour freshness deadline still warns of the
+missing independent copy.
 
 `com.majjix.emviary.backup.plist` is a reviewable LaunchAgent template, scheduled
 at 06:30 in the Mac's local timezone. Keep the Mac timezone at America/Denver for
 the intended schedule. Review the absolute repo and `uv` paths before copying
 it to `~/Library/LaunchAgents` and loading it. The LaunchAgent was installed and loaded on October 12, 2026, with a 1 GiB archive/payload limit. Its first actual scheduled-job invocation was tested with `launchctl kickstart` and exited successfully. The Mac must be available for off-host copies; the server continues its own nightly backups independently.
+
+
+Backup growth: keep all manual recovery points and at least 35 daily verified
+copies until a retention policy is explicitly applied. Review disk use monthly;
+no automatic deletion is enabled. The host monitor checks local and off-host
+verification freshness every 15 minutes and repeats unresolved alerts daily.
+It cannot create an independent copy while the Mac is asleep.

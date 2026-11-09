@@ -2,6 +2,9 @@ import json
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import pytest
+from test_freshness import install_weather
+
 from emviary.diagnostics import management_alerts, management_alerts_section, parse_metrics
 from emviary.owner import escape
 
@@ -144,7 +147,7 @@ def test_preparation_failure_recovers_and_does_not_show_raw_error(service, frame
     assert "image_preparation" not in codes(service, row, now)
 
 
-def test_scheduled_preparation_error_is_bounded_and_cleared(service, frame):
+def test_scheduled_preparation_error_persists_until_cleared(service, frame):
     frame_id, _ = frame
     now = service.clock()
     row = service.store.frame(frame_id)
@@ -155,7 +158,7 @@ def test_scheduled_preparation_error_is_bounded_and_cleared(service, frame):
             (frame_id, now.isoformat()),
         )
     assert "image_preparation" in codes(service, row, now)
-    assert "image_preparation" not in codes(service, row, now + timedelta(days=3))
+    assert "image_preparation" in codes(service, row, now + timedelta(days=3))
     with service.store.connect() as db:
         db.execute("UPDATE prepared_slots SET error=NULL WHERE frame_id=?", (frame_id,))
     assert "image_preparation" not in codes(service, row, now)
@@ -224,3 +227,94 @@ def test_yesterdays_panel_forecast_survives_midnight_until_preparation_due(servi
         fetched.isoformat(),
     )
     assert "stale_weather" not in codes(service, row, datetime(2026, 10, 20, 0, 5, tzinfo=zone))
+
+
+def test_absent_daily_preparation_warns_at_deadline_and_recovers(service, frame):
+    zone = ZoneInfo("America/Denver")
+    row = service.store.frame(frame[0])
+    schedule = service.daily_schedule(row, service.clock().astimezone(zone).date())
+    # Enrollment occurred after the previous deadline, so that opportunity was not owed.
+    row = update_frame(
+        service, frame[0], created_at=(schedule["prepare_at"] - timedelta(hours=1)).isoformat()
+    )
+    assert "image_preparation" not in codes(
+        service, row, schedule["prepare_at"] + timedelta(minutes=4, seconds=59)
+    )
+    assert "image_preparation" in codes(service, row, schedule["prepare_at"] + timedelta(minutes=5))
+    service.prepare_due(now=schedule["prepare_at"])
+    assert "image_preparation" not in codes(
+        service, row, schedule["prepare_at"] + timedelta(minutes=5)
+    )
+    # A missing payload must not pass merely because its database slot is complete.
+    image = service.store.slot_image(frame[0], "scheduled")
+    service.cache_path(image["path"]).unlink()
+    assert "image_preparation" in codes(service, row, schedule["prepare_at"] + timedelta(minutes=5))
+
+
+def test_old_unresolved_job_failure_does_not_expire(service, frame):
+    now = service.clock()
+    with service.store.connect() as db:
+        db.execute(
+            "INSERT INTO jobs(frame_id,local_date,revision,profile_hash,plan,status,finished_at) "
+            "VALUES(?,?,1,'hash','{}','failed',?)",
+            (frame[0], "2026-10-01", (now - timedelta(days=7)).isoformat()),
+        )
+    assert "image_preparation" in codes(service, service.store.frame(frame[0]), now)
+
+
+def test_scheduler_compatible_legacy_preparation_is_not_reported_missing(service, frame):
+    row = service.store.frame(frame[0])
+    day = service.clock().astimezone(ZoneInfo("America/Denver")).date()
+    schedule = service.daily_schedule(row, day)
+    row = update_frame(
+        service, frame[0], created_at=(schedule["prepare_at"] - timedelta(hours=1)).isoformat()
+    )
+    service.prepare_due(now=schedule["prepare_at"])
+    legacy_cycle = day.isoformat() + ":02:30:" + service.configuration_hash(row)
+    with service.store.connect() as db:
+        db.execute(
+            "UPDATE prepared_slots SET cycle=? WHERE frame_id=? AND purpose='scheduled'",
+            (legacy_cycle, frame[0]),
+        )
+    assert "image_preparation" not in codes(
+        service, row, schedule["prepare_at"] + timedelta(minutes=5)
+    )
+
+
+@pytest.mark.parametrize("completed_before_wake", [True, False])
+def test_daytime_catalog_change_preserves_only_on_time_scheduled_preparation(
+    service, frame, monkeypatch, completed_before_wake
+):
+    clock, _ = install_weather(service, monkeypatch)
+    row = service.store.frame(frame[0])
+    day = service.clock().astimezone(ZoneInfo("America/Denver")).date()
+    schedule = service.daily_schedule(row, day)
+    prepare_at, wake_at = schedule["prepare_at"], schedule["wake_at"]
+    row = update_frame(
+        service,
+        frame[0],
+        created_at=(prepare_at - timedelta(hours=1)).isoformat(),
+        last_contact=wake_at.isoformat(),
+    )
+    # Record actual completion time separately from the scheduler's start time.
+    clock[0] = prepare_at
+    monkeypatch.setattr("emviary.service.utcnow", lambda: clock[0].isoformat())
+    if completed_before_wake:
+        service.prepare_due(now=prepare_at)
+    else:
+        service.prepare(frame[0], day.isoformat(), offline=True)
+
+    # Reload the catalog and replace the mutable scheduled slot after the wake.
+    service.settings.catalog = {**service.settings.catalog, "curation": "Added a new artwork"}
+    after_wake = wake_at + timedelta(hours=3)
+    clock[0] = after_wake
+    service.prepare_due(now=after_wake)
+    replacement = service.store.slot_image(frame[0], "scheduled")
+    assert replacement["created_at"] == after_wake.isoformat()
+    assert json.loads(replacement["manifest"])["inputs"]["open_meteo"]["fetched_at"] == (
+        after_wake.isoformat()
+    )
+    assert ("image_preparation" in codes(service, row, after_wake)) is not completed_before_wake
+
+    tomorrow = service.daily_schedule(row, day + timedelta(days=1))
+    assert "image_preparation" in codes(service, row, tomorrow["prepare_at"] + timedelta(minutes=5))

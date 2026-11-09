@@ -130,7 +130,7 @@ def test_pull_reports_remote_success_only_after_verified_publication(
         puller, "download_archive", lambda command, target, limit: shutil.copyfile(archive, target)
     )
     report = puller.pull(destination)
-    assert report["restore_rehearsal"] == "passed" and len(updates) == 1
+    assert report["restore_rehearsal"] == "passed" and len(updates) == 2
     assert "offhost-backup.json" in updates[0]
     assert str(destination) not in updates[0]
     assert json.loads((destination / ".last-pull.json").read_text())["status"] == "verified"
@@ -139,7 +139,7 @@ def test_pull_reports_remote_success_only_after_verified_publication(
     archive_backup(source, archive)
     with pytest.raises(ValueError):
         puller.pull(destination)
-    assert len(updates) == 1
+    assert len(updates) == 2
 
 
 def test_cli_failure_status_is_private_and_never_logs_remote_details(tmp_path, monkeypatch, capsys):
@@ -154,6 +154,8 @@ def test_cli_failure_status_is_private_and_never_logs_remote_details(tmp_path, m
         raise RuntimeError("remote details must stay private")
 
     monkeypatch.setattr(puller, "pull", fail)
+    attempts = []
+    monkeypatch.setattr(puller, "report_remote_attempt", lambda *args: attempts.append(args))
     previous_umask = os.umask(0o077)
     try:
         with pytest.raises(SystemExit) as error:
@@ -165,6 +167,7 @@ def test_cli_failure_status_is_private_and_never_logs_remote_details(tmp_path, m
     status = destination / ".last-pull.json"
     assert json.loads(status.read_text())["status"] == "failed"
     assert status.stat().st_mode & 0o777 == 0o600
+    assert attempts[0][0] == "failed"
 
 
 def test_host_selection_skips_unreadable_invalid_and_future_markers(tmp_path, monkeypatch, capsys):

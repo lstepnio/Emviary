@@ -1,10 +1,53 @@
 # Emviary continuation notes
 
+## November 9 Wally artwork
+
+Added four Wally portraits to the local and live catalogs on `emviary:poc-071`.
+The 21 focused tests and all four Spectra 6 packed render checks passed. The
+live library returned all four thumbnails and tomorrow's 800 × 480 preview.
+No physical display confirmation was collected. The previous live catalog is
+in `/docker/backups/emviary-deployments/wally-art-20261109T170406Z`.
+
+The catalog reload rebuilt today's scheduled image without a slot error.
+Readiness compared its new forecast timestamp against today's past wake and
+flagged preparation overdue.
+
+Fixed in 0.19.2 (`emviary:poc-072`, source `99eedaa`). Readiness now uses
+on-time scheduled job evidence for past wakes and validates the current slot
+for upcoming wakes. All 86 focused tests passed. On an isolated production
+snapshot the previous image flagged overdue, the new image cleared it, and
+removing on-time job evidence restored the warning. Live owner readiness and
+the host monitor reported ready. All four Wally entries remained visible.
+Private rollback is under `/docker/backups/emviary-deployments/readiness-after-wake-20261109`.
+
+## November 6 health remediation
+
+Production: application 0.19.1 / emviary:poc-071, source c4dec68.
+See [health fixes](research/HEALTH_FIXES_2026_11_06.md) for fresh backup evidence,
+readiness monitoring, shared maintenance changes, rollback and the timer-triggered
+cold-backup interruption. Prior October 28 observations below are historical.
+
+
 Last publication review: October 27, 2026. This is a resume index, not a release or live-health certificate.
 
 ## Start here
 
 Read AGENTS.md and the relevant source/setup/quality documentation. Recheck the current branch, working-tree status and task authorization before acting. Existing uncommitted work may belong to another task.
+
+## Latest operational health review
+
+October 28, 2026: source main `98d8a2455b33d74dcdfb557dc6e3dda6c3aaafa4` was
+inspected against production 0.19.0 / `emviary:poc-070` /
+`0918cfd1084a9effac5a3483b1d4210b4b4f538e`. Service, database, artwork integrity,
+daily device reports, weather sources and today's recorded backup verification
+are healthy. Main's recipient guide remains undeployed.
+
+The shared-host cold backup runs at the same 04:15 wake as the frame and caused
+about two minutes of service downtime. The 04:45 host updater failed on a missing
+image reference. The frame still explicitly permits immediate prereleases.
+No live configuration, policy, container lifecycle or firmware changes were made.
+See [the health report](research/HEALTH_CHECK_2026_10_28.md) for evidence,
+monitoring/retention gaps, recommendations and physical-verification limits.
 
 ## Current evidence
 

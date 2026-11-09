@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Emviary readiness every fifteen minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Unit=emviary-watch.service
+
+[Install]
+WantedBy=timers.target

@@ -321,6 +321,18 @@ def attach_owner(app, service):
         value = require(request)
         return JSONResponse({"csrf": value["csrf"]}, headers={"Cache-Control": "no-store"})
 
+    @app.get("/manage/readiness")
+    def readiness(request: Request):
+        require(request)
+        from .readiness import readiness_summary
+
+        summary = readiness_summary(service)
+        return JSONResponse(
+            summary,
+            status_code=200 if summary["status"] == "ready" else 503,
+            headers={"Cache-Control": "private, no-store"},
+        )
+
     install_battery_routes(app, service, require, escape, page)
     from .usb_recovery import install_routes as install_usb_routes
 
