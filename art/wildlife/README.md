@@ -24,6 +24,19 @@ border and seasonal controls. Masters are preserved; scaling, color mapping,
 dithering, paper-white and neutral-text preservation happen on the backend.
 Physical panel review remains separate from the digital preview inspection.
 
+## November collection expansion
+
+Sixteen new illustrations add ten Colorado species. Moose, plains bison,
+mountain goats and mountain lions each have two versions. The collection also
+adds black-tailed and Gunnison's prairie dogs, fox squirrels, two color phases
+of Abert's squirrel, Colorado chipmunks and golden-mantled ground squirrels.
+The existing red fox gains a black-phase illustration under the same species.
+
+Young bison and mountain goats, antlered moose, and some smaller mammals have
+seasonal rotation windows. Bison illustrations represent Colorado's managed
+conservation herds. Individual reference links, prompts, and render hashes are
+in [the expansion manifest](../provenance/colorado-wildlife/expansion-2026-11-09.json).
+
 ## Wally
 
 Wally, a domestic dog, appears in four photo-guided illustrations: seated,
