@@ -114,10 +114,13 @@ flex-wrap:wrap;gap:12px 24px;border-top:1px solid var(--line)}
 text-decoration:none;text-underline-offset:4px}
 .site-footer a:hover{text-decoration:underline}
 .site-footer .footer-author{color:var(--ink);font-weight:600}
-.login main{max-width:580px;
-padding-top:60px}
-.login .page-header{text-align:center}
+.login main{max-width:480px;padding-top:56px;padding-bottom:64px}
+.login .page-header{text-align:center;margin-bottom:32px}
 .login .site-header{justify-content:center}
+.login form{display:grid;gap:16px;margin:0}
+.login form label{margin:0}
+.login form button,.login .login-alternative{width:100%;justify-content:center}
+.login .login-alternative{margin-top:16px}
 
 section,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
 padding:24px;margin-bottom:20px;box-shadow:var(--shadow);min-width:0}section section,.card section{
