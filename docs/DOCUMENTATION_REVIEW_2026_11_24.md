@@ -62,7 +62,7 @@ SSH target; changing that source is outside this Markdown-only ownership.
 | [deployment/host-maintenance/README.md](../deployment/host-maintenance/README.md) | Historical status added | November 6 intervention and rollback paths retained; actual current timers must be inspected. |
 | [deployment/owner-oidc.md](../deployment/owner-oidc.md) | Reviewed, retained | owner_oidc.py, owner session/auth source and existing environment contract. |
 | [docs/BATTERY_RESULTS.md](../docs/BATTERY_RESULTS.md) | Reviewed, retained | Dated November 23 measured snapshot and estimator limits; no reinterpretation as completed endurance. |
-| [docs/FRAME_GALLERY.md](../docs/FRAME_GALLERY.md) | Reviewed, retained | Tracked showcase assets/prompts/compositions and showcase source; AI provenance and private originals remain explicit. |
+| [docs/FRAME_GALLERY.md](../docs/FRAME_GALLERY.md) | Updated | Tracked showcase assets/prompts/compositions checked; concise battery copy and image labels aligned with the public design. |
 | [docs/SPECIAL_DAYS_GALLERY.md](../docs/SPECIAL_DAYS_GALLERY.md) | Reviewed, retained | Tracked special-day image assets and public collection; not an enablement or physical-device claim. |
 | [experiments/PROVENANCE.md](../experiments/PROVENANCE.md) | Updated | Quarantined experiments distinguished from approved generated collections; exact historical prompts retained. |
 | [research/ARTWORK_DELETION.md](../research/ARTWORK_DELETION.md) | Historical/reference context updated | Historical report retained; current-status/backlink added. Recorded test counts, release IDs, physical results and source citations not promoted to fresh evidence. |

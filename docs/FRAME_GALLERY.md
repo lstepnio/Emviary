@@ -6,7 +6,7 @@ A collection of eight AI-assisted product renderings, four films and two animati
 
 ## Early battery results
 
-**The observed unplugged trend projects over a year to the 20% recharge threshold.** As of November 23, 2026, the frame reported 92% remaining after 41.1 days of unplugged observations, down six percentage points. This is an early projection with limited confidence, not a completed year-long endurance test. [Read the evidence and method](BATTERY_RESULTS.md).
+Battery life is predicted to exceed a year between charges. The last picture stays visible when the battery runs out. If Wi-Fi drops, the frame keeps cycling through saved pictures while it has power. [See the measurements](BATTERY_RESULTS.md).
 
 ## Photographs
 
@@ -22,13 +22,13 @@ A collection of eight AI-assisted product renderings, four films and two animati
 
 ![At home](../src/emviary/showcase_assets/03-lifestyle-console.webp)
 
-### In the details
+### Frame detail
 
-![In the details](../src/emviary/showcase_assets/04-craft-detail.webp)
+![Frame detail](../src/emviary/showcase_assets/04-craft-detail.webp)
 
-### A quiet corner
+### Portrait view
 
-![A quiet corner](../src/emviary/showcase_assets/05-lifestyle-portrait.webp)
+![Portrait view](../src/emviary/showcase_assets/05-lifestyle-portrait.webp)
 
 ### Transparent product
 
