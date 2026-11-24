@@ -207,3 +207,10 @@ EVENT_JAVASCRIPT += r"""
  });
 })();
 """
+
+EVENT_CSS += """
+.event-card:has(.event-editor[open]){grid-column:1/-1}
+.event-editor-content [data-event-editor]>.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.event-editor-content [data-scene-result]{max-width:900px;margin:16px auto}
+@media(max-width:640px){.event-editor-content [data-event-editor]>.grid{grid-template-columns:1fr}}
+"""
