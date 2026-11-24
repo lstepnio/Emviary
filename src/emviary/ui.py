@@ -827,7 +827,9 @@ JAVASCRIPT = r"""
         !window.confirm('Confirm: ' + submitter.textContent.trim() + '?')) return;
     const data = new FormData(form);
     if (submitter?.name) data.append(submitter.name, submitter.value);
-    form.querySelector('.form-error')?.remove();
+    const errorHost = form.closest('.event-card-controls')
+      ?.closest('.event-card').querySelector('[data-event-action-feedback]') || form;
+    errorHost.querySelector('.form-error')?.remove();
     form.querySelectorAll('[data-server-invalid]').forEach(input => {
       input.removeAttribute('aria-invalid'); input.removeAttribute('data-server-invalid');
     });
@@ -846,7 +848,7 @@ JAVASCRIPT = r"""
     const announceError = (message, fields = []) => {
       const box = document.createElement('p'); box.className = 'form-error';
       box.setAttribute('role', 'alert'); box.tabIndex = -1; box.textContent = message;
-      form.prepend(box);
+      errorHost.prepend(box);
       fields.slice(0, 20).forEach(name => {
         const input = [...form.elements].find(control => control.name === name &&
           control.type !== 'hidden');
@@ -868,7 +870,7 @@ JAVASCRIPT = r"""
         'Sign in in another tab, then retry this change.');
       const link = document.createElement('a'); link.href = '/manage/login';
       link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'Sign in';
-      form.querySelector('.form-error').append(' ', link);
+      errorHost.querySelector('.form-error').append(' ', link);
     };
     try {
       const auth = await fetch('/manage/session', {
