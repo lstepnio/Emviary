@@ -90,6 +90,14 @@ class Store:
                     csrf TEXT NOT NULL,
                     expires_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS owner_oidc_transactions (
+                    state_hash TEXT PRIMARY KEY,
+                    browser_hash TEXT NOT NULL,
+                    nonce TEXT NOT NULL,
+                    verifier TEXT NOT NULL,
+                    return_url TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS frame_network_contacts (
                     frame_id TEXT PRIMARY KEY REFERENCES frames(id) ON DELETE CASCADE,
                     public_ip TEXT NOT NULL,

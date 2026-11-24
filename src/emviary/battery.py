@@ -46,6 +46,10 @@ def summarize(samples, now=None):
         "status": "No battery readings yet",
         "alert": None,
         "days_to_charge": None,
+        "estimate_label": None,
+        "estimate_reason": "No battery readings yet.",
+        "drop_points": 0,
+        "daily_sample_count": 0,
         "sample_count": 0,
         "span_days": 0,
         "confidence": "Insufficient history",
@@ -69,9 +73,16 @@ def summarize(samples, now=None):
     previous = None
     for sample in samples:
         if (
-            sample.get("charging") == 1
-            or sample.get("usb_connected") == 1
+            sample.get("charging") != 0
+            or sample.get("usb_connected") != 0
             or (previous is not None and sample["percent"] > previous["percent"] + 5)
+            or (
+                previous is not None
+                and (
+                    parse_time(sample["recorded_at"]) - parse_time(previous["recorded_at"])
+                ).total_seconds()
+                > 3 * 86400
+            )
         ):
             cycle = []
         if sample.get("charging") == 0 and sample.get("usb_connected") == 0:
@@ -85,21 +96,40 @@ def summarize(samples, now=None):
         result["span_days"] = round(span, 1)
     else:
         span = 0
-    if (
-        len(cycle) < 5
-        or span < 7
-        or cycle[0]["percent"] - cycle[-1]["percent"] < 5
-        or latest.get("charging") != 0
-        or latest.get("usb_connected") != 0
-        or age > 3
-    ):
-        return result
-    # Limit computation and weight to at most one reading a day, preserving the latest one.
+    # Use distinct days for both eligibility and fitting. Extra wakes must not
+    # substitute for a longer observed discharge.
     daily = {}
     for sample in cycle:
         daily[parse_time(sample["recorded_at"]).date()] = sample
     readings = list(daily.values())
-    if len(readings) < 5:
+    drop = readings[0]["percent"] - readings[-1]["percent"] if readings else 0
+    result.update(daily_sample_count=len(readings), drop_points=drop)
+    if latest.get("charging") == 1 or latest.get("usb_connected") == 1:
+        result["estimate_reason"] = "Unplug the frame to measure its discharge trend."
+        return result
+    if latest.get("charging") != 0 or latest.get("usb_connected") != 0:
+        result["estimate_reason"] = "The latest reading does not confirm battery-only power."
+        return result
+    if age > 3:
+        result["estimate_reason"] = (
+            "A fresh battery reading is needed; the last is over 3 days old."
+        )
+        return result
+    if len(readings) < 5 or span < 7:
+        result["estimate_reason"] = (
+            f"Collected {len(readings)} daily unplugged readings over {span:.1f} days. "
+            "At least five days of readings spanning seven days are needed."
+        )
+        return result
+    # A small voltage-derived percentage drop needs a longer observation window,
+    # rather than waiting indefinitely for an arbitrary five-point drop.
+    slow_trend = drop < 5
+    if slow_trend and not (drop >= 3 and span >= 21 and len(readings) >= 10):
+        result["estimate_reason"] = (
+            f"Battery changed by {drop} percentage points over {span:.1f} days. "
+            "A five-point drop, or a three-point drop with ten daily readings "
+            "spanning at least 21 days, is needed."
+        )
         return result
     slopes = []
     for i, a in enumerate(readings):
@@ -110,17 +140,32 @@ def summarize(samples, now=None):
                 slopes.append((a["percent"] - b["percent"]) / days)
     rate = median(slopes) if slopes else 0
     if rate <= 0:
+        result["estimate_reason"] = "The readings do not yet show a consistent battery decline."
         return result
     days = max(0, (latest["percent"] - LOW_PERCENT) / rate - max(0, age))
-    if days > 365:
-        result["confidence"] = "Estimate exceeds the supported one-year horizon"
-        return result
     spread = median(abs(slope - rate) for slope in slopes)
     if spread > rate * 0.75:
         result["confidence"] = "Readings vary too much for a reliable estimate"
+        result["estimate_reason"] = result["confidence"] + "."
         return result
+    if days > 365:
+        result["estimate_label"] = "Over one year at the recent rate"
+        result["confidence"] = "Limited"
+        result["estimate_reason"] = (
+            "Only a small part of the battery discharge has been observed. "
+            "This is a straight-line trend, not a prediction of battery life; "
+            "the discharge rate may change as the battery empties."
+        )
+        return result
+    result["estimate_reason"] = (
+        "An early trend based on a small battery drop; it may change as the battery empties."
+        if slow_trend
+        else "Based on the recent unplugged discharge trend; use and temperature can change it."
+    )
     result["days_to_charge"] = round(days, 1)
-    result["confidence"] = "Limited" if span < 21 or len(readings) < 10 else "Moderate"
+    result["confidence"] = (
+        "Limited" if slow_trend or span < 21 or len(readings) < 10 else "Moderate"
+    )
     if days <= FORECAST_DAYS and not result["alert"]:
         result["alert"] = f"Plan to charge: estimated to reach {LOW_PERCENT}% in {days:.1f} days."
     return result
@@ -207,15 +252,24 @@ def install_battery_routes(app, service, require, escape, page):
                     f"{summary['sample_count']} readings over {summary['span_days']} days "
                     "in the latest discharge cycle.</p>"
                 )
+                body += f'<p class="quiet">{escape(summary["estimate_reason"])}</p>'
+            elif summary["estimate_label"]:
+                body += (
+                    "<p><strong>Time to 20%: "
+                    + escape(summary["estimate_label"])
+                    + '.</strong></p><p class="quiet">'
+                    + escape(summary["estimate_reason"])
+                    + f" Based on {summary['daily_sample_count']} daily unplugged readings "
+                    + f"over {summary['span_days']} days, with a "
+                    + f"{summary['drop_points']}-point drop. Confidence: "
+                    + escape(summary["confidence"])
+                    + ".</p>"
+                )
             else:
                 body += (
-                    '<p class="quiet">A charging estimate will appear after enough '
-                    "unplugged history.</p>"
-                    "<details><summary>Estimate requirements</summary><p>At least five "
-                    "daily unplugged "
-                    "readings across seven days and a five-point battery drop are needed. "
-                    + escape(summary["confidence"])
-                    + ".</p></details>"
+                    '<p class="quiet"><strong>Estimate not ready.</strong> '
+                    + escape(summary["estimate_reason"])
+                    + "</p>"
                 )
             body += chart(samples)
             body += (
