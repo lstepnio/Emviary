@@ -13592,6 +13592,189 @@
         "transparent_master": true,
         "packed_preview_validated": true
       }
+    },
+    {
+      "id": "emviary-wildlife-rocket-standing-v1",
+      "common_name": "Rocket",
+      "scientific_name": "Felis catus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "mammal",
+        "domestic cat",
+        "personal artwork",
+        "Rocket"
+      ],
+      "habitats": [],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/rocket-standing-v1.png",
+      "asset_sha256": "ff4d2f6fb514ea1c40f9a27b53a0420bcc4eb620112d81c4d9dd627a5fe7c5d1",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "standing",
+      "source": "Emviary original portrait from private reference photos",
+      "source_url": "https://emviary.majjix.com/library?q=Rocket",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation using the owner-approved Rocket likeness and private photo references",
+      "credit": "Original Emviary illustration of Rocket from privately supplied reference photos.",
+      "review_status": "Likeness, complete silhouette and 800x480 six-color packed preview screened. Physical panel acceptance not claimed.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      },
+      "provenance_file": "provenance/rocket.md"
+    },
+    {
+      "id": "emviary-wildlife-rocket-resting-v1",
+      "common_name": "Rocket",
+      "scientific_name": "Felis catus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "mammal",
+        "domestic cat",
+        "personal artwork",
+        "Rocket"
+      ],
+      "habitats": [],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/rocket-resting-v1.png",
+      "asset_sha256": "8a0677cfa98c0258ce34fcc67227f9b54ccd31580f8519152ccce55f19d6fbcc",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "resting",
+      "source": "Emviary original portrait from private reference photos",
+      "source_url": "https://emviary.majjix.com/library?q=Rocket",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation using the owner-approved Rocket likeness and private photo references",
+      "credit": "Original Emviary illustration of Rocket from privately supplied reference photos.",
+      "review_status": "Likeness, complete silhouette and 800x480 six-color packed preview screened. Physical panel acceptance not claimed.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      },
+      "provenance_file": "provenance/rocket.md"
+    },
+    {
+      "id": "emviary-wildlife-rocket-walking-v1",
+      "common_name": "Rocket",
+      "scientific_name": "Felis catus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "mammal",
+        "domestic cat",
+        "personal artwork",
+        "Rocket"
+      ],
+      "habitats": [],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/rocket-walking-v1.png",
+      "asset_sha256": "4142ef75e8850fb69f0cd042d7b4119c9230b4a2886a388e73a7452dbc99f7d5",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "walking",
+      "source": "Emviary original portrait from private reference photos",
+      "source_url": "https://emviary.majjix.com/library?q=Rocket",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation using the owner-approved Rocket likeness and private photo references",
+      "credit": "Original Emviary illustration of Rocket from privately supplied reference photos.",
+      "review_status": "Likeness, complete silhouette and 800x480 six-color packed preview screened. Physical panel acceptance not claimed.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      },
+      "provenance_file": "provenance/rocket.md"
     }
   ],
   "source_collections": [
