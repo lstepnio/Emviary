@@ -38,10 +38,75 @@ def battery_readings(samples):
     return sorted(readings, key=lambda sample: timestamp(sample["recorded_at"]))
 
 
+def warning_state(samples, now=None):
+    """Derive the latched warning from existing telemetry, without writes or polls."""
+    now = now or datetime.now(UTC)
+    samples = battery_readings(samples)
+    active = False
+    for sample in samples:
+        powered = sample.get("charging") == 1 or sample.get("usb_connected") == 1
+        active = not powered and (sample["percent"] <= 25 or (active and sample["percent"] < 28))
+    if not samples:
+        return {"active": False, "label": "Battery reading unavailable", "severity": "normal"}
+    latest = samples[-1]
+    stale = (now - parse_time(latest["recorded_at"])).total_seconds() > 3 * 86400
+    percent = latest["percent"]
+    powered = latest.get("charging") == 1 or latest.get("usb_connected") == 1
+    if powered:
+        label = "Charging" if latest.get("charging") == 1 else "Plugged in"
+    elif active:
+        label = (
+            "Battery very low"
+            if percent <= 10
+            else "Time to charge"
+            if percent <= 20
+            else "Charge soon"
+        )
+    else:
+        label = "Battery"
+    if stale:
+        label = "Last reported: " + label.lower()
+    return {
+        "active": active,
+        "label": label,
+        "percent": percent,
+        "severity": "urgent" if active and percent <= 20 else "warning" if active else "normal",
+        "stale": stale,
+        "recorded_at": latest["recorded_at"],
+    }
+
+
+def warning_badge(summary, escape):
+    state = summary["warning"]
+    if not state["active"]:
+        return ""
+    return (
+        '<span class="battery-badge '
+        + state["severity"]
+        + '">'
+        + escape(f"{state['percent']}% · {state['label']}")
+        + "</span>"
+    )
+
+
+def warning_notice(summary, escape):
+    state = summary["warning"]
+    if not state["active"]:
+        return ""
+    return (
+        '<aside class="battery-notice ' + state["severity"] + '" role="status">'
+        "<strong>" + escape(state["label"]) + "</strong>"
+        "<p>Connect a standard USB-C cable to recharge your frame.</p>"
+        '<p class="quiet">Last reported: ' + escape(local_time(state["recorded_at"])) + ".</p>"
+        '<a href="/guide#power">How to charge</a></aside>'
+    )
+
+
 def summarize(samples, now=None):
     now = now or datetime.now(UTC)
     samples = battery_readings(samples)
     result = {
+        "warning": warning_state(samples, now),
         "percent": None,
         "status": "No battery readings yet",
         "alert": None,
@@ -66,8 +131,10 @@ def summarize(samples, now=None):
         result["status"] = "Power status unknown"
     if age > 3:
         result["status"] += "; last reading is over 3 days old"
-    if latest["percent"] <= LOW_PERCENT and not plugged:
-        result["alert"] = f"Charge soon: last reported battery is {latest['percent']}%."
+    if result["warning"]["active"]:
+        result["alert"] = (
+            f"{result['warning']['label']}: last reported battery is {latest['percent']}%."
+        )
 
     cycle = []
     previous = None
@@ -243,8 +310,7 @@ def install_battery_routes(app, service, require, escape, page):
             )
             if summary["recorded_at"]:
                 body += f"<p>Last reported: {escape(local_time(summary['recorded_at']))}.</p>"
-            if summary["alert"]:
-                body += f'<p class="error" role="status">{escape(summary["alert"])}</p>'
+            body += warning_notice(summary, escape)
             if summary["days_to_charge"] is not None:
                 body += (
                     f"<p>Estimated days to 20%: {summary['days_to_charge']}. "

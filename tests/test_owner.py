@@ -176,7 +176,7 @@ def test_management_exposes_battery_history_and_charge_alert(service, frame, tmp
     )
     client, _ = sign_in(service, tmp_path, monkeypatch)
     response = client.get("/manage")
-    assert "Charge soon" in response.text and "/manage/battery" in response.text
+    assert "Time to charge" in response.text and "/manage/battery" in response.text
     assert client.get("/manage/battery").status_code == 200
     anonymous = TestClient(create_app(service, schedule=False))
     assert anonymous.get("/manage/battery").status_code == 401
