@@ -483,9 +483,7 @@ def create_app(service=None, schedule=True):
             )
             + '<button type="submit">Apply filters</button>'
             '<a class="button secondary" href="/library">Reset</a></form>'
-            '<p class="quiet">' + str(len(ordered)) + " species match. Render counts count "
-            "successful compositions containing a species, once per composition; "
-            "they are not page views or confirmed physical displays.</p>"
+            '<p class="quiet">' + str(len(ordered)) + " species match.</p>"
         )
         cards = []
         for name, variants in ordered[(p - 1) * 24 : p * 24]:
@@ -619,15 +617,11 @@ def create_app(service=None, schedule=True):
             body += (
                 '<figure class="frame-preview finished-preview">'
                 + framed_image("/display.jpg", "Last picture sent to the frame")
-                + '<figcaption class="quiet">Last picture sent to the frame. '
-                "Sending a picture does not confirm its display. "
-                "The frame can rotate cached art during an outage.</figcaption>"
-                "</figure>"
+                + "</figure>"
             )
         else:
             body += (
-                '<section class="empty-state"><h2>The first artwork is on its way.</h2>'
-                "<p>The frame's artwork will appear here after its first delivery.</p></section>"
+                '<section class="empty-state"><h2>The first artwork is on its way.</h2></section>'
             )
         body += showcase_invite()
         body += homepage_invite()

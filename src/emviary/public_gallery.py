@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
 from .compositions import composition_key
-from .display_history import HISTORY_NOTE, reported_label
+from .display_history import reported_label
 from .showcase import framed_image
 
 
@@ -74,21 +74,15 @@ def gallery_markup(service):
         site = service.settings.config.site(frame["site_id"])
         zone = ZoneInfo(site.timezone)
         wake = daily["wake_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
-        weather = daily["prepare_at"].astimezone(zone).strftime("%b %d, %I:%M %p")
         body += (
             '<p class="quiet">Next daily refresh: '
             + escape(wake)
             + " · "
             + escape(site.timezone.rsplit("/", 1)[-1].replace("_", " "))
-            + ". Artwork and layout are planned in advance; weather updates before the refresh at "
-            + escape(weather)
-            + ".</p>"
+            + "</p>"
         )
         if daily["status"] == "failed":
-            body += (
-                '<p class="notice">Daily refresh preparation is delayed. The frame keeps '
-                "its current picture until it is ready.</p>"
-            )
+            body += '<p class="notice">Daily refresh preparation is delayed.</p>'
 
         body += (
             '<div class="current-next">'
@@ -103,10 +97,7 @@ def gallery_markup(service):
         site = service.settings.config.site(
             service.store.frame(service.settings.config.public_frame_id)["site_id"]
         )
-        body += (
-            '<section class="public-compositions"><h2>Past compositions</h2>'
-            '<p class="quiet">' + HISTORY_NOTE + "</p>"
-        )
+        body += '<section class="public-compositions"><h2>Past compositions</h2>'
         if history:
             body += '<div class="current-next">'
             body += (
