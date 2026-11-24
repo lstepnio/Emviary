@@ -94,6 +94,9 @@ margin-inline:auto;isolation:isolate}
 width:57.6%;height:51.8%;object-fit:fill;z-index:0}
 .finished-frame .finished-frame__surround{position:relative;width:100%;height:auto;
 pointer-events:none;z-index:1}
+.public-compositions .finished-frame{aspect-ratio:3/2;min-width:0}
+.public-compositions .finished-frame img{aspect-ratio:auto;max-width:none}
+.public-compositions .finished-frame .finished-frame__art{border-radius:0}
 .public .frame-preview.finished-preview{border:0;background:transparent;padding:0}
 .finished-preview figcaption{max-width:760px;margin:8px auto 28px;text-align:center}
 .delivered-slot .finished-frame{margin-block:-12px 4px}
