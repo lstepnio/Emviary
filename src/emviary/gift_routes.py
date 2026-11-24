@@ -226,7 +226,7 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
                 "before this report arrived. Prepare a new package below to "
                 "show the welcome again.</p>"
             )
-    if not active:
+    if not active and (not packet or packet["status"] != "cancelled"):
         body += (
             "<details"
             + ("" if packet else " open")

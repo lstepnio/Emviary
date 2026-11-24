@@ -162,6 +162,10 @@ class GiftMode:
             raise ValueError("Choose the first composition.") from None
         with preparation_lock(self.service.settings.data_dir):
             current = self.current(frame_id)
+            if current and current["status"] == "cancelled":
+                raise RevisionConflict(
+                    "Wait for the frame to receive cancellation before preparing another welcome."
+                )
             if current and current["status"] in ACTIVE:
                 raise RevisionConflict("Cancel the active gift before preparing another welcome.")
             choices = {row["id"]: row for row in self.sources(frame_id)}

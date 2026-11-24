@@ -259,3 +259,21 @@ def test_status_refresh_reads_stored_reports_without_device_or_settings_changes(
     assert ready["state"] == "ready" and "The next right-white press opens" in ready["html"]
     anon = TestClient(create_app(service, schedule=False))
     assert anon.get(url).status_code == 401
+
+
+def test_pending_cancellation_cannot_be_hidden_by_a_new_draft(service, frame):
+    packet = draft(service, frame)
+    capable(service, frame)
+    service.gifts.action(frame[0], packet["id"], "arm")
+    service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
+    service.gifts.action(frame[0], packet["id"], "cancel")
+    with pytest.raises(RevisionConflict, match="receive cancellation"):
+        draft(service, frame)
+    service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
+    assert service.gifts.payload(frame[0])["state"] == "cancelled"
+    assert service.gifts.current(frame[0])["id"] == packet["id"]
+    service.gifts.observe(
+        frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="cancelled")
+    )
+    assert service.gifts.payload(frame[0])["state"] == "none"
+    assert draft(service, frame)["id"] != packet["id"]
