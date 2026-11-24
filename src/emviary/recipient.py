@@ -29,7 +29,7 @@ def install_routes(app):
             "<div><dt>Green button</dt><dd>A short press wakes a sleeping frame "
             "to retry Wi-Fi. It also returns from the status screen.</dd></div></dl>"
             "</section>"
-            '<section class="card"><h2>Charging and saved pictures</h2>'
+            '<section class="card" id="power"><h2>Charging and saved pictures</h2>'
             "<p>Use the supplied USB-C cable and tested 5 V USB power adapter. "
             "You can leave the frame plugged in or use it on battery.</p>"
             "<p>If Wi-Fi is unavailable, saved pictures can still rotate. Weather is "

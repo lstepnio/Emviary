@@ -52,7 +52,7 @@ def initialize(db):
 
 def supported(firmware):
     # Only the audited firmware contract qualifies historical cursor evidence.
-    return firmware in {"v0.8.10", "0.8.10"}
+    return firmware in {"v0.8.10", "0.8.10", "v0.8.11", "0.8.11"}
 
 
 def reported_label(image, timezone):

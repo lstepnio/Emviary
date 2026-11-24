@@ -148,6 +148,16 @@ border-radius:var(--radius)}
 .metric-label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .metric-value,.metric strong{font-size:27px;line-height:1.25;font-weight:600;display:block}
 .metric .battery-status{font-size:18px}
+.battery-badge{display:inline-flex;max-width:100%;padding:6px 12px;border-radius:99px;
+background:#fff0d0;color:#73531f;font-size:14px;
+font-weight:650;line-height:1.4;overflow-wrap:anywhere}
+.battery-badge.urgent{background:#fff0ea;color:#963e2d}
+.battery-notice{background:#fbf6e8;border:1px solid #e8dec2;border-radius:12px;
+padding:18px 20px;margin:20px 0;color:#403920}
+.battery-notice.urgent{background:#fff0ea;border-color:#ead4cb;color:#71382b}
+.battery-notice p{margin:6px 0}.battery-notice a{display:inline-block;margin-top:6px;
+color:inherit;text-underline-offset:3px}
+
 .device-health-grid .metric strong{font-size:22px}
 .device-health-grid .metric p{font-size:13px;overflow-wrap:break-word}
 .metric strong{overflow-wrap:anywhere}

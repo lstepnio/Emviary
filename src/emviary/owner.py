@@ -24,7 +24,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api import config_payload
-from .battery import battery_summary, install_battery_routes
+from .battery import battery_summary, install_battery_routes, warning_badge, warning_notice
 from .compositions import artwork_label
 from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
 from .display_history import reported_label
@@ -573,7 +573,9 @@ def attach_owner(app, service):
                 body += (
                     '<section class="card"><div class="section-heading"><h2>'
                     + identifier
-                    + '</h2></div><div class="frame-status">'
+                    + "</h2>"
+                    + warning_badge(battery, escape)
+                    + '</div><div class="frame-status">'
                 )
                 for label, value in (
                     ("Saved daily wake", policy["wake_local_time"] + " · " + timezone_label),
@@ -596,7 +598,9 @@ def attach_owner(app, service):
                         "<span>" + escape(label) + ": <strong>" + escape(value) + "</strong></span>"
                     )
                 body += (
-                    '</div><div class="current-next refresh-slots">'
+                    "</div>"
+                    + warning_notice(battery, escape)
+                    + '<div class="current-next refresh-slots">'
                     '<div class="delivered-slot"><h3>Last picture sent to frame</h3>'
                 )
                 body += (
@@ -744,8 +748,6 @@ def attach_owner(app, service):
                             + "</details>"
                         )
                 body += "</section>"
-                if battery["alert"]:
-                    body += '<p class="notice" role="alert">' + escape(battery["alert"]) + "</p>"
                 body += (
                     '<div class="toolbar">'
                     + "".join(

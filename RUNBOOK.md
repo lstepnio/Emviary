@@ -481,3 +481,22 @@ The shared host cold backup is scheduled at 05:15 Denver time, with updates at
 05:45, after the frame's 04:15 wake. Schedule monitoring uses those same times.
 Stop timers before changing calendar schedules, then reload and start them;
 restarting an active timer after changing its calendar can trigger a job at once.
+
+
+## Low-battery reminder
+
+At 25% or below, the E1002 adds a small black battery icon in the lower-left
+margin during an ordinary artwork refresh, including saved offline pictures.
+The artwork stays full size. The icon is transient: saved artwork and server
+previews retain their original bytes. Diagnostics and calibration are unchanged.
+It adds no wake, polling, flash log or extra panel refresh. Plugging in does not
+cause an extra refresh just to remove the icon; it clears on the next artwork
+refresh. A warning clears at 28% or a fresh powered reading to avoid flicker from
+small percentage rebounds. An unknown reading does not invent a panel warning.
+
+Overview and Device health show a concise charging notice with the reported
+percentage, reading time and a link to the charging guide. The wording is
+“Charge soon” near 25%, “Time to charge” at 20%, and “Battery very low” at 10%.
+Old readings are explicitly labeled as last reported. Existing critical-battery
+unattended offline-rotation hold at 10% is unchanged. The last picture remains
+visible after power runs out.

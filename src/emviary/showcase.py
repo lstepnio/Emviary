@@ -123,13 +123,19 @@ border-radius:14px;background:#eaf0e5;scroll-margin-top:24px}
 .showcase-section{margin:48px 0 0;padding:32px 0 0;background:transparent;border:0;
 border-top:1px solid var(--line);border-radius:0;box-shadow:none;scroll-margin-top:20px}
 .showcase-section>p{max-width:720px}
-.showcase-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 24px}
+.showcase-grid{display:grid;grid-template-columns:1.14fr 1.58fr 1fr;
+gap:clamp(12px,2vw,24px);align-items:start}
+.showcase-column{display:flex;flex-direction:column;gap:clamp(12px,2vw,24px);min-width:0}
 .showcase-photo img{display:block;width:100%;height:auto;border-radius:10px}
-.showcase-photo--portrait{grid-column:1/-1;max-width:520px;width:100%;margin-inline:auto}
+.showcase-photo{margin:0;min-width:0}
+.showcase-photo--portrait{width:100%}
 @media(max-width:760px){.frame-showcase-invite{grid-template-columns:1fr;gap:0}
 .battery-highlight{grid-template-columns:1fr;padding:24px;gap:16px}
 .frame-showcase-invite>div{padding:24px}.frame-showcase-invite>img{min-height:0}
-.showcase-grid{grid-template-columns:1fr;gap:28px}.showcase-section{margin-top:32px}
+.showcase-grid{grid-template-columns:1fr;gap:20px}
+.showcase-column{gap:20px}
+.showcase-photo--portrait{max-width:520px;margin-inline:auto}
+.showcase-section{margin-top:32px}
 .showcase-header h1{font-size:38px}
 .finished-preview figcaption{text-align:left}}
 .showcase-lead{overflow:hidden;border-radius:14px}
@@ -216,7 +222,12 @@ def showcase_markup():
         + battery_highlight()
         + '<section class="showcase-section" id="photographs"><h2>The frame, in focus.</h2>'
         '<div class="showcase-grid">'
-        + "".join(photo_markup(p) for p in PHOTOS[:5])
+        + "".join(
+            '<div class="showcase-column">'
+            + "".join(photo_markup(PHOTOS[index]) for index in column)
+            + "</div>"
+            for column in ((0, 3), (1, 2), (4,))
+        )
         + "</div></section>"
     )
 

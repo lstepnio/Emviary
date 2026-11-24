@@ -31,7 +31,7 @@ def test_discharge_forecast_and_low_charge_alert():
     assert summary["confidence"] == "Limited"
     assert summary["span_days"] == 14
     low = summarize(readings([19]), NOW)
-    assert "Charge soon" in low["alert"]
+    assert "Time to charge" in low["alert"]
     assert low["days_to_charge"] is None
 
 
@@ -248,3 +248,35 @@ def test_battery_page_shows_slow_trend_and_stale_reason(service, frame, monkeypa
         assert "Estimate not ready" in stale.text
         assert "fresh battery reading" in stale.text
         assert "Over one year" not in stale.text
+
+
+def test_warning_thresholds_hysteresis_power_and_stale():
+    from emviary.battery import warning_state
+
+    assert not warning_state(readings([26]), NOW)["active"]
+    assert warning_state(readings([25]), NOW)["label"] == "Charge soon"
+    assert warning_state(readings([25, 27]), NOW)["active"]
+    assert not warning_state(readings([25, 28]), NOW)["active"]
+    assert not warning_state(readings([27]), NOW)["active"]
+    assert warning_state(readings([20]), NOW)["label"] == "Time to charge"
+    assert warning_state(readings([10]), NOW)["label"] == "Battery very low"
+    assert not warning_state(readings([10], usb=1), NOW)["active"]
+    assert not warning_state(readings([10], charging=1), NOW)["active"]
+    history = readings([20, 27])
+    history[0]["usb_connected"] = 1
+    assert not warning_state(history, NOW)["active"]
+    stale = warning_state(readings([20]), NOW + timedelta(days=4))
+    assert stale["stale"] and stale["label"] == "Last reported: time to charge"
+    assert not warning_state(readings([999]), NOW)["active"]
+    assert not warning_state([], NOW)["active"]
+
+
+def test_warning_notice_is_actionable_and_escapes():
+    from emviary.battery import warning_badge, warning_notice
+
+    summary = summarize(readings([25]), NOW)
+    assert "25% · Charge soon" in warning_badge(summary, escape)
+    notice = warning_notice(summary, escape)
+    assert 'role="status"' in notice and "/guide#power" in notice
+    assert "USB-C" in notice and "Last reported:" in notice
+    assert warning_notice(summarize(readings([60]), NOW), escape) == ""
