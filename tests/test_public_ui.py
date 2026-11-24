@@ -34,6 +34,7 @@ def test_public_home_and_mirror_keep_last_delivery_as_buffer_advances(service, f
     home = client.get("/")
     assert 'alt="Last picture sent to the frame"' in home.text
     assert 'src="/display.jpg"' in home.text
+    assert "Sending a picture does not confirm" not in home.text
     assert frame[0] not in home.text and frame[1] not in home.text
     service.prepare(frame[0], "2026-10-08", force=True, offline=True)
     assert client.get("/display.jpg").content == delivered
@@ -58,8 +59,6 @@ def test_library_search_sort_and_counts_are_species_renders(service):
     assert "Species renders: 1" in response.text
     assert "2 illustrations" in response.text
     assert "Species renders: 2" in response.text
-    assert "once per composition" in response.text
-    assert "not page views" in response.text
     search = client.get("/library", params={"q": "poecile"})
     assert "<h2>Black-capped Chickadee</h2>" in search.text
     assert "<h2>Blue Jay</h2>" not in search.text

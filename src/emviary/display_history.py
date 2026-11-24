@@ -63,12 +63,6 @@ def reported_label(image, timezone):
     return "Frame reported " + when
 
 
-HISTORY_NOTE = (
-    "Only pictures the frame reported as displayed appear here. "
-    "Reports can arrive on a later wake. Older history and offline rotations may have gaps."
-)
-
-
 class DisplayHistory:
     def __init__(self, store, clock=None):
         self.store = store
