@@ -1040,7 +1040,10 @@ def attach_owner(app, service):
                 from .event_ui import card_start
 
                 body += '<section class="special-days"><div class="event-toolbar">'
-                body += '<p class="special-days-intro">Choose the days your frame celebrates.</p>'
+                body += (
+                    '<p class="special-days-intro">Your dates. Your kind of art. '
+                    "Seasonal nature, shared memories and a little affectionate snark.</p>"
+                )
                 body += (
                     '<a class="button secondary" href="#event-new" data-event-add>'
                     "Add a day</a></div>"
@@ -1068,7 +1071,11 @@ def attach_owner(app, service):
                         "label": "",
                         "message": "",
                         "annual": True,
-                        "enabled": True,
+                        "enabled": False,
+                        "direction": "season",
+                        "heading": "More daylight. Finally.",
+                        "composition": "scene",
+                        "memory_note": "",
                         "theme": "celebration",
                         "artwork_id": None,
                     }
@@ -1104,12 +1111,21 @@ def attach_owner(app, service):
                         + '">'
                         + '<div class="grid">'
                     )
+                    from .special_scenes import editor_fields
+
+                    body += editor_fields(day)
                     body += field("date", "Date", day["date"], "date", "required")
                     body += field(
-                        "label", "Occasion / heading", day["label"], extra='maxlength="40" required'
+                        "label",
+                        "Calendar name / existing art heading",
+                        day["label"],
+                        extra='maxlength="40" required',
                     )
                     body += field(
-                        "message", "Greeting (optional)", day["message"], extra='maxlength="80"'
+                        "message",
+                        "Message on the frame (optional)",
+                        day["message"] if event else "Still better with you.",
+                        extra='maxlength="80"',
                     )
                     body += '<label>Artwork theme<br><select name="theme">'
                     for value, label in (
@@ -1127,8 +1143,14 @@ def attach_owner(app, service):
                             + label
                             + "</option>"
                         )
-                    body += '</select></label><label>Featured artwork<br><select name="artwork_id">'
-                    body += '<option value="">Choose from the seasonal library</option>'
+                    body += (
+                        "</select></label><label>Artwork (all existing art remains "
+                        'available)<br><select name="artwork_id">'
+                    )
+                    body += (
+                        '<option value="">Use direction’s scene (or seasonal bird for '
+                        "existing art)</option>"
+                    )
                     counters = {}
                     for art in sorted(
                         service.settings.artworks, key=lambda a: (a["common_name"], a["id"])
@@ -1163,6 +1185,16 @@ def attach_owner(app, service):
                             + "</option>"
                         )
                     body += "</select></label></div>"
+                    body += (
+                        '<button type="button" class="secondary" data-scene-preview>'
+                        'Preview picture</button><p role="status" data-scene-status></p>'
+                        '<div data-scene-result hidden><div class="finished-frame">'
+                        '<img class="finished-frame__art" data-scene-image '
+                        'alt="Converted special-day composition">'
+                        '<img class="finished-frame__surround" '
+                        'src="/showcase-media/20261123/07-frame-overlay.webp" alt="">'
+                        "</div></div>"
+                    )
                     rule = day.get("recurrence") or {}
                     body += "<details><summary>Date options</summary>"
                     body += '<label>Date rule<br><select name="date_rule">'
@@ -2750,10 +2782,17 @@ def attach_owner(app, service):
                     "enabled": data.get("enabled") == "on",
                     "theme": data["theme"],
                     "artwork_id": data.get("artwork_id") or None,
+                    "direction": data.get("direction", previous.get("direction", "existing")),
+                    "composition": data.get("composition", previous.get("composition", "scene")),
+                    "heading": data.get("heading", previous.get("heading")),
+                    "memory_note": data.get("memory_note", previous.get("memory_note", "")),
                     "recurrence": recurrence,
                     "priority": int(data.get("priority", previous.get("priority", 0))),
                 }
             )
+            from .special_scenes import validate_words
+
+            validate_words(service.settings.art_dir, day.model_dump())
             if day.artwork_id:
                 art = next(
                     (a for a in service.settings.artworks if a["id"] == day.artwork_id), None
@@ -2839,6 +2878,74 @@ def attach_owner(app, service):
         )
         return RedirectResponse(
             "/manage/events?" + urlencode({"frame": identifier, "saved": "1"}), status_code=303
+        )
+
+    @app.get("/manage/special-scenes/{direction}")
+    def special_scene_image(direction: str, request: Request):
+        require(request)
+        from .special_scenes import ASSETS
+
+        if direction not in {"season", "memory"}:
+            raise HTTPException(404, "Unknown scene")
+        return FileResponse(
+            ASSETS / (direction + ".png"),
+            media_type="image/png",
+            headers={"Cache-Control": "private, max-age=3600"},
+        )
+
+    @app.post("/manage/frames/{identifier}/special-day-proof")
+    async def special_day_draft_proof(identifier: str, request: Request):
+        import asyncio
+
+        data = await checked_form(request)
+        try:
+            day = SpecialDay.model_validate(
+                {
+                    "id": data.get("id") or "draft",
+                    "date": data["date"],
+                    "label": data["label"].strip(),
+                    "message": data.get("message", "").strip(),
+                    "theme": data.get("theme", "celebration"),
+                    "artwork_id": data.get("artwork_id") or None,
+                    "direction": data.get("direction", "existing"),
+                    "composition": data.get("composition", "scene"),
+                    "heading": data.get("heading"),
+                    "enabled": False,
+                }
+            )
+            image = await asyncio.to_thread(
+                service.preview_special_day, identifier, day.id, day.model_dump()
+            )
+        except (ValueError, KeyError) as error:
+            raise HTTPException(400, str(error)) from None
+        except RuntimeError:
+            raise HTTPException(409, "Preparation is busy. Try again shortly.") from None
+        previews = getattr(service, "_special_scene_previews", {})
+        previews = {k: v for k, v in previews.items() if v["expires"] > service.clock()}
+        while len(previews) >= 5:
+            previews.pop(next(iter(previews)))
+        token = secrets.token_hex(24)
+        previews[token] = {
+            "frame": identifier,
+            "image": image,
+            "expires": service.clock() + timedelta(minutes=30),
+        }
+        service._special_scene_previews = previews
+        return JSONResponse(
+            {"image_url": f"/manage/frames/{identifier}/special-day-proof/{token}"},
+            headers={"Cache-Control": "private, no-store"},
+        )
+
+    @app.get("/manage/frames/{identifier}/special-day-proof/{token}")
+    def special_day_proof_image(identifier: str, token: str, request: Request):
+        require(request)
+        preview = getattr(service, "_special_scene_previews", {}).get(token)
+        if not preview or preview["frame"] != identifier or preview["expires"] <= service.clock():
+            raise HTTPException(404, "Preview expired. Prepare another preview.")
+        return Response(
+            preview["image"],
+            media_type="image/jpeg",
+            headers={"Cache-Control": "private, no-store"},
         )
 
     @app.get("/manage/frames/{identifier}/special-days/{day_id}/preview")

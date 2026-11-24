@@ -58,7 +58,7 @@ def test_special_days_cards_keep_editing_secondary_and_saved_artwork_visible(
         if tag == "img" and attrs.get("src") == "/art-thumbnail/habird-bubo-virginianus"
     )
     assert image["class"] == "event-card-image"
-    assert "Birthday &lt;party&gt;" in page and "Test on frame" in page
+    assert "Birthday &lt;party&gt;" in page and "Show on next wake" in page
     assert "Yearly" in page and "One time" in page
     details = [
         attrs
