@@ -34,3 +34,13 @@ This snapshot was evaluated by the production `emviary:battery-estimate-20261120
 Only a small portion of the discharge curve has been observed. Reported percentage can be nonlinear, and temperature, Wi-Fi conditions, manual refreshes, firmware updates and future usage can change consumption. A longer battery-only run spanning substantially more of the discharge curve is needed to establish actual endurance.
 
 The public website presents this dated evidence snapshot. The private management battery page remains the place to inspect current readings and trend status. No year-long physical endurance result is claimed.
+
+## The picture stays
+
+E-paper retains the last displayed picture without power, including when the
+battery is depleted. Changing pictures still requires power.
+
+The frame stores downloaded compositions locally. While battery power remains,
+it can continue rotating available cached compositions when the network is lost.
+This is a finite local library, not an archive of every composition ever generated;
+new cloud compositions and fresh weather require a connection.

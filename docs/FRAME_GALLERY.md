@@ -81,7 +81,7 @@ These loops animate the camera framing, not the physical display. Expand either 
 
 The management and public frame views place the actual delivered composition beneath the transparent wood-and-bezel surround. The promotional bird picture is not substituted for live composition data. The artwork endpoint and its existing authentication remain unchanged.
 
-The showcase hero automatically makes a subtle 1.5% settling movement over four seconds, then rests. It uses CSS and the existing photograph, with no extra media download or player. Reduced-motion preferences disable the effect. The management current preview stays still. Transparent production assets remain in this GitHub gallery.
+The showcase hero automatically drifts through a subtle 1.8% zoom in an 18-second alternating loop. It uses CSS and the existing photograph, with no extra media download or player. Reduced-motion preferences disable the effect. The management current preview stays still. The public showcase omits photo captions, download controls and promotional closing copy. Transparent production assets remain in this GitHub gallery.
 
 ## Provenance
 

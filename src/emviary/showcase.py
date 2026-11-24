@@ -121,25 +121,19 @@ border-radius:14px;background:#eaf0e5;scroll-margin-top:24px}
 border-top:1px solid var(--line);border-radius:0;box-shadow:none;scroll-margin-top:20px}
 .showcase-section>p{max-width:720px}
 .showcase-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 24px}
-.showcase-photo a:first-child{display:block;border-radius:10px}
-.showcase-photo img{display:block;width:100%;height:auto;aspect-ratio:16/11;
-object-fit:contain;background:#eee9df;border-radius:10px}
-.showcase-photo--portrait img{aspect-ratio:9/12;max-height:560px}
-.showcase-photo--clear img{background:transparent;aspect-ratio:3/2}
-.showcase-photo figcaption{margin-top:14px;font-size:14px}
-.showcase-photo strong{display:block;font-size:16px;
-font-weight:600;color:var(--ink);margin-bottom:4px}
-.showcase-note{margin-top:36px;max-width:780px}
+.showcase-photo img{display:block;width:100%;height:auto;border-radius:10px}
+.showcase-photo--portrait{grid-column:1/-1;max-width:520px;width:100%;margin-inline:auto}
 @media(max-width:760px){.frame-showcase-invite{grid-template-columns:1fr;gap:0}
 .battery-highlight{grid-template-columns:1fr;padding:24px;gap:16px}
 .frame-showcase-invite>div{padding:24px}.frame-showcase-invite>img{min-height:0}
 .showcase-grid{grid-template-columns:1fr;gap:28px}.showcase-section{margin-top:32px}
 .showcase-header h1{font-size:38px}
 .finished-preview figcaption{text-align:left}}
-.showcase-lead{overflow:hidden}
+.showcase-lead{overflow:hidden;border-radius:14px}
+.showcase-lead:hover img{animation-play-state:paused}
 @media(prefers-reduced-motion:no-preference){
-.showcase-lead img{animation:showcase-settle 4s ease-out both}
-@keyframes showcase-settle{from{transform:scale(1.015)}to{transform:scale(1)}}}
+.showcase-lead img{animation:showcase-drift 18s ease-in-out infinite alternate}
+@keyframes showcase-drift{from{transform:scale(1)}to{transform:scale(1.018)}}}
 @media(prefers-reduced-motion:reduce){.showcase-jump-links{scroll-behavior:auto}}
 """
 
@@ -186,7 +180,10 @@ def battery_highlight():
         "That is based on 42 daily readings, with reported charge moving from 98% to 92%.</p>"
         '<p class="quiet">This is an early straight-line projection with limited confidence, '
         "not a completed year-long endurance test. Battery discharge, temperature and use "
-        'can change the result.</p><a href="'
+        "can change the result.</p><p><strong>The picture stays.</strong> "
+        "The last picture stays visible when the battery runs out. "
+        "If Wi-Fi drops, the frame keeps cycling through saved pictures while it has power.</p>"
+        '<a href="'
         + REPOSITORY
         + '/blob/main/docs/BATTERY_RESULTS.md">Read the battery evidence and method</a>'
         "</div></section>"
@@ -194,28 +191,21 @@ def battery_highlight():
 
 
 def photo_markup(photo):
-    name, title, alt, width, height = photo
-    modifier = " showcase-photo--clear" if name.startswith(("06", "07")) else ""
-    if name.startswith("05"):
-        modifier += " showcase-photo--portrait"
-    url = f"{MEDIA_URL}/{name}.webp"
+    name, _, alt, width, height = photo
+    modifier = " showcase-photo--portrait" if name.startswith("05") else ""
     return (
-        '<figure class="showcase-photo' + modifier + '"><a href="' + url + '">'
-        '<img loading="lazy" decoding="async" width="'
+        '<figure class="showcase-photo' + modifier + '"><img loading="lazy" '
+        'decoding="async" width="'
         + str(width)
         + '" height="'
         + str(height)
         + '" src="'
-        + url
-        + '" alt="'
+        + MEDIA_URL
+        + "/"
+        + name
+        + '.webp" alt="'
         + escape(alt, quote=True)
-        + '"></a><figcaption><strong>'
-        + title
-        + '</strong><a href="'
-        + url
-        + '" download>Download image<span class="sr-only">: '
-        + title
-        + "</span></a></figcaption></figure>"
+        + '"></figure>'
     )
 
 
@@ -230,20 +220,12 @@ def showcase_markup():
         '</nav></header><figure class="showcase-lead"><img width="1672" height="941" '
         'fetchpriority="high" src="' + MEDIA_URL + '/08-dark-studio.webp" '
         'alt="Finished Emviary frame with Great Horned Owl artwork in a dark studio">'
-        '<figcaption>After the light settles. <a href="'
-        + MEDIA_URL
-        + '/08-dark-studio.webp" download>Download image</a></figcaption></figure>'
+        "</figure>"
         + battery_highlight()
         + '<section class="showcase-section" id="photographs"><h2>The frame, in focus.</h2>'
         '<div class="showcase-grid">'
         + "".join(photo_markup(p) for p in PHOTOS[:5])
-        + '</div></section><div class="showcase-note"><p class="quiet">'
-        "These AI-assisted renderings were created from photographs of the finished frame. "
-        'The <a href="/">frame page</a> shows the actual last-delivered composition.'
-        '</p><div class="showcase-downloads"><a href="'
-        + REPOSITORY
-        + '/blob/main/docs/FRAME_GALLERY.md">View the full collection on GitHub</a>'
-        '<a href="/manage">Manage your frame</a></div></div>'
+        + "</div></section>"
     )
 
 
