@@ -127,6 +127,9 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
             else f"/art-thumbnail/{art_id}"
         )
         image_label = artwork["common_name"]
+    elif day.get("direction", "existing") != "existing":
+        source = "/manage/special-scenes/" + day["direction"]
+        image_label = "Winter light" if day["direction"] == "season" else "Imagined canyon walk"
     else:
         source, image_label = "/favicon.svg", "Seasonal artwork"
     repeat = "Yearly" if day.get("annual") or day.get("recurrence") else "One time"
@@ -148,7 +151,7 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         + '</div></div><div class="event-card-controls">'
         f'<form method="post" action="/manage/frames/{identifier}/special-days/{day_id}/preview">'
         + hidden(csrf)
-        + '<button class="secondary">Test on frame</button></form>'
+        + '<button class="secondary">Show on next wake</button></form>'
         f'<form class="event-toggle-form" method="post" '
         f'action="/manage/frames/{identifier}/special-days/{day_id}/enabled">'
         + hidden(csrf)
@@ -158,3 +161,49 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         "<noscript><button>Save</button></noscript></form></div>"
         '<p class="event-toggle-message" data-event-toggle-message role="status" hidden></p>'
     )
+
+
+EVENT_JAVASCRIPT += r"""
+(() => {
+ document.addEventListener('click', async event => {
+  const words = event.target.closest('[data-scene-words]');
+  if (words) {
+   const f=words.form, memory=f.elements.direction.value==='memory';
+   if (f.elements.direction.value==='existing') return;
+   f.elements.heading.value=memory?'Questionable directions.':'More daylight. Finally.';
+   f.elements.message.value=memory?'Excellent company.':'Still better with you.';
+   f.dispatchEvent(new Event('input', {bubbles:true})); return;
+  }
+  const button=event.target.closest('[data-scene-preview]'); if(!button)return;
+  const f=button.form, status=f.querySelector('[data-scene-status]');
+  const result=f.querySelector('[data-scene-result]');
+  if(!f.reportValidity())return;
+  button.disabled=true;status.textContent='Preparing the e-ink proof…';result.hidden=true;
+  try {
+   const auth=await fetch('/manage/session',{cache:'no-store',credentials:'same-origin'});
+   if(!auth.ok)throw Error('Sign in in another tab, then try again.');
+   f.elements.csrf.value=(await auth.json()).csrf;
+   const payload=new URLSearchParams(new FormData(f));
+   const response=await fetch(f.action.replace(/\/special-days$/, '/special-day-proof'),{
+    method:'POST',body:payload,credentials:'same-origin',signal:AbortSignal.timeout(120000)});
+   if(!response.ok){const data=await response.json();
+    throw Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail));}
+   if(payload.toString()!==new URLSearchParams(new FormData(f)).toString())
+    throw Error('Preview out of date. Preview again to see your changes.');
+   const img=f.querySelector('[data-scene-image]');
+   if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);
+   img.dataset.url=URL.createObjectURL(await response.blob());img.src=img.dataset.url;
+   result.hidden=false;status.textContent='Preview only. Nothing has been sent to the frame.';
+  }catch(e){status.textContent=e.name==='TimeoutError'
+    ?'The preview took too long. Try again.':e.message;}
+  finally{button.disabled=false;}
+ });
+ document.addEventListener('input', e=>{
+  const f=e.target.closest('[data-event-editor]');if(!f)return;
+  const result=f.querySelector('[data-scene-result]');
+  if(result&&!result.hidden){result.hidden=true;
+   f.querySelector('[data-scene-status]').textContent=
+    'Preview out of date. Preview again to see your changes.';}
+ });
+})();
+"""

@@ -304,6 +304,7 @@ class Service:
             if occasion is None:
                 raise ValueError("Unknown special day")
         if occasion:
+            occasion = {k: v for k, v in occasion.items() if k != "memory_note"}
             requested = next(
                 (
                     a
@@ -323,6 +324,13 @@ class Service:
                 ),
                 requested,
             )
+            if (
+                not occasion.get("artwork_id")
+                and occasion.get("direction", "existing") != "existing"
+            ):
+                from .special_scenes import scene_art
+
+                requested = scene_art(occasion["direction"])
             artworks = [
                 requested
                 or render.choose_art(
@@ -385,12 +393,20 @@ class Service:
             "converter_version": self.settings.config.render.initial_converter_version,
         }
 
-    def preview_special_day(self, frame_id, day_id):
+    def preview_special_day(self, frame_id, day_id, draft=None):
         frame = self.store.frame(frame_id)
+        if draft is not None:
+            policy = json.loads(frame["policy"])
+            policy["special_days"] = [draft]
+            frame = {**frame, "policy": json.dumps(policy)}
         site = self.settings.config.site(frame["site_id"])
         today = self.clock().astimezone(ZoneInfo(site.timezone)).date().isoformat()
+        if draft is not None:
+            today = draft["date"]
         plan = self._new_plan(frame, today, 0, "preview", False, day_id)
         artwork, policy = plan["artwork"], plan["policy"]
+        if draft and draft.get("artwork_id") and artwork["id"] != draft["artwork_id"]:
+            raise ValueError("Choose approved artwork eligible for this preview date.")
         with preparation_lock(self.settings.data_dir), tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
             master, packed, preview = (

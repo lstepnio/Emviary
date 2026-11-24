@@ -131,6 +131,10 @@ class SpecialDay(Model):
     enabled: bool = True
     theme: Literal["birthday", "anniversary", "celebration", "remembrance"] = "celebration"
     artwork_id: str | None = Field(default=None, max_length=100)
+    direction: Literal["existing", "season", "memory"] = "existing"
+    composition: Literal["scene", "dedication"] = "scene"
+    heading: str | None = Field(default=None, max_length=40)
+    memory_note: str = Field(default="", max_length=300)
     recurrence: SpecialDayRecurrence | None = None
     priority: int = Field(default=0, ge=0, le=100)
 
@@ -149,7 +153,7 @@ class SpecialDay(Model):
     def validate_day(self):
         if date.fromisoformat(self.date).isoformat() != self.date:
             raise ValueError("Special-day date must be YYYY-MM-DD")
-        for text in (self.label, self.message):
+        for text in (self.label, self.message, self.heading or "", self.memory_note):
             if any(ord(c) < 32 for c in text):
                 raise ValueError("Greetings must be plain single-line text")
         if not self.label.strip():

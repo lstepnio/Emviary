@@ -42,6 +42,10 @@ def composition_key(image_or_plan):
         "date": plan["local_date"] if policy.get("show_dated_weather_text") else None,
         "renderer": plan.get("renderer_version"),
     }
+    if occasion.get("direction", "existing") != "existing":
+        fields["special_scene"] = {
+            k: occasion.get(k) for k in ("direction", "composition", "heading")
+        }
     return hashlib.sha256(stable_json(fields).encode()).hexdigest()
 
 

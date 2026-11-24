@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 from .compositions import artwork_label
 from .store import stable_json
 
-RENDER_VERSION = 20
+RENDER_VERSION = 21
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -366,6 +366,11 @@ def draw_occasion_art(draw, theme):
 
 
 def compose(art_dir, artwork, plan, output, event_art_dir=None, neutral_output=None):
+    if (plan.get("special_day") or {}).get("direction", "existing") != "existing":
+        from .special_scenes import compose_scene
+
+        compose_scene(art_dir, artwork, plan, output, event_art_dir, neutral_output)
+        return
     with closing(Image.new("RGBA", (800, 480), "#ffffff")) as canvas:
         _compose_canvas(canvas, art_dir, artwork, plan, output, event_art_dir, neutral_output)
 
