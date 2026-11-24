@@ -14,7 +14,7 @@ Raspberry Pi or online image generation is required for this POC.
 
 [Explore the website showcase](https://emviary.majjix.com/showcase) · [View every rendering, film and animation](docs/FRAME_GALLERY.md)
 
-Eight AI-assisted product views, four short films and two animated camera loops show the completed wood frame. The [frame page](https://emviary.majjix.com/) and management overview use a clean transparent surround around the actual last-delivered composition.
+Eight AI-assisted product views show the completed wood frame. The website uses a subtle automatic hero movement; films and camera loops are available in the GitHub collection. The [frame page](https://emviary.majjix.com/) and management overview use a clean transparent surround around the actual last-delivered composition.
 
 ## Early battery data points to over a year between charges
 

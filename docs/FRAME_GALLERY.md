@@ -53,7 +53,7 @@ The films use gentle camera movement and dissolves over the AI-generated photogr
 | [Dark studio loop](../src/emviary/showcase_assets/emviary-dark-loop-1080p.mp4) | 1920 × 1080 | 8 seconds |
 | [Warm studio loop](../src/emviary/showcase_assets/emviary-studio-loop-1080p.mp4) | 1920 × 1080 | 8 seconds |
 
-The [website gallery](https://emviary.majjix.com/showcase#films) has embedded players with playback and seeking controls. GitHub links above open the individual video files.
+The films remain available as downloadable production assets here. The website uses lightweight motion on the hero photograph instead of video players.
 
 ## Animations
 
@@ -81,7 +81,7 @@ These loops animate the camera framing, not the physical display. Expand either 
 
 The management and public frame views place the actual delivered composition beneath the transparent wood-and-bezel surround. The promotional bird picture is not substituted for live composition data. The artwork endpoint and its existing authentication remain unchanged.
 
-Media on the showcase page starts still. Videos have native controls; GIF previews have play and pause buttons. Images include alternative text, downloads remain available without JavaScript, and reduced-motion preference changes stop active GIF previews.
+The showcase hero automatically makes a subtle 1.5% settling movement over four seconds, then rests. It uses CSS and the existing photograph, with no extra media download or player. Reduced-motion preferences disable the effect. The management current preview stays still. Transparent production assets remain in this GitHub gallery.
 
 ## Provenance
 

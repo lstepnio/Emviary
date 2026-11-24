@@ -126,25 +126,20 @@ border-top:1px solid var(--line);border-radius:0;box-shadow:none;scroll-margin-t
 object-fit:contain;background:#eee9df;border-radius:10px}
 .showcase-photo--portrait img{aspect-ratio:9/12;max-height:560px}
 .showcase-photo--clear img{background:transparent;aspect-ratio:3/2}
-.showcase-photo figcaption,.showcase-film figcaption{margin-top:14px;font-size:14px}
-.showcase-photo strong,.showcase-film strong{display:block;font-size:16px;
+.showcase-photo figcaption{margin-top:14px;font-size:14px}
+.showcase-photo strong{display:block;font-size:16px;
 font-weight:600;color:var(--ink);margin-bottom:4px}
-.showcase-film video{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;
-height:auto;background:#20251f;border-radius:10px}
-.showcase-film--portrait video{aspect-ratio:9/16;max-height:560px}
-.showcase-film p{margin:8px 0;color:var(--muted);font-size:13px}
-.showcase-animation img{display:block;width:100%;height:auto;border-radius:10px}
-.showcase-animation .button{margin:12px 12px 0 0;min-height:44px}
-.showcase-animation figcaption{font-size:14px}
-.showcase-downloads{display:flex;gap:8px 20px;flex-wrap:wrap;align-items:center}
-.showcase-downloads a{min-height:44px;display:inline-flex;align-items:center}
 .showcase-note{margin-top:36px;max-width:780px}
 @media(max-width:760px){.frame-showcase-invite{grid-template-columns:1fr;gap:0}
 .battery-highlight{grid-template-columns:1fr;padding:24px;gap:16px}
 .frame-showcase-invite>div{padding:24px}.frame-showcase-invite>img{min-height:0}
 .showcase-grid{grid-template-columns:1fr;gap:28px}.showcase-section{margin-top:32px}
-.showcase-header h1{font-size:38px}.showcase-film--portrait video{max-height:620px}
+.showcase-header h1{font-size:38px}
 .finished-preview figcaption{text-align:left}}
+.showcase-lead{overflow:hidden}
+@media(prefers-reduced-motion:no-preference){
+.showcase-lead img{animation:showcase-settle 4s ease-out both}
+@keyframes showcase-settle{from{transform:scale(1.015)}to{transform:scale(1)}}}
 @media(prefers-reduced-motion:reduce){.showcase-jump-links{scroll-behavior:auto}}
 """
 
@@ -225,15 +220,13 @@ def photo_markup(photo):
 
 
 def showcase_markup():
-    body = (
+    return (
         '<header class="showcase-header"><p class="eyebrow">Emviary / The finished frame</p>'
         "<h1>A little nature.<br>A place in your home.</h1>"
         '<p class="page-description">Distressed wood, a quiet paper-like display, and artwork '
         "with room to breathe. Explore the finished frame from every angle.</p>"
         '<nav class="showcase-jump-links" aria-label="Showcase sections">'
         '<a href="#battery">Battery results</a><a href="#photographs">Photographs</a>'
-        '<a href="#films">Films</a>'
-        '<a href="#animations">Animations</a><a href="#interface-assets">Clean frame assets</a>'
         '</nav></header><figure class="showcase-lead"><img width="1672" height="941" '
         'fetchpriority="high" src="' + MEDIA_URL + '/08-dark-studio.webp" '
         'alt="Finished Emviary frame with Great Horned Owl artwork in a dark studio">'
@@ -244,105 +237,14 @@ def showcase_markup():
         + '<section class="showcase-section" id="photographs"><h2>The frame, in focus.</h2>'
         '<div class="showcase-grid">'
         + "".join(photo_markup(p) for p in PHOTOS[:5])
-        + '</div></section><section class="showcase-section" id="films">'
-        '<h2>Take a closer look.</h2><p class="quiet">Slow camera movements and quiet transitions. '
-        'Choose a film to play; each is silent.</p><div class="showcase-grid">'
-    )
-    for index, (name, title, poster, duration, portrait) in enumerate(FILMS):
-        description = (
-            "A slow view of the frame in a dark studio, a closeup of the wood and bezel, "
-            "the frame on an oak console, and an angled studio portrait."
-            if index == 0
-            else "A gentle camera move around a still product photograph. "
-            "The bird artwork stays still on the reflective display."
-        )
-        body += (
-            '<figure class="showcase-film'
-            + (" showcase-film--portrait" if portrait else "")
-            + '"><video controls playsinline preload="none" aria-label="'
-            + title
-            + '" aria-describedby="film-description-'
-            + str(index)
-            + '" poster="'
-            + MEDIA_URL
-            + "/"
-            + poster
-            + '.webp"><source src="'
-            + MEDIA_URL
-            + "/"
-            + name
-            + '.mp4" type="video/mp4">Your browser cannot play this film. '
-            '<a href="' + MEDIA_URL + "/" + name + '.mp4">Download it instead.</a></video>'
-            "<figcaption><strong>"
-            + title
-            + '</strong><span class="quiet">'
-            + duration
-            + ' · HD 1080p</span><p id="film-description-'
-            + str(index)
-            + '">'
-            + description
-            + '</p><a href="'
-            + MEDIA_URL
-            + "/"
-            + name
-            + '.mp4" download>Download MP4'
-            '<span class="sr-only">: ' + title + "</span></a></figcaption></figure>"
-        )
-    body += (
-        '</div></section><section class="showcase-section" id="animations">'
-        '<h2>A little movement.</h2><p class="quiet">Two seamless camera loops. '
-        'Animations stay still until you choose to play them.</p><div class="showcase-grid">'
-    )
-    for name, title, poster in ANIMATIONS:
-        body += (
-            '<figure class="showcase-animation"><img id="'
-            + name
-            + '" src="'
-            + MEDIA_URL
-            + "/"
-            + poster
-            + '.webp" data-still="'
-            + MEDIA_URL
-            + "/"
-            + poster
-            + '.webp" data-animation="'
-            + MEDIA_URL
-            + "/"
-            + name
-            + '.gif" width="640" height="360" loading="lazy" alt="'
-            + title
-            + '"><figcaption>'
-            + title
-            + '<div><button class="button secondary" '
-            'type="button" data-animation-toggle="'
-            + name
-            + '" aria-controls="'
-            + name
-            + '" aria-pressed="false" hidden>Play animation</button><a href="'
-            + MEDIA_URL
-            + "/"
-            + name
-            + '.gif" download>Download GIF<span class="sr-only">: '
-            + title
-            + "</span></a></div></figcaption></figure>"
-        )
-    body += (
-        '</div></section><section class="showcase-section" id="interface-assets">'
-        '<h2>The frame. Nothing around it.</h2><p class="quiet">Clean, transparent versions '
-        "for showing the artwork on its own. The open surround can hold any composition.</p>"
-        '<div class="showcase-grid">'
-        + "".join(photo_markup(p) for p in PHOTOS[5:7])
         + '</div></section><div class="showcase-note"><p class="quiet">'
         "These AI-assisted renderings were created from photographs of the finished frame. "
-        "The films and animations use camera moves over those still images; the e-paper artwork "
-        'is static. The <a href="/">frame page</a> shows the actual last-delivered composition.'
+        'The <a href="/">frame page</a> shows the actual last-delivered composition.'
         '</p><div class="showcase-downloads"><a href="'
         + REPOSITORY
         + '/blob/main/docs/FRAME_GALLERY.md">View the full collection on GitHub</a>'
         '<a href="/manage">Manage your frame</a></div></div>'
-        '<script src="' + MEDIA_URL + '/showcase.js" defer></script>'
     )
-    return body
 
 
 def install_routes(app):
@@ -355,7 +257,7 @@ def install_routes(app):
             showcase_markup(),
             active="showcase",
             public=True,
-            description="Photographs, films and animations of the finished Emviary frame.",
+            description="The finished Emviary frame, photographs and early battery results.",
         )
 
     @app.get("/showcase-media/{version}/{filename}")
