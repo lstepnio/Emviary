@@ -114,3 +114,15 @@ Release follow-up: record actual rollout evidence and retain the independent-bac
 is fixed and freshly verified. The Compose fragment retains an old local image
 and example proxy configuration, now prominently identified as an inherited
 structural example in DEPLOYMENT rather than current production settings.
+
+## Completed release verification
+
+PR #36 merged as `17214900d5ec602f39e2112a94ea7f66aadd8fda`. Final PR/main checks
+passed 514 service tests, lint/format and recovery checks. The checked container
+was published and deployed as digest
+`sha256:65fba36e5d5dcf26b8873eeb2b8d4564d7f90dee8a7b25e963379a400243317d`.
+Live health, protected gift access, cookie-free home-network management, and
+desktop/390 px mobile controls passed. Firmware v0.8.13 and its matching recovery
+assets are published; the installed frame remains v0.8.10 under its unchanged
+stable/seven-day policy. Zero production gift packages exist. Physical acceptance
+and the independent-backup failure remain open, as detailed in CODEX_HANDOFF.

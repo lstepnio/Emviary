@@ -23,7 +23,7 @@ existing shared-network opt-in; devices elsewhere must sign in.
 
 After deployment, use a normal online frame contact to renew recognition. If a
 gift welcome is armed, use green/network wake rather than right, which reveals
-the first picture. Then and check `/manage` without a sign-in cookie. Verify rejection from an
+the first picture. Then check `/manage` without a sign-in cookie. Verify rejection from an
 outside network and with forged forwarding headers. Do not populate trust
 records manually from a browser address or from device-reported local IP alone.
 

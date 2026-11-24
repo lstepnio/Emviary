@@ -544,3 +544,14 @@ physical display confirmation remain distinct evidence.
 
 Gift files in data/gifts and their database records are included in verified
 backups and offline restore rehearsals. Do not remove them from an armed gift.
+
+## Latest release verification, November 24, 2026
+
+Gift management and the documentation review were deployed from checked source
+`1721490` with the published v0.8.13 recovery bundle. The runtime passed health,
+gallery, protected gift access, cookie-free home-network sign-in and desktop/mobile
+control checks. Existing configuration and unrelated containers were preserved.
+The frame still reports v0.8.10 under its existing stable/seven-day policy; no gift
+is armed. See [current handoff](CODEX_HANDOFF.md) for exact image, backup, CI
+evidence and remaining physical/independent-backup gates. This is a dated rollout
+record; recheck the live host before future operations.
