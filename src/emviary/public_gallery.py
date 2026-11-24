@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 
 from .compositions import composition_key
 from .display_history import HISTORY_NOTE, reported_label
+from .showcase import framed_image
 
 
 def public_records(service):
@@ -41,13 +42,11 @@ def gallery_markup(service):
     def card(record, label):
         url = record.get("preview_url") or f"/display/images/{record['id']}.jpg"
         return (
-            '<figure><a href="' + escape(url, quote=True) + '">'
-            '<img class="preview" loading="lazy" width="800" height="480" '
-            'alt="'
-            + escape(label, quote=True)
-            + '" src="'
+            '<figure><a href="'
             + escape(url, quote=True)
-            + '"></a><figcaption>'
+            + '">'
+            + framed_image(url, label)
+            + "</a><figcaption>"
             + escape(label)
             + "</figcaption></figure>"
         )

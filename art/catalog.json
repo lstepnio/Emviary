@@ -2678,7 +2678,7 @@
         "form": "",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cWild Turkey\u201d (Meleagris gallopavo) is today's Wild Turkey; same binomial. The hen and young are plate 6.",
+        "reason": "Audubon's “Wild Turkey” (Meleagris gallopavo) is today's Wild Turkey; same binomial. The hen and young are plate 6.",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical identity crosswalk plus visual bird-count/layout screening; physical panel review pending",
@@ -2738,7 +2738,7 @@
         "form": "",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cWhite-headed Eagle\u201d is today's Bald Eagle",
+        "reason": "Audubon's “White-headed Eagle” is today's Bald Eagle",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical identity crosswalk plus visual bird-count/layout screening; physical panel review pending",
@@ -5570,7 +5570,7 @@
         "form": "",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cGreat blue Heron\u201d is today's Great Blue Heron",
+        "reason": "Audubon's “Great blue Heron” is today's Great Blue Heron",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical taxonomy crosswalk plus visual count and full-composition screening; physical panel review pending",
@@ -5627,7 +5627,7 @@
         "form": "",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cSnowy Heron or White Egret\u201d is today's Snowy Egret",
+        "reason": "Audubon's “Snowy Heron or White Egret” is today's Snowy Egret",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical taxonomy crosswalk plus visual count and full-composition screening; physical panel review pending",
@@ -5686,7 +5686,7 @@
         "form": "",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cAmerican Avocet\u201d (Recurvirostra americana) is today's American Avocet; same binomial.",
+        "reason": "Audubon's “American Avocet” (Recurvirostra americana) is today's American Avocet; same binomial.",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical taxonomy crosswalk plus visual count and full-composition screening; physical panel review pending",
@@ -5749,7 +5749,7 @@
         "form": "subspecies",
         "confidence": "high",
         "caption_checked": "",
-        "reason": "Audubon's \u201cAmerican Water Ouzel\u201d is today's American Dipper",
+        "reason": "Audubon's “American Water Ouzel” is today's American Dipper",
         "sources": "Featherframe havell.yaml; plate title from audubon.org"
       },
       "review_status": "Historical taxonomy crosswalk plus visual count and full-composition screening; physical panel review pending",
@@ -5832,7 +5832,7 @@
       "upstream": "https://github.com/Twarner491/AvianVisitors",
       "upstream_revision": "2f18a66676b85d9548cfcbca21d94a4aab88e17a",
       "upstream_asset": "avian/assets/sketches/corvus-corax.png",
-      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Fr\u00f8yen / BirdFrame",
+      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Frøyen / BirdFrame",
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Visual silhouette, anatomy and line-art screening plus packed 800x480 preview; physical panel review pending",
       "plumage_note": "Monochrome artistic study; color-specific plumage is not represented. Fine pencil detail limits this variant to one or two bird compositions.",
@@ -5884,7 +5884,7 @@
       "upstream": "https://github.com/Twarner491/AvianVisitors",
       "upstream_revision": "2f18a66676b85d9548cfcbca21d94a4aab88e17a",
       "upstream_asset": "avian/assets/sketches/zenaida-macroura.png",
-      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Fr\u00f8yen / BirdFrame",
+      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Frøyen / BirdFrame",
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Visual silhouette, anatomy and line-art screening plus packed 800x480 preview; physical panel review pending",
       "plumage_note": "Monochrome artistic study; color-specific plumage is not represented. Fine pencil detail limits this variant to one or two bird compositions.",
@@ -5936,7 +5936,7 @@
       "upstream": "https://github.com/Twarner491/AvianVisitors",
       "upstream_revision": "2f18a66676b85d9548cfcbca21d94a4aab88e17a",
       "upstream_asset": "avian/assets/sketches/sialia-mexicana.png",
-      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Fr\u00f8yen / BirdFrame",
+      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Frøyen / BirdFrame",
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Visual silhouette, anatomy and line-art screening plus packed 800x480 preview; physical panel review pending",
       "plumage_note": "Monochrome artistic study; color-specific plumage is not represented. Fine pencil detail limits this variant to one or two bird compositions.",
@@ -5988,7 +5988,7 @@
       "upstream": "https://github.com/Twarner491/AvianVisitors",
       "upstream_revision": "2f18a66676b85d9548cfcbca21d94a4aab88e17a",
       "upstream_asset": "avian/assets/sketches/junco-hyemalis.png",
-      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Fr\u00f8yen / BirdFrame",
+      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Frøyen / BirdFrame",
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Visual silhouette, anatomy and line-art screening plus packed 800x480 preview; physical panel review pending",
       "plumage_note": "Monochrome artistic study; color-specific plumage is not represented. Fine pencil detail limits this variant to one or two bird compositions.",
@@ -6040,7 +6040,7 @@
       "upstream": "https://github.com/Twarner491/AvianVisitors",
       "upstream_revision": "2f18a66676b85d9548cfcbca21d94a4aab88e17a",
       "upstream_asset": "avian/assets/sketches/zonotrichia-leucophrys.png",
-      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Fr\u00f8yen / BirdFrame",
+      "credit": "Teddy Warner and AvianVisitors contributors; Western US archive distributed by Simen Frøyen / BirdFrame",
       "locality_basis": "Colorado statewide curated occurrence; not a backyard detection",
       "review_status": "Visual silhouette, anatomy and line-art screening plus packed 800x480 preview; physical panel review pending",
       "plumage_note": "Monochrome artistic study; color-specific plumage is not represented. Fine pencil detail limits this variant to one or two bird compositions.",
@@ -13532,6 +13532,66 @@
       "composition_max_birds": 3,
       "identification_url": "https://www.allaboutbirds.org/guide/Coopers_Hawk/id",
       "provenance_file": "provenance/ai-color-cutouts/colorado-new-species-2026-11-09.json"
+    },
+    {
+      "id": "emviary-wildlife-rocket-seated-v1",
+      "common_name": "Rocket",
+      "scientific_name": "Felis catus",
+      "category": "wildlife",
+      "animal_group": "mammal",
+      "regions": [
+        "US-CO"
+      ],
+      "tags": [
+        "Colorado",
+        "mammal",
+        "domestic cat",
+        "personal artwork",
+        "Rocket"
+      ],
+      "habitats": [],
+      "months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "asset": "wildlife/rocket-seated-v1.png",
+      "asset_sha256": "ecde233fb1a6c25cf4bb8a0679c97240a96e96867f9940b20b2f3de19138627e",
+      "approved": true,
+      "kind": "cutout",
+      "depicted_birds": 0,
+      "depicted_animals": 1,
+      "composition_max_birds": 1,
+      "style": "modern-natural-history",
+      "pose": "seated",
+      "source": "Emviary original portrait from private reference photos",
+      "source_url": "https://emviary.majjix.com/library?q=Rocket",
+      "license": "MIT",
+      "license_file": "licenses/Emviary-AI-Art-MIT.txt",
+      "generated": true,
+      "generation_method": "OpenAI built-in image generation with owner-supplied photo references",
+      "credit": "Original Emviary illustration of Rocket from privately supplied reference photos.",
+      "review_status": "Owner-approved likeness; valid 800x480 six-color packed proof. Physical panel review not required for this owner-approved addition.",
+      "display_optimization": {
+        "panel": "spectra6",
+        "pixels": [
+          800,
+          480
+        ],
+        "composition": "centered-solo",
+        "recommended_dither": "stucki",
+        "transparent_master": true,
+        "packed_preview_validated": true
+      }
     }
   ],
   "source_collections": [
