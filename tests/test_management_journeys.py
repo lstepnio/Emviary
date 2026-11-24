@@ -245,6 +245,7 @@ def test_every_management_mutation_rejects_bad_csrf_before_changing_state(
     substitutions = {
         "identifier": frame[0],
         "frame_id": frame[0],
+        "action": "prepare",
         "artwork_id": "missing",
         "image_id": "1",
         "day_id": "missing",

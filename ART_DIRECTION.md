@@ -1,7 +1,8 @@
 # Artwork and evidence rules
 
 The backend owns selection, composition, layout, scaling, palette processing,
-dithering, forecasts and schedules. The E1002 downloads a ready image and sleeps.
+dithering, forecasts and schedules. The E1002 downloads ready images, performs checked refreshes, and manages its
+local offline cache, buttons, sleep and persistent gift lifecycle.
 
 ## Evidence
 
@@ -29,7 +30,8 @@ Use the existing curated bird cutouts without regenerating diagnostic plumage.
 Never stretch, recolor, mirror or invent a bird pose. Resize with aspect ratio
 preserved. The 800×480 E1002 supports one to three birds, default maximum three.
 Multiple birds use separate cells with aspect ratios preserved. Three-bird
-labels can wrap over two lines; scientific names remain in a separate line.
+labels can wrap over two lines. Only common names appear on the frame;
+scientific names remain in matching, catalog metadata and the web library.
 Selection and layout are saved before conversion, making retries reproducible.
 
 Quiet paper, strong text and restrained edge treatments keep dithering readable.
@@ -43,6 +45,12 @@ likelihood, forecast snowfall or strong wind. Pale filled cloud blobs are exclud
 Weather marks use strong strokes in the header, away from bird silhouettes. Do not imply measured garden conditions. Do not add snow from a
 low temperature alone. Missing or stale forecasts produce no weather cues.
 The printed date identifies the outlook if the frame retains an older image.
+
+Current solo layouts are centered; pairs and trios use balanced symmetric cells.
+Do not reintroduce the older asymmetric/staggered layouts described in the
+versioned history below. Source art is scaled without stretching or mirroring.
+Gift welcome is a separate dedication layout with a dedicated weather-neutral
+first composition, not a calendar event or ordinary cache entry.
 
 ## Optional AI work
 
@@ -73,7 +81,13 @@ outside the bird cells. Borders and the label separator use neutral ink rather
 than pale tan that breaks into colored dots. Colored plumage remains subject to
 six-color conversion; neutral-graphics correction never touches bird cells.
 
-## Expanded library (renderer version 4)
+## Versioned design history
+
+The sections below retain earlier renderer decisions and collection counts.
+They do not override the current display rules above or the current catalog.
+See [RUNBOOK](RUNBOOK.md) for current operation.
+
+### Expanded library (renderer version 4)
 
 The catalogue includes historical cutouts, selected existing generated cutouts,
 and historical full-art crops. Source masters remain unchanged. Historical
@@ -87,7 +101,7 @@ are recorded per asset. Bright breeding plumage can have narrower eligibility
 than the species itself. Regional provider weighting never overrides the
 seasonal and owner species filters. See research/RELATED_PROJECTS.md.
 
-## Special dates (renderer version 5)
+### Special dates (renderer version 5)
 
 Configured special dates use a single bird, a drawn birthday/anniversary/
 celebration/remembrance motif, an occasion heading and an optional greeting.
@@ -103,7 +117,7 @@ filter for that occasion. If it later becomes unavailable, seasonal selection
 is the fallback. Normal rotation resumes on the next day.
 
 
-## Colorado collection and composition (renderer version 8)
+### Colorado collection and composition (renderer version 8)
 
 The library covers 61 Colorado species with 136 approved variants. Coverage is
 selective, not a complete state checklist. Reviewed flight and perched variants,

@@ -1,6 +1,6 @@
 # Emviary occasion landscapes
 
-The active collection contains **27 secular, nonbird landscape paintings**,
+The source collection contains **27 secular, nonbird landscape paintings**,
 created with OpenAI built-in image generation and reviewed for the E1002 panel.
 Every occasion follows the same vintage landscape-poster and restrained gouache
 direction. Scenes vary through terrain, season, composition and time of day.
@@ -21,9 +21,11 @@ settings. Dr. Seuss Day uses a playful storybook landscape; Pi Day uses a circul
 mountain tarn; Book Lovers Day uses a quiet riverside reading garden. May the
 Fourth uses a fictional two-sun desert, with no buildings or characters.
 An anniversary landscape is available without creating an undated calendar event.
-The existing birthday event uses the new landscape and retains its greeting.
+The collection rollout assigned the new landscape to the existing birthday event
+and retained its greeting; later owner choices remain independent.
 
-These four requested additions are enabled and repeat annually:
+The recorded collection rollout enabled these four requested annual additions.
+Current per-frame enablement is owner-managed and must be read from management:
 
 | Occasion | Date | Date reference |
 | --- | --- | --- |
@@ -68,3 +70,6 @@ production review additionally checked the current weather line and birthday
 greeting. Repeating publication adds no duplicate images or events. Review
 art at [Special-day art](https://emviary.majjix.com/manage/event-art), and dates,
 greetings and test previews at [Special days](https://emviary.majjix.com/manage/events).
+
+This is collection provenance and a recorded rollout, not a current device or
+calendar inspection. See [RUNBOOK](../../RUNBOOK.md) for current operation.

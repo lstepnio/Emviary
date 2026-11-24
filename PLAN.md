@@ -1,5 +1,10 @@
 # Denver bird-art frame: architecture and POC plan
 
+> Historical planning/review record. Version numbers, schedules, measurements and
+> acceptance statements below describe the recorded work, not the current live
+> deployment. Use [README](README.md), [RUNBOOK](RUNBOOK.md) and
+> [deployment guidance](DEPLOYMENT.md) for current operation.
+
 Planning date: October 7, 2026, America/Denver.
 
 ## Recommendation

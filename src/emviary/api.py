@@ -115,6 +115,9 @@ def create_app(service=None, schedule=True):
     )
     app.state.service = service
     app.state.firmware_updates = FirmwareUpdates()
+    from .gift_routes import image_control_response, install_device_routes
+
+    install_device_routes(app, service, authenticated, check_geometry)
 
     @app.middleware("http")
     async def canonical_host(request, call_next):
@@ -169,6 +172,9 @@ def create_app(service=None, schedule=True):
         check_geometry(request, frame)
         record_frame_network(request, service, frame)
         metrics = parse_metrics(request.headers.get("x-frame-metrics"))
+        gift_response = image_control_response(service, request, frame, metrics)
+        if gift_response is not None:
+            return gift_response
         client_report_tag = request.headers.get("if-none-match", "")[:256]
         reported_firmware = request.headers.get("x-firmware-version", "")[:80]
         service.display_history.observe(frame["id"], client_report_tag, metrics, reported_firmware)
@@ -211,6 +217,10 @@ def create_app(service=None, schedule=True):
         if len(payload.encode()) > 1900:
             raise HTTPException(503, "Configuration exceeds the firmware header limit")
         headers = {"ETag": tag, "Cache-Control": "private, no-cache"}
+        if request.headers.get("x-emviary-gift-version") == "1":
+            gift = service.gifts.payload(frame["id"])
+            if gift["state"] == "cancelled":
+                headers["X-Emviary-Gift"] = stable_json(gift)
         recovery = device_headers(request)
         if recovery:
             token = request.headers.get("authorization", "").partition(" ")[2].strip()

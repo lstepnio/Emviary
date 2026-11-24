@@ -1,5 +1,10 @@
 # Emviary 0.12.1 experience and service review
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed October 12, 2026. Baseline: application 0.11.1, container
 `emviary:poc-040`. Final candidate: application 0.12.1, `emviary:poc-042`.
 Application 0.12.0 was deployed and verified before the final collection simplification.

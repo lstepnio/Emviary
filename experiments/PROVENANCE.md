@@ -2,7 +2,9 @@
 
 Generated with the built-in image generator during exploration. These images
 are excluded from the runtime catalog, deployment and Git. They have not passed
-species or physical-panel review. Curated Fugleramme art is the deployed library.
+species or physical-panel review. These specific experiments are not the approved generated bird, wildlife or
+occasion collections documented under `art/provenance/` and `art/occasions/`.
+Current membership and per-asset provenance are in `art/catalog.json`.
 
 ## black-capped-chickadee
 

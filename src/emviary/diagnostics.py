@@ -29,6 +29,10 @@ class SavedNetwork(BaseModel):
 class DeviceMetrics(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
+    gift_version: Literal[1] | None = None
+    gift_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{32}$")
+    gift_state: Literal["idle", "ready", "opened", "cancelled", "failed"] | None = None
+    gift_error: str | None = Field(default=None, max_length=80, pattern=r"^[^\x00-\x1f\x7f]*$")
     offline_mode: bool | None = None
     offline_image_id: int | None = Field(default=None, ge=0, le=2147483647)
     offline_cache_count: int | None = Field(default=None, ge=0, le=256)

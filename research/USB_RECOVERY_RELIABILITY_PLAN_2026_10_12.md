@@ -1,5 +1,10 @@
 # Emviary USB recovery reliability plan
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 October 12, 2026. Design proposal, not an implementation or hardware qualification report.
 
 ## Decision

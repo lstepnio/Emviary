@@ -1,5 +1,10 @@
 # Bird artwork research and source audit
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed 2026-10-08 for Emviary's Colorado frame: 800×480, six-color Spectra6,
 nightly prepared images, and a maximum of three depicted birds. This pass adds
 **seven reviewed assets**: five AI-generated pencil studies and two complete

@@ -87,5 +87,11 @@ separate, untested scenarios.
 Maintainers can package the verified release download with:
 
 ```sh
-uv run python tools/package_usb_recovery.py RELEASE_DIRECTORY --version v0.8.10 --build-url GITHUB_BUILD_URL
+uv run python tools/package_usb_recovery.py RELEASE_DIRECTORY --version RELEASE_VERSION --build-url GITHUB_BUILD_URL
 ```
+
+Use the version and build URL from the selected immutable release, not a version
+remembered from this document. Gift welcome requires the corrected v0.8.13
+implementation; update the service firmware lock and all matching recovery parts
+together after release verification. An installed version or physical recovery
+result must be confirmed independently. See [RUNBOOK](../RUNBOOK.md).

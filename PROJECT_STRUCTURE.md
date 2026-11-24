@@ -38,11 +38,11 @@ and provisioning material must remain outside tracked source.
 
 The saved Codex project is named **Emviary**, with
 `~/Development/Emviary` as its primary folder. Existing chats were preserved.
-The Python environment was recreated from `uv.lock` at the canonical path.
-The generated firmware build cache was archived because it contained absolute
-paths to the former checkout. The next local firmware build must regenerate its
-build directory from `Emviary/firmware`; the firmware source and published
-release pins were not changed.
+The rename migration recreated the Python environment from `uv.lock` and archived
+a firmware build cache containing the retired absolute path. New environments
+and firmware build directories must be generated for the checkout that owns them;
+do not reuse a cache from another path. Documentation or checkout maintenance
+does not by itself authorize changing a firmware release pin.
 
 New tools, project entries and automation paths must use the canonical Emviary
 directory. The backup LaunchAgent uses this directory too. No compatibility

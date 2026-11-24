@@ -1,5 +1,10 @@
 # Display history evidence
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 The previous gallery listed generated renders in decreasing image ID order. A
 weather revision or refilled queue could therefore appear in Past compositions
 without ever reaching the frame. This was not a record of panel refreshes.

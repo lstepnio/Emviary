@@ -19,7 +19,7 @@ tones with dithering; eliminating all dithering would distort many species.
 The original PNG alpha is preserved, including invisible RGB under alpha zero.
 
 The review uses Emviary's actual 800x480 Spectra6 packed output, balanced
-processing, Lab color matching and Stucki dithering, matching Emily's current
+processing, Lab color matching and Stucki dithering, matching the saved review
 settings. All originals are checked for identification, coherent anatomy and
 uncropped extremities; every accepted asset is reviewed in solo and smaller
 three-bird compositions. Decoded previews verify the six allowed ink indices.

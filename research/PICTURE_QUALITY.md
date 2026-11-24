@@ -1,5 +1,10 @@
 # E1002 picture-quality audit, 2026-10-08
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 The E1002 is 800×480, 7.3-inch Spectra6. The approved RGBA masters range from
 367×475 to 1200×808 and are resized once with Pillow Lanczos, preserving aspect
 ratio. Bird cells are limited to 302×285 for two birds or 572×313 for one.

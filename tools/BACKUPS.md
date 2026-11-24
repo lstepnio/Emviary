@@ -7,8 +7,8 @@ module. Run with the repo environment:
 /opt/homebrew/bin/uv run --project /Users/lukasz.stepniowski/Development/Emviary python /Users/lukasz.stepniowski/Development/Emviary/tools/pull_verified_backup.py
 ```
 
-SSH uses the existing key configuration for `lstepnio@one.majjix.com`, batch mode
-and a 15-second connection timeout. Remote selection uses the host's standard
+For manual host checks, use `ssh one-codex`. The pull helper uses its configured
+SSH destination with batch mode and a 15-second connection timeout. Remote selection uses the host's standard
 Python interpreter and the existing account's readable files under
 `/docker/backups/emviary`; it requires neither Docker access nor sudo. It selects
 the newest completion record from the current Denver date whose restore
@@ -54,3 +54,11 @@ copies until a retention policy is explicitly applied. Review disk use monthly;
 no automatic deletion is enabled. The host monitor checks local and off-host
 verification freshness every 15 minutes and repeats unresolved alerts daily.
 It cannot create an independent copy while the Mac is asleep.
+
+## Evidence and current status
+
+A local rollout backup and a verified independent pull are different recovery
+points. Check both receipts in management before relying on off-host protection;
+an older success must not hide a newer failed attempt. The November 24
+documentation review did not repair or rerun the pre-existing failed off-host
+pull. See [current operations](../RUNBOOK.md) for the latest verified state.

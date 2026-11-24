@@ -1,5 +1,10 @@
 # Colorado artwork expansion
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed 2026-10-08. This pass adds **64 unchanged masters**, growing the approved
 collection from **73 images / 32 species** to **136 images / 61 species**, plus
 three reference-only field journals and one quarantined regional-form cutout. There are **29 newly represented species**.

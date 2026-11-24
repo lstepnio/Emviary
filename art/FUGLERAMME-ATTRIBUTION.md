@@ -1,5 +1,10 @@
 # classic - attribution and licensing
 
+> Imported upstream attribution record, retained below. References to “this
+> project”, manifests and source subdirectories describe the Fugleramme source
+> collection. Emviary membership and per-asset terms are recorded in
+> [catalog.json](catalog.json); this record does not relicense other artwork.
+
 Hand-coloured 1800s bird plates, cut and edited for this project, so none is
 faithful to its scan. The style is offered under **CC BY-SA 4.0**, the most
 restrictive of the sources below:

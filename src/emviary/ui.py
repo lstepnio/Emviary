@@ -148,6 +148,11 @@ border-radius:var(--radius)}
 .metric-label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .metric-value,.metric strong{font-size:27px;line-height:1.25;font-weight:600;display:block}
 .metric .battery-status{font-size:18px}
+.gift-previews{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:20px 0}
+.gift-previews figure{margin:0;min-width:0}.gift-status{display:grid;gap:4px;margin:16px 0}
+.gift-panel form{margin:16px 0}.gift-panel input,.gift-panel select{max-width:100%}
+@media(max-width:700px){.gift-previews{grid-template-columns:1fr}}
+
 .battery-badge{display:inline-flex;max-width:100%;padding:6px 12px;border-radius:99px;
 background:#fff0d0;color:#73531f;font-size:14px;
 font-weight:650;line-height:1.4;overflow-wrap:anywhere}
@@ -623,6 +628,33 @@ max-width:800px;justify-self:center;box-sizing:border-box}
 
 # A small progressive enhancement preserves native HTML forms without a framework.
 JAVASCRIPT = r"""
+// Watch stored server reports only. Never poll or wake the physical frame.
+(() => {
+  const panel = document.querySelector('[data-gift-status-url]');
+  if (!panel || !['armed','failed','cancelled'].includes(panel.dataset.giftState)) return;
+  const deadline = Date.now() + 120000;
+  async function checkGift() {
+    if (!panel.isConnected || Date.now() >= deadline) return;
+    if (document.visibilityState === 'visible') {
+      try {
+        const response = await fetch(panel.dataset.giftStatusUrl,
+          {credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000),
+           headers:{Accept:'application/json'}});
+        if (!response.ok) return;
+        const result = await response.json();
+        if (result.state !== panel.dataset.giftState) {
+          const parsed = new DOMParser().parseFromString(result.html,'text/html');
+          const next = parsed.querySelector('.gift-panel');
+          if (next) panel.replaceWith(next);
+          return;
+        }
+      } catch { return; }
+    }
+    setTimeout(checkGift,5000);
+  }
+  setTimeout(checkGift,5000);
+})();
+
 (() => {
   document.querySelector('[data-print-guide]')?.addEventListener('click', () => window.print());
   document.querySelectorAll('[data-weather-options]').forEach(group => {

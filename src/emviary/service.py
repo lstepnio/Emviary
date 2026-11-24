@@ -57,6 +57,9 @@ class Service:
             self.settings.config = Config.model_validate_json(override["value"])
         self.providers = providers or Providers(self.store)
         self.converter = converter or render.convert
+        from .gift_mode import GiftMode
+
+        self.gifts = GiftMode(self)
 
     def refresh_artwork_library(self):
         with self.store.connect() as db:
@@ -1284,6 +1287,8 @@ class Service:
         # Reject source links before copying so recovery never follows external files.
         safe_files(self.settings.art_dir)
         safe_files(self.event_art.root)
+        safe_files(self.gifts.root)
+        self.gifts.verify_all()
         with tempfile.TemporaryDirectory(prefix=".emviary-backup-", dir=output.parent) as temporary:
             staging = Path(temporary) / "backup"
             staging.mkdir(mode=0o700)
@@ -1300,6 +1305,7 @@ class Service:
             (staging / "site.json").write_text(self.settings.config.model_dump_json(indent=2))
             shutil.copytree(self.settings.art_dir, staging / "art")
             shutil.copytree(self.event_art.root, staging / "event-art")
+            shutil.copytree(self.gifts.root, staging / "gifts")
             if not (staging / "event-art/manifest.json").exists():
                 (staging / "event-art/manifest.json").write_text("[]\n")
             cache = staging / "active-cache"

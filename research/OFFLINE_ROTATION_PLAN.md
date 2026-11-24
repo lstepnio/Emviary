@@ -1,5 +1,10 @@
 # Offline rotation proposal
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Status: accepted proposal, now implemented. See OFFLINE_ROTATION_IMPLEMENTATION_2026_10_13.md for release validation and adjustments found during hardware testing.
 
 ## Product behavior

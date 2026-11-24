@@ -1,5 +1,10 @@
 # Guided USB recovery implementation
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 The management recovery page has one primary action, **Check and recover**. It first asks the application for positive boot evidence, attempts one USB wake if needed, then identifies the E1002 and compares public firmware regions before replacing only mismatches. A healthy application proceeds directly to its saved Wi-Fi, verified artwork download, cloud acknowledgment and picture check.
 
 ## Escalation rules

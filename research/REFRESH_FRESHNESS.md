@@ -1,5 +1,10 @@
 # Prepared images and forecast freshness
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 ## Contract
 
 The server keeps immutable, compressed panel images in two durable slots per
@@ -32,7 +37,7 @@ at or after its preparation deadline, even if an earlier snapshot is inside
 its ordinary age limit. Same-day weather provider failure does not reuse an
 expired forecast. Bird presence cache behavior is unchanged.
 
-Emily's normal deadline stays 02:30 America/Denver for a 03:15 wake. If an owner
+The schedule at this review was 02:30 preparation for a 03:15 America/Denver wake; current schedules are owner-managed. If an owner
 moves preparation too far before wake, the effective deadline moves into the
 last 45 minutes before wake, or half the forecast age limit when shorter.
 The site timezone handles daylight saving changes. The scheduler checks every
