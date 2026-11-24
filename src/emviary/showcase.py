@@ -180,7 +180,10 @@ def battery_highlight():
         "That is based on 42 daily readings, with reported charge moving from 98% to 92%.</p>"
         '<p class="quiet">This is an early straight-line projection with limited confidence, '
         "not a completed year-long endurance test. Battery discharge, temperature and use "
-        'can change the result.</p><a href="'
+        "can change the result.</p><p><strong>The picture stays.</strong> "
+        "The last picture stays visible when the battery runs out. "
+        "If Wi-Fi drops, the frame keeps cycling through saved pictures while it has power.</p>"
+        '<a href="'
         + REPOSITORY
         + '/blob/main/docs/BATTERY_RESULTS.md">Read the battery evidence and method</a>'
         "</div></section>"
