@@ -16,16 +16,20 @@ overflow:hidden}
 .event-card-copy{padding:18px 18px 12px}.event-card-copy h3{font-size:18px;margin-bottom:5px}
 .event-card-date{font-size:14px;margin-bottom:4px}.event-card-repeat{font-size:12px;color:var(--muted)}
 .event-card-message{font-size:13px;color:var(--muted);margin:9px 0 0}
-.event-card-controls{display:flex;align-items:center;gap:12px;padding:0 18px 14px}
+.event-card-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:0 18px 14px}
 .event-card-controls form{margin:0}.event-card-controls button{padding:6px 10px;font-size:12px}
 .event-toggle-form{margin-left:auto!important}.event-toggle{display:flex;align-items:center;gap:7px;
-font-size:12px;cursor:pointer;margin:0}.event-toggle input{appearance:none;width:34px;height:20px;
+font-size:12px;cursor:pointer;margin:0;white-space:nowrap}
+.event-toggle input{appearance:none;width:34px;height:20px;
 border-radius:20px;background:#bec7bf;position:relative;cursor:pointer;flex-shrink:0;margin:0}
 .event-toggle input:before{content:'';position:absolute;background:white;width:14px;height:14px;
 border-radius:50%;left:3px;top:3px;transition:transform .15s}
 .event-toggle input:checked{background:var(--accent)}
 .event-toggle input:checked:before{transform:translateX(14px)}
 .event-toggle input:disabled{opacity:.5;cursor:wait}
+.event-action-feedback .form-error{margin:0 18px 14px;padding:10px 12px;
+border:1px solid #e5c9c0;border-radius:8px;font-size:13px;line-height:1.5}
+.event-action-feedback .form-error:focus{outline:2px solid var(--danger);outline-offset:2px}
 .event-toggle-message{font-size:12px;margin:0 18px 12px}
 .event-card .event-editor{border:0;border-top:1px solid var(--line);border-radius:0;padding:0}
 .event-card .event-editor>summary{padding:10px 18px;font-size:13px;min-height:0}
@@ -151,7 +155,7 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         + '</div></div><div class="event-card-controls">'
         f'<form method="post" action="/manage/frames/{identifier}/special-days/{day_id}/preview">'
         + hidden(csrf)
-        + '<button class="secondary">Show on next wake</button></form>'
+        + '<button class="secondary">Queue on frame</button></form>'
         f'<form class="event-toggle-form" method="post" '
         f'action="/manage/frames/{identifier}/special-days/{day_id}/enabled">'
         + hidden(csrf)
@@ -159,6 +163,7 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         f'<input type="checkbox" name="enabled" value="yes" data-event-toggle{checked} '
         f'aria-label="Enable {escape(day["label"], quote=True)}"></label>'
         "<noscript><button>Save</button></noscript></form></div>"
+        '<div class="event-action-feedback" data-event-action-feedback></div>'
         '<p class="event-toggle-message" data-event-toggle-message role="status" hidden></p>'
     )
 
