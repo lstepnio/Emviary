@@ -628,6 +628,33 @@ max-width:800px;justify-self:center;box-sizing:border-box}
 
 # A small progressive enhancement preserves native HTML forms without a framework.
 JAVASCRIPT = r"""
+// Watch stored server reports only. Never poll or wake the physical frame.
+(() => {
+  const panel = document.querySelector('[data-gift-status-url]');
+  if (!panel || !['armed','failed','cancelled'].includes(panel.dataset.giftState)) return;
+  const deadline = Date.now() + 120000;
+  async function checkGift() {
+    if (!panel.isConnected || Date.now() >= deadline) return;
+    if (document.visibilityState === 'visible') {
+      try {
+        const response = await fetch(panel.dataset.giftStatusUrl,
+          {credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000),
+           headers:{Accept:'application/json'}});
+        if (!response.ok) return;
+        const result = await response.json();
+        if (result.state !== panel.dataset.giftState) {
+          const parsed = new DOMParser().parseFromString(result.html,'text/html');
+          const next = parsed.querySelector('.gift-panel');
+          if (next) panel.replaceWith(next);
+          return;
+        }
+      } catch { return; }
+    }
+    setTimeout(checkGift,5000);
+  }
+  setTimeout(checkGift,5000);
+})();
+
 (() => {
   document.querySelector('[data-print-guide]')?.addEventListener('click', () => window.print());
   document.querySelectorAll('[data-weather-options]').forEach(group => {

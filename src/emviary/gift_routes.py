@@ -127,7 +127,14 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
         except ValueError:
             values["first_image_id"] = None
     url = "/manage/frames/" + quote(frame_id, safe="") + "/gift"
-    body = '<section class="card gift-panel" id="gift-welcome"><h2>Gift welcome</h2>'
+    state = packet["status"] if packet else "none"
+    body = (
+        '<section class="card gift-panel" id="gift-welcome" data-gift-state="'
+        + escape(state)
+        + '" data-gift-status-url="'
+        + url
+        + '/status"><h2>Gift welcome</h2>'
+    )
     body += (
         "<p>A personal welcome that stays on the frame until the right white "
         "button is pressed. The first picture is saved on the frame, so the "
@@ -155,7 +162,11 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
             )
         if packet["error"]:
             body += "<p>" + escape(packet["error"]) + "</p>"
-        body += '</div><div class="gift-previews">'
+        body += (
+            '</div><p><a href="/manage/appearance?frame='
+            + quote(frame_id, safe="")
+            + '#gift-welcome">Refresh status</a></p><div class="gift-previews">'
+        )
         for part, title in (("welcome", "Welcome"), ("first", "First composition")):
             body += (
                 "<figure><h3>"
@@ -310,6 +321,22 @@ def install_owner_routes(app, service, require, checked_form, escape, page):
         return RedirectResponse(
             "/manage/appearance?frame=" + quote(frame_id, safe="") + "#gift-welcome",
             status_code=303,
+        )
+
+    @app.get("/manage/frames/{frame_id}/gift/status")
+    def gift_status(frame_id: str, request: Request):
+        auth = require(request)
+        try:
+            service.store.frame(frame_id)
+        except ValueError:
+            raise HTTPException(404, "Unknown frame") from None
+        packet = service.gifts.current(frame_id)
+        return JSONResponse(
+            {
+                "state": packet["status"] if packet else "none",
+                "html": panel(service, frame_id, auth["csrf"], escape, hidden),
+            },
+            headers={"Cache-Control": "private, no-store"},
         )
 
     @app.get("/manage/frames/{frame_id}/gift/{identifier}/preview/{part}")

@@ -239,3 +239,23 @@ def test_preview_error_keeps_edited_message_and_ready_instructions_do_not_reopen
     overview = client.get("/manage?frame=" + frame[0]).text
     assert f"/gift/{packet['id']}/preview/welcome" in overview
     assert "Frame reported gift ready" in overview
+
+
+def test_status_refresh_reads_stored_reports_without_device_or_settings_changes(
+    service, frame, tmp_path, monkeypatch
+):
+    packet = draft(service, frame)
+    capable(service, frame)
+    service.gifts.action(frame[0], packet["id"], "arm")
+    client, _ = sign_in(service, tmp_path, monkeypatch)
+    url = "/manage/frames/" + frame[0] + "/gift/status"
+    before = service.store.frame(frame[0])
+    first = client.get(url)
+    assert first.json()["state"] == "armed"
+    assert first.headers["cache-control"] == "private, no-store"
+    assert service.store.frame(frame[0]) == before
+    service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
+    ready = client.get(url).json()
+    assert ready["state"] == "ready" and "The next right-white press opens" in ready["html"]
+    anon = TestClient(create_app(service, schedule=False))
+    assert anon.get(url).status_code == 401
