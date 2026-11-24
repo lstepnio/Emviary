@@ -1,5 +1,25 @@
 # Emviary continuation notes
 
+## November 23 finished-frame showcase
+
+The `codex/frame-showcase` change adds `/showcase`, eight finished-frame images,
+four silent 1080p films and two controlled GIF loops. Main shots use five distinct
+bird compositions. Public and owner current views layer the actual delivered
+artwork under a transparent frame surround; private image authorization is retained.
+
+The README and showcase highlight the dated early battery trend: 92% remaining,
+41.1 days observed unplugged, six points used and an over-one-year projection to
+20%. See `docs/BATTERY_RESULTS.md` for the evidence and limits. This is not a
+completed year-long endurance test. No firmware or battery algorithm change is
+included here.
+
+Validation: repository Ruff checks and 29 targeted UI/delivery/showcase tests
+passed. Browser review covered desktop and 390/320 px layouts, real-composition
+alignment, video playback and GIF play/pause. Media delivery supports byte ranges.
+Deployment must preserve the installed OIDC and battery fixes by layering only
+this presentation change over the existing image, after the required host backup.
+Physical panel confirmation and full battery endurance remain separate.
+
 ## November 9 four new Colorado bird species
 
 The live 0.19.4 catalog has 195 bird illustrations across 67 species.

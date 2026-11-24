@@ -8,6 +8,20 @@ curated historical and existing illustrated bird art, regional BirdWeather detec
 motifs and understated Open-Meteo forecast cues. No paid subscription, microphone,
 Raspberry Pi or online image generation is required for this POC.
 
+## The finished frame
+
+![Emviary finished frame in a dark studio](src/emviary/showcase_assets/08-dark-studio.webp)
+
+[Explore the website showcase](https://emviary.majjix.com/showcase) · [View every rendering, film and animation](docs/FRAME_GALLERY.md)
+
+Eight AI-assisted product views, four short films and two animated camera loops show the completed wood frame. The [frame page](https://emviary.majjix.com/) and management overview use a clean transparent surround around the actual last-delivered composition.
+
+## Early battery data points to over a year between charges
+
+**92% remaining after 41.1 days of unplugged observations.** The reported charge fell from 98% to 92% across 42 daily readings through November 23, 2026. The observed trend projects **more than a year to the 20% recharge threshold**.
+
+This is an early straight-line projection with limited confidence, not a completed year-long endurance test or guaranteed runtime. Battery discharge, temperature and use can change the result. [Read the measurements and method](docs/BATTERY_RESULTS.md).
+
 ## Implementation
 
 - 63 Colorado species, 208 rotation images, four web-only field studies and two review candidates; original masters,

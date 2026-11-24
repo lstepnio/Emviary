@@ -1,0 +1,29 @@
+[
+  {
+    "name": "02-nutcracker",
+    "artwork_ids": [
+      "habird-nucifraga-columbiana"
+    ]
+  },
+  {
+    "name": "03-colorado-trio",
+    "artwork_ids": [
+      "habird-megaceryle-alcyon",
+      "habird-buteo-jamaicensis",
+      "habird-melospiza-melodia"
+    ]
+  },
+  {
+    "name": "05-bluebird-chickadee",
+    "artwork_ids": [
+      "habird-sialia-currucoides",
+      "habird-poecile-atricapillus"
+    ]
+  },
+  {
+    "name": "08-great-horned-owl",
+    "artwork_ids": [
+      "habird-bubo-virginianus"
+    ]
+  }
+]
