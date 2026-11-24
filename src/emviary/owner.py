@@ -2920,8 +2920,32 @@ def attach_owner(app, service):
             raise HTTPException(400, str(error)) from None
         except RuntimeError:
             raise HTTPException(409, "Preparation is busy. Try again shortly.") from None
+        previews = getattr(service, "_special_scene_previews", {})
+        previews = {k: v for k, v in previews.items() if v["expires"] > service.clock()}
+        while len(previews) >= 5:
+            previews.pop(next(iter(previews)))
+        token = secrets.token_hex(24)
+        previews[token] = {
+            "frame": identifier,
+            "image": image,
+            "expires": service.clock() + timedelta(minutes=30),
+        }
+        service._special_scene_previews = previews
+        return JSONResponse(
+            {"image_url": f"/manage/frames/{identifier}/special-day-proof/{token}"},
+            headers={"Cache-Control": "private, no-store"},
+        )
+
+    @app.get("/manage/frames/{identifier}/special-day-proof/{token}")
+    def special_day_proof_image(identifier: str, token: str, request: Request):
+        require(request)
+        preview = getattr(service, "_special_scene_previews", {}).get(token)
+        if not preview or preview["frame"] != identifier or preview["expires"] <= service.clock():
+            raise HTTPException(404, "Preview expired. Prepare another preview.")
         return Response(
-            image, media_type="image/jpeg", headers={"Cache-Control": "private, no-store"}
+            preview["image"],
+            media_type="image/jpeg",
+            headers={"Cache-Control": "private, no-store"},
         )
 
     @app.get("/manage/frames/{identifier}/special-days/{day_id}/preview")

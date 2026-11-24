@@ -28,7 +28,13 @@ def test_scene_draft_is_read_only(service, frame, tmp_path, monkeypatch, directi
         },
     )
     assert response.status_code == 200, response.text[:300] if response.status_code != 200 else ""
-    assert response.headers["content-type"] == "image/jpeg"
+    proof = client.get(response.json()["image_url"])
+    assert proof.status_code == 200
+    assert proof.headers["content-type"] == "image/jpeg"
+    assert (
+        client.get(response.json()["image_url"].replace(identifier, "other-frame")).status_code
+        == 404
+    )
     assert service.store.frame(identifier) == before
     assert not service.store.active_image(before)
 

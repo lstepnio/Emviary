@@ -191,8 +191,7 @@ EVENT_JAVASCRIPT += r"""
    if(payload.toString()!==new URLSearchParams(new FormData(f)).toString())
     throw Error('Preview out of date. Preview again to see your changes.');
    const img=f.querySelector('[data-scene-image]');
-   if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);
-   img.dataset.url=URL.createObjectURL(await response.blob());img.src=img.dataset.url;
+   img.src=(await response.json()).image_url;
    result.hidden=false;status.textContent='Preview only. Nothing has been sent to the frame.';
   }catch(e){status.textContent=e.name==='TimeoutError'
     ?'The preview took too long. Try again.':e.message;}
