@@ -592,6 +592,10 @@ def create_app(service=None, schedule=True):
     from .showcase import install_routes as install_showcase
 
     install_showcase(app)
+    from .special_day_gallery import homepage_invite
+    from .special_day_gallery import install_routes as install_special_day_gallery
+
+    install_special_day_gallery(app)
 
     from .recipient import install_routes as install_recipient_guide
 
@@ -626,6 +630,7 @@ def create_app(service=None, schedule=True):
                 "<p>The frame's artwork will appear here after its first delivery.</p></section>"
             )
         body += showcase_invite()
+        body += homepage_invite()
         body += gallery_markup(service)
         body += (
             '<section class="public-library-invite"><div><h2>Meet the collection.</h2>'
