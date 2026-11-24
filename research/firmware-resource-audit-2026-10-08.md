@@ -1,5 +1,10 @@
 # Emviary E1002 firmware audit and release evidence
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Audit started October 8, 2026 and continued October 9. Baseline was the physical E1002 running v0.6.2, not an assumed checkout. The target is an ESP32-S3 reTerminal E1002 with an 800 x 480 Spectra6 panel. The backend retains all artwork, dithering, selection, history and schedule logic. Private backups preserve the installed application, NVS, OTA metadata, configuration, symbols and serial logs. No secrets or backups are published.
 
 ## Decision and acceptance boundary

@@ -1,5 +1,9 @@
 # Shared host maintenance correction
 
+> Historical November 6 change record. Check [current operations](../../RUNBOOK.md)
+> and the actual host timers before applying schedule changes. Rollback paths below
+> identify that intervention, not permission to overwrite newer host changes.
+
 Deployed November 6, 2026 Denver time. Backup: 05:15; updates: 05:45.
 The host schedule-watch.py JOBS mapping must match these times. Preserve its
 other source and notification state; activate the new monitoring window at the

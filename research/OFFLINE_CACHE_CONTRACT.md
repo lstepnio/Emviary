@@ -1,5 +1,10 @@
 # Offline cache response contract v1
 
+> Protocol reference reviewed against `src/emviary/offline_cache.py` and the firmware
+> cache contract. Historical renderer/release measurements below remain dated
+> evidence. See [RUNBOOK](../RUNBOOK.md) for current operation and
+> [research index](README.md) for related acceptance records.
+
 Clients opt in on the existing authenticated image request with
 `X-Emviary-Offline-Version: 1`. Successful 200 image responses may carry
 `X-Emviary-Offline`. EPDGZ body bytes, ETag, configuration and recovery digests

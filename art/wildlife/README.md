@@ -1,5 +1,10 @@
 # Colorado wildlife collection
 
+> Collection and curation history. Counts and additions below describe their
+> recorded expansion, not a live frame inventory. Current membership and
+> eligibility are in the [catalog](../catalog.json); owner exclusions remain separate.
+> See [current operations](../../RUNBOOK.md) for deployment and acceptance status.
+
 Twelve original, text-only AI natural-history illustrations: raccoon, mule deer,
 coyote, red fox, elk, black bear, bobcat, beaver, bighorn sheep, pronghorn,
 American pika and yellow-bellied marmot. Built-in OpenAI image generation was used;
@@ -92,3 +97,10 @@ standing, resting with his plaid bandana, and walking. They use the same solo
 animal slots and repeat avoidance as the Colorado collection. All four share a
 single species identity and are eligible year-round. The original photos are
 private. See [artwork provenance](../provenance/wally.json).
+
+## Rocket
+
+Rocket adds four private-reference cat portraits under one *Felis catus* identity,
+using the same solo slots and year-round eligibility as Wally. The source photos
+remain private. See [Rocket provenance](../provenance/rocket.md); packed preview
+validation does not imply physical-panel acceptance.

@@ -1,5 +1,10 @@
 # Emviary health check, October 28, 2026
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Observed at 2026-10-28T19:37-06:00. Read-only operational inspection against source main
 `98d8a2455b33d74dcdfb557dc6e3dda6c3aaafa4`. No deployment, firmware operation,
 live policy change, container restart or maintenance rescheduling was performed.

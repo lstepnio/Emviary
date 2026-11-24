@@ -1,5 +1,10 @@
 # Colorado bird coverage
 
+> Collection and curation history. Counts and additions below describe their
+> recorded expansion, not a live frame inventory. Current membership and
+> eligibility are in the [catalog](catalog.json); owner exclusions remain separate.
+> See [current operations](../RUNBOOK.md) for deployment and acceptance status.
+
 The November 2026 catalog audit grouped artwork by scientific name and counted
 only approved single-bird cutouts as illustrations that can appear alongside
 other species. Historical plates remain approved where they already were, but

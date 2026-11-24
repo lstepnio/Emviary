@@ -1,6 +1,11 @@
 # Emviary product, accessibility and resilience review
 
-Latest implementation: [October 12, 2026, application 0.13.0](research/MANAGEMENT_SIMPLIFICATION_2026_10.md).
+> Historical planning/review record. Version numbers, schedules, measurements and
+> acceptance statements below describe the recorded work, not the current live
+> deployment. Use [README](README.md), [RUNBOOK](RUNBOOK.md) and
+> [deployment guidance](DEPLOYMENT.md) for current operation.
+
+Later October implementation: [October 12, 2026, application 0.13.0](research/MANAGEMENT_SIMPLIFICATION_2026_10.md).
 
 Earlier comprehensive review: [application 0.12.1](research/UX_REVIEW_2026_10.md).
 

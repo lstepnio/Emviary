@@ -1,5 +1,10 @@
 # Related bird-frame projects: review and incorporated artwork
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed 2026-10-08. This is an expansion of Emviary's existing backend,
 not a replacement firmware or an additional service on the recipient's network.
 The E1002 still wakes nightly to fetch one prepared 800×480 Spectra6 artifact.

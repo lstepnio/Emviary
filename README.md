@@ -1,74 +1,101 @@
 # Emviary
 
-A Colorado bird-art gift built around the reTerminal E1002.
+A nature-art gift built around the reTerminal E1002: Colorado birds, wildlife and
+personal occasions, prepared by one small service and displayed on an e-paper
+frame.
 
-A sleeping ESP32 PhotoFrame client retrieves one prepared image each night from
-https://emviary.majjix.com. One Python Docker service on `one.majjix.com` combines
-curated historical and existing illustrated bird art, regional BirdWeather detections and optional eBird observations, seasonal
-motifs and understated Open-Meteo forecast cues. No paid subscription, microphone,
-Raspberry Pi or online image generation is required for this POC.
+![The finished Emviary frame](src/emviary/showcase_assets/08-dark-studio.webp)
 
-## The finished frame
+[Website](https://emviary.majjix.com/) · [User guide](https://emviary.majjix.com/guide) ·
+[Owner management](https://emviary.majjix.com/manage) ·
+[Frame gallery](docs/FRAME_GALLERY.md) ·
+[Firmware](https://github.com/lstepnio/Emviary-firmware)
 
-![Emviary finished frame in a dark studio](src/emviary/showcase_assets/08-dark-studio.webp)
+The product images are AI-assisted renderings based on the finished frame.
+Original reference photographs remain private. The public and management frame
+views use actual composition data beneath a transparent surround; promotional
+pictures are not evidence of a physical panel refresh.
 
-[Explore the website showcase](https://emviary.majjix.com/showcase) · [View every rendering, film and animation](docs/FRAME_GALLERY.md)
+## Battery life is predicted to exceed a year between charges
 
-Eight AI-assisted product views show the completed wood frame. The website uses a subtle automatic hero movement; films and camera loops are available in the GitHub collection. The [frame page](https://emviary.majjix.com/) and management overview use a clean transparent surround around the actual last-delivered composition.
+[Read the observations and prediction method](docs/BATTERY_RESULTS.md).
 
-## Early battery data points to over a year between charges
+The last picture stays visible even after the battery is empty. Changing it
+requires power. While powered, the frame can rotate available cached pictures
+without a network; new cloud artwork and fresh weather require a connection.
 
-**92% remaining after 41.1 days of unplugged observations.** The reported charge fell from 98% to 92% across 42 daily readings through November 23, 2026. The observed trend projects **more than a year to the 20% recharge threshold**.
+## How it works
 
-This is an early straight-line projection with limited confidence, not a completed year-long endurance test or guaranteed runtime. Battery discharge, temperature and use can change the result. [Read the measurements and method](docs/BATTERY_RESULTS.md).
+One Python service renders reviewed art before the frame wakes. FastAPI serves
+validated, immutable 800 × 480 Spectra 6 EPDGZ files; Pillow and the pinned
+`epaper-image-convert` pipeline handle composition and conversion. SQLite stores
+frame policies, preparation jobs, image history and device reports. Runtime uses
+one application container, not a separate renderer or database container.
 
-## Implementation
+The backend owns artwork selection, one-to-three-bird layouts, wildlife slots,
+weather, special days and schedules. The E1002 owns bounded downloads, checked
+panel refresh, local cache/navigation, power management and persistent gift state.
+Regional BirdWeather and optional eBird reports influence eligible species;
+they do not establish that a bird visited the recipient's garden. Open-Meteo
+and NWS supply dated forecast inputs. Missing or stale weather is omitted.
+Normal operation needs no microphone, Raspberry Pi, AI API or paid subscription.
 
-- 63 Colorado species, 208 rotation images, four web-only field studies and two review candidates; original masters,
-  source credits and per-asset provenance retained.
-- 800×480 Spectra6 conversion through pinned `epaper-image-convert`, producing
-  validated EPDGZ files. Rendering happens before the frame fetches.
-- Daily preparation and frame wake configured in web management, using America/Denver and DST. Emily’s saved wake is 04:15.
-- Individual bearer tokens, saved configuration headers and ETag caching.
-- SQLite registry and persisted jobs; retries reuse the chosen art and inputs.
-- Provider outages retain the last good image; stale forecasts are omitted.
-- Thirty-day image history, fourteen-day provider snapshots, seven daily
-  consistent database/art/config backups; active images survive retention.
-- Authenticated management for location, sources, artwork rotation, appearance,
-  refresh schedule, frame provisioning and owner credentials.
-- Stage additional Wi-Fi networks in [Settings](https://emviary.majjix.com/manage/settings).
-  The frame supports five saved networks total; cloud additions preserve its
-  existing connection and apply on the next online artwork fetch.
-- Public homepage mirrors the last image delivered to the selected frame;
-  owner previews show daily-refresh and next-button art separately.
-- One to three distinct birds, default maximum three, sized for the 800×480 panel, with sparse seasonal
-  edges and forecast cues behind the unchanged curated illustrations.
-- Special dates with annual/one-time recurrence, custom greetings, four drawn
-  occasion themes, chosen bird art and private previews. Local frame controls
-  are linked from management.
-- Health check, restricted container and existing Caddy integration.
+Artwork is reviewed offline. The catalog contains historical plates/cutouts,
+original illustrated birds and wildlife, and private-reference pet portraits.
+Eligibility, exclusions, provenance and per-asset licenses stay with the catalog.
+Prepared previews and downloads remain distinct from device-reported display
+success and owner-observed physical output.
 
-The public firmware fork is https://github.com/lstepnio/Emviary-firmware, based
-on upstream v2.19.0. It retains the safe panel refresh with clearing removed from the white buttons,
-advertises `emviary.local` plus `photoframe.local`, and checks the authenticated
-cloud update policy on every online wake. GitHub hosts immutable, board-specific
-releases; complete-image SHA-256 verification precedes the OTA boot switch.
-New frames default to automatic stable-release updates after a seven-day
-publication delay. Existing saved update preferences are preserved; management
-can pause updates or select a pinned version. Battery endurance still needs
-separate validation.
-See [research/DISPLAY_DIAGNOSTICS.md](research/DISPLAY_DIAGNOSTICS.md).
-The current firmware audit, candidate acceptance status, measured resource changes
-and application-only recovery instructions are in
-[the firmware resource audit](research/firmware-resource-audit-2026-10-08.md).
+## Everyday controls
+
+| Control | Behavior |
+| --- | --- |
+| Left white, short press | Previous picture; preserves an armed gift welcome |
+| Right white, short press | Next picture, or reveal the locally preloaded first gift artwork |
+| Left white, hold five seconds | Local diagnostics |
+| Green | Local/network wake and return from diagnostics to artwork |
+| USB-C | Power and charging; normal interactive startup fetches once when online |
+
+An armed gift welcome guards ordinary boot, timer and USB artwork replacement.
+On battery, green does not mean next picture. E-paper refresh takes time; wait
+for it to finish. Ordinary navigation coalesces pending taps, while gift
+activation/reveal consumes taps that could accidentally skip the first picture.
+
+Offline cache playback uses weather-neutral ordinary pictures. Special-day art
+is excluded, and the server's exact neutral pixels remove stale forecast text.
+Cached rotation uses the saved schedule while network probes back off. A small
+battery icon appears at 25% or below and clears at 28% or on detected external
+power, only during an ordinary artwork refresh.
+
+## Owner management and gift preparation
+
+Management covers appearance, special days, artwork/history, battery and device
+health, schedules, saved Wi-Fi and guided USB recovery. Access uses the configured
+owner password or owner OIDC identity. Explicit per-frame trusted-network opt-in
+can recognize a recently authenticated frame's home network; browser traffic
+alone cannot establish trust. See [network access](deployment/TRUSTED_NETWORK_ACCESS.md).
+Public guide and showcase pages contain no private frame configuration.
+
+Gift welcome is an explicit owner action, separate from the calendar and ordinary
+image queue. Preview the dedication and first composition, then choose **Show
+welcome on frame**. Both assets must be staged and verified locally before the
+frame reports ready. Check the actual screen, charge it, switch it off and wrap it.
+The next right-white press reveals the dedicated first artwork offline. Checked
+refresh success commits opened state; the initial art holds for 30 minutes unless
+manually browsed. Cancellation waits for online device acknowledgment before a
+new package can replace it. Gift mode requires the corrected v0.8.13 firmware
+implementation; published artifacts, installed versions and physical acceptance
+are separate release gates. No gift is armed simply by deploying this source.
+
+[RUNBOOK.md](RUNBOOK.md) is the current owner/operations guide.
+[DEPLOYMENT.md](DEPLOYMENT.md) describes publication, rollout and recovery.
+[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) identifies canonical paths.
+[Research index](research/README.md) separates historical evidence from current use.
 
 ## Local development
 
-See [project structure](PROJECT_STRUCTURE.md) for the canonical checkout, firmware
-submodule, and local development paths.
-
 ```sh
-git clone --recurse-submodules git@github.com:lstepnio/Emviary.git
+git clone --recurse-submodules https://github.com/lstepnio/Emviary.git
 cd Emviary
 uv sync --locked
 npm ci --ignore-scripts --prefix converter
@@ -78,167 +105,41 @@ uv run emviary prepare local-e1002 --offline
 uv run emviary serve
 ```
 
-The default configuration is `deployment/site.example.json`. Set `EMVIARY_CONFIG`,
-`EMVIARY_DATA_DIR`, `EMVIARY_ART_DIR`, and `EMVIARY_BACKUP_DIR` to override paths. All owner
-provisioning files are secrets and excluded from Git. The public homepage shows
-the selected frame's latest delivered art with a subtle management link.
-`/manage` requires the owner password; `/library` shows source artwork and credits.
-`/v1/image` and `/v1/preview` require the frame's bearer token. The panel preview
-is decoded from the exact packed pixels; perceived physical colors vary with
-lighting. Delivery telemetry is not a physical panel acknowledgement.
-
-For local management, set `EMVIARY_SECRET_DIR` to a private writable directory and
-run `emviary init-owner --password-file .state/provisioning/owner-login.txt`.
-Production bootstrap credentials are delivered privately, never committed.
+The example config is `deployment/site.example.json`. Override paths with
+`EMVIARY_CONFIG`, `EMVIARY_DATA_DIR`, `EMVIARY_ART_DIR` and `EMVIARY_BACKUP_DIR`.
+For local owner bootstrap, set `EMVIARY_SECRET_DIR` to a private writable directory
+and run `uv run emviary init-owner --password-file .state/provisioning/owner-login.txt`.
+Device endpoints require the frame bearer token. Tokens, Wi-Fi passwords,
+provider keys, provisioning exports and original family/pet photos stay private.
+Never commit them or include them in public diagnostics.
 
 ```sh
 uv run ruff check src tests tools
 uv run ruff format --check src tests tools
 uv run pytest -q
+npm ci --prefix web-recovery
+npm test --prefix web-recovery
+npm run build --prefix web-recovery
 ```
 
-See [RUNBOOK.md](RUNBOOK.md) for owner operations and restore instructions,
-[DEPLOYMENT.md](DEPLOYMENT.md) for the deployment specification,
-[PLAN.md](PLAN.md) for architecture, cost and power tradeoffs, and
-[research/PROJECTS.md](research/PROJECTS.md) for upstream reuse decisions.
+Firmware is a separate Git submodule and release workflow. Do not incidentally
+change its pin during service work. Recovery packages must use matching release
+files and preserve NVS/LittleFS. Container publication follows successful source
+checks and produces immutable commit tags/digests. Publication does not deploy
+`one` or install firmware. Before rollout, capture the required verified backup
+with `deployment/backup-before-home-rollout.sh`; change only Emviary.
 
-For a gift you preconfigure and maintain, see the
-[gift readiness plan](research/GIFT_READINESS_PLAN_2026_10_13.md). The public
-`/guide` page explains everyday controls, charging and help, and can be printed
-for the gift box. It requires no account and contains no frame-specific data.
+## Artwork and attribution
 
-Original service code is MIT licensed. Artwork retains its per-asset MIT,
-CC BY-SA, CC BY-NC-SA or public-domain provenance; fonts are OFL licensed. Artwork provenance is in
-[art/FUGLERAMME-ATTRIBUTION.md](art/FUGLERAMME-ATTRIBUTION.md) and
-[art/catalog.json](art/catalog.json). Unreviewed generated experiments are kept
-separately and excluded from runtime and deployment.
+Original service code is MIT licensed. Artwork retains its individual license,
+including MIT, CC BY-SA, CC BY-NC-SA and public-domain sources; fonts retain OFL
+licenses. Do not treat the service's license as a blanket artwork license.
+See [catalog](art/catalog.json), [Fugleramme credits](art/FUGLERAMME-ATTRIBUTION.md),
+[Colorado source credits](art/COLORADO-ATTRIBUTION.md),
+[original bird provenance](art/provenance/ai-color-cutouts/README.md),
+[wildlife provenance](art/wildlife/README.md) and
+[occasion collection](art/occasions/README.md).
 
-The deployed eBird adapter uses a secret file mounted at `/run/secrets/ebird-api-key`.
-It queries recent reports within 25 km, limits responses to 100 species, and uses
-reported presence as a selection bonus rather than mixing observation counts
-with acoustic detections. The key and observer/checklist details are not stored
-in snapshots, artwork manifests, Git or application backups. Enable it per site
-in management; the example keeps it disabled for local setup. BirdWeather and
-eBird share the configured center and locality radius, defaulting to 25 km.
-Observations outside that circle are filtered before selection. The expanded
-catalogue includes Denver-area residents and seasonal birds, with eligibility
-windows attached to the art, including breeding-plumage restrictions. It does
-not claim to be a complete bird catalogue. See
-[research/RELATED_PROJECTS.md](research/RELATED_PROJECTS.md) for the five-project
-review, incorporated artwork, validation and prioritized feature ideas.
-
-Emviary was previously named eInkArtifact. Both application and firmware repositories are public; operational secrets and
-device provisioning files stay outside Git.
-See [migration notes](research/EMVIARY_MIGRATION.md) for compatibility and rollback.
-
-### Species captions
-
-The frame displays common bird names only. Scientific names remain in the web library, source credits and backend species matching. Removing the second caption row increases the main artwork region by 36 pixels in height, with 18 extra pixels for special-day bird art. Common names can still wrap onto two lines for multi-bird compositions.
-
-### Display header
-
-Enable **Show location name** in frame management to include the area name (currently Colorado) in the upper-left corner, without a date. This option defaults to off for new frames; it is enabled for Emily’s frame. Legacy location/date settings remain readable and now control the name only. This only changes the artwork; locality selection, forecast date validation and the nightly wake schedule continue to use the configured location and date.
-
-### Daily weather on the artwork
-
-The compact header shows a dated local forecast, not a live observation. Open-Meteo and the US National Weather Service are independently fetched and cached. Either can supply weather when the other fails; if both fail, the composition remains available without weather. Settings includes source status and reports disagreements.
-
-Both sources normalize temperatures to Celsius, wind to km/h and snow to cm before rendering temperatures in Fahrenheit. When daily highs and lows differ by no more than 6°C, their median is used. Larger differences retain the local NWS values. Conditions use agreement, with NWS taking precedence on a tie; condition codes and precipitation amounts are never blindly averaged. NWS uses its daytime high and predawn overnight low, while Open-Meteo uses local calendar-day extrema. These are comparable outlooks, not identical measurement windows or statistically independent models.
-
-Snapshots must match the date and location, satisfy the frame's fetch freshness window, and pass unit/range checks. NWS issuance must also be less than 18 hours old. Failed sources have a 15-minute retry delay. A daily picture prepared without weather gets up to two additional attempts before wake, keeping the same planned composition. The daily panel does not become an error simply because its forecast ages while the frame sleeps.
-
-### A picture ready for the next wake
-
-After a firmware image download completes, the backend prepares one new image in the background. The right white button advances to the next saved composition and the left white button returns to the previous one (firmware v0.5.0+), while the automatic 03:15 refresh remains unchanged. Allow a few seconds between wakes for rendering. The public display continues to mirror the image last delivered to the frame; management previews show the prepared next image.
-
-Preview requests do not advance the rotation. Duplicate downloads share one refill, and the persistent queue survives server restarts. Failed renders keep the last good image and retry every 15 minutes, up to three attempts per local day. Nightly preparation now has a separate daily slot, so an early button buffer cannot satisfy the scheduled job. Forecasts default to a two-hour age limit; expired next-button buffers refresh on the server while the frame sleeps. Historical images keep their original forecasts. If no fresh image is ready, the device keeps its existing picture without waiting for rendering. The refill queue works with existing firmware; bidirectional white-button navigation requires v0.5.0 or later. Firmware v0.6.1 keeps white-button scanning active during downloads and panel refreshes. A press during a refresh queues one additional navigation; further presses replace that pending direction rather than accumulating a backlog. A button held through wake is not counted twice. The e-paper refresh itself still takes roughly 30 seconds.
-
-Management includes an authenticated image-history gallery and artwork rotation controls. Removing a composition excludes it from navigation; the image currently displayed is protected until the frame advances. Excluding source artwork also replaces an upcoming composition that uses it. Neither operation removes attribution. Species render counters count each species once per successful composition, across all frames, and survive history removal/expiry. Existing saved history seeds the initial counters; already expired history cannot be reconstructed.
-
-Weather appears on one header line. Icon, condition words and high/low temperatures each have an independent management toggle, enabled by default, under the master weather control. Date-mismatched forecasts remain omitted.
-
-Holiday/season collections can be bulk imported, reviewed and individually enabled. A separate occasion-art library supports nonbird artwork and stays out of daily rotation. Uploaded art is automatically ready to assign from the combined Special days panel. The [AI-generated occasion collection](art/occasions/README.md) contains 22 reviewed illustrations for the 28 configured holiday and season entries plus a reusable birthday image, with prompts and source hashes preserved. Birthday setup was cleared for the new collection workflow.
-
-Owner-only battery history shows voltage, USB/charging state, low-battery alerts and a cautious time-to-charge estimate after enough discharge readings. Notifications currently appear only in web management. Firmware v0.6.0 removes SD startup, Home Assistant work and duplicate update checks from the E1002 cloud profile while preserving recovery, image handling and OTA. These changes have not established a battery endurance figure.
-
-### Web management
-
-The public home mirrors the last delivered image. Owner management uses focused pages:
-
-- **Overview:** delivered and prepared images, daily wake, battery, last contact and local controls.
-- **Appearance:** composition, weather details, panel treatment, firmware preferences and opt-in device logging.
-- **Special days:** dates, greetings, artwork selection, uploads and disabled-by-default holiday/season imports in one configuration panel.
-- **Artwork library:** search, status filters, sorting and scrolling artwork loading for rotation controls.
-- **Battery:** observed readings, alerts and cautious charging estimates.
-- **Settings:** locality, data sources, staged Wi-Fi, public sharing and account controls.
-- **Recovery:** guided browser USB firmware repair, local addresses, setup hotspot and private configuration downloads.
-
-Desktop navigation becomes a collapsible menu on mobile. Forms use visible labels, keyboard focus and save feedback; saving retains the current section. No JavaScript framework or external asset dependency is required.
-
-Bird compositions use a centered solo or evenly sized, symmetric pair/trio columns. Artwork choice and bird count provide variety; asymmetric lead layouts and staggered placement are no longer selected.
-
-The top-row location and weather use 17-pixel regular sans-serif type, aligned on one line with solid black strokes. Header conversion preserves binary black/white ink rather than color dithering.
-
-Special-day previews use today’s forecast and an adaptive nonbird art region,
-with a compact heading and space reserved for greetings only when present.
-“Preview this day & queue on frame” saves the exact converted preview in image
-history and gives it priority for the right white button. It does not enable or
-reschedule the event; the public page changes only after frame delivery.
-
-### Original AI bird variants
-
-The [original AI collection](art/provenance/ai-color-cutouts/README.md) adds one text-only variant for each of the 63 catalogue species. No existing image was supplied as a reference. Exact prompts, identification sources and asset digests are preserved. All 63 were screened in solo and three-bird 800x480 packed six-color previews using balanced processing and Stucki dithering. Existing art, owner exclusions, seasonal eligibility and occasion collections are retained. Generation is offline curation; normal operation needs no AI API calls. Physical-panel review remains pending.
-
-### Device health diagnostics
-
-Battery & device health in management focuses on Wi-Fi quality and network name,
-connection time and the last completed refresh. Firmware and the last connection
-appear in a compact status line. Recent connections use Mountain time and four
-readable columns. Raw channel, local address, disconnect, wake/reset, boot count,
-uptime and memory readings remain in owner-only storage for troubleshooting,
-without technical cards or numeric codes cluttering the interface. Firmware v0.6.2
-adds a small encoded diagnostics header to existing authenticated image requests.
-No additional polling, wakeups, scans or telemetry HTTP requests are required.
-
-The refresh result, total/download duration, bytes, HTTP status and retry count
-describe the previous completed image attempt. They arrive on the following
-request, not immediately after that refresh. Failed offline attempts become
-visible when connectivity returns. These are firmware-reported outcomes, not
-independent confirmation of what is visible on the physical panel. RTC-retained
-results avoid per-refresh flash writes and clear after a cold power loss.
-
-Diagnostics retain up to 2,000 request readings per frame for 90 days in SQLite
-and are included in application backups. They remain outside public pages and
-credits. Passwords, MAC/BSSID addresses, audio, exact coordinates and raw error
-strings are not collected. Firmware older than v0.6.2 remains compatible and
-shows a waiting state until it supplies diagnostics.
-
-### Interface and reliability review
-
-Application 0.13.0 preserves selected-frame context, previews unsaved appearance
-settings, and can save and queue the exact reviewed image. Failed forms retain
-entries, sign-in expiry can recover in another tab, and stale editors cannot
-silently overwrite newer settings. The overview emphasizes last-delivered artwork
-and distinguishes the daily and next-button buffers. Both artwork galleries use
-bounded cached thumbnails; frame rendering continues to use original masters.
-The artwork library uses compact cards with secondary removal controls. Species-selection and
-panel-review workflows have been removed. Frame history is no longer a web destination;
-the frame still uses backend history for previous/next navigation. Special-day uploads
-are ready immediately and share a panel with the calendar. Provenance stays in source
-records and documentation rather than the UI. The Recovery page includes a self-hosted
-USB installer for the E1002; see [USB recovery](web-recovery/README.md). See [UX_REVIEW.md](UX_REVIEW.md) for
-findings, acceptance checks and validation limits.
-
-Saved Wi-Fi inventory is available in [cloud Settings](https://emviary.majjix.com/manage/settings) and at `http://emviary.local`. Firmware v0.7.6 reports all saved network names and password-presence flags on each artwork fetch. See [Wi-Fi staging](research/WIFI_STAGING.md).
-
-See [prepared-image freshness](research/REFRESH_FRESHNESS.md) for scheduling, cache, fallback and verification details.
-
-Application 0.11.0 adds firmware release channels, rollout delays and blocked
-versions; schedule-aware management alerts; verified offline backup restoration
-and independent Mac backups; recurring weekday special days and conflict priority;
-and artwork bulk actions and catalog filters. The former physical-panel review tracking was removed in 0.13.0.
-See [reliability upgrades](research/RELIABILITY_UPGRADES.md) and
-[independent backups](tools/BACKUPS.md). Existing rotation, image processing,
-automatic firmware preference and nightly wake remain in place.
-
-See the [Special Days collection](docs/SPECIAL_DAYS_GALLERY.md) for the approved natural-history compositions.
+Emviary was previously named eInkArtifact. The service and firmware repositories
+are public; private operational state remains outside tracked source. Historical
+reports retain their original measurements and acceptance limits.

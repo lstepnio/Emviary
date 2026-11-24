@@ -1,5 +1,10 @@
 # Recovery verification hardening, 2026-10-13
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 ## Observed problem
 
 Service 0.15.5 and firmware v0.8.7 produced valid correlated boot, image and panel acknowledgments. A later session, created at 14:20 UTC, reached panel completion at 14:23 UTC but remained active after repeated finish attempts. A visible picture is positive panel evidence, not proof that the browser's complete recovery flow finishes reliably.

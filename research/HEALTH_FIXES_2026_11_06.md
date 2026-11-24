@@ -1,5 +1,10 @@
 # Health findings remediation, November 6, 2026
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 ## Scope and current outcome
 
 Authorized: recheck and fix the health findings, starting with backup scheduling

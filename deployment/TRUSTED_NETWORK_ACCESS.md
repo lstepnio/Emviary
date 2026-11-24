@@ -1,7 +1,7 @@
 # Home-network management access
 
-Password-free management remains opt-in per frame. An authenticated frame image
-request must renew its recognized origin within 30 days. Browser requests never
+Password-free management remains opt-in per frame. An authenticated frame
+contact through the validated device routes must renew its recognized origin within 30 days. Browser requests never
 create or renew that trust.
 
 Public origins match their observed public address. Hairpin NAT can use an exact
@@ -21,7 +21,10 @@ on that LAN is still required. Existing exact-router and public-origin behavior
 is retained. This trusts other people on the configured home LAN, matching the
 existing shared-network opt-in; devices elsewhere must sign in.
 
-After deployment, press the right white button once, wait for the frame to
-connect, and check `/manage` without a sign-in cookie. Verify rejection from an
+After deployment, use a normal online frame contact to renew recognition. If a
+gift welcome is armed, use green/network wake rather than right, which reveals
+the first picture. Then and check `/manage` without a sign-in cookie. Verify rejection from an
 outside network and with forged forwarding headers. Do not populate trust
 records manually from a browser address or from device-reported local IP alone.
+
+See [RUNBOOK](../RUNBOOK.md) for owner authentication and [OIDC configuration](owner-oidc.md) for the separate owner identity path.

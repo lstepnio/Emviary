@@ -1,6 +1,11 @@
 # Implemented POC, 2026-10-08
 
-Historical implementation record: the repository is now public; see `EMVIARY_MIGRATION.md` for the current deployment.
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
+Historical implementation record: the repository is now public; see [RUNBOOK](../RUNBOOK.md) for current operations and [migration notes](EMVIARY_MIGRATION.md) for the rename history.
 
 The application repository is `lstepnio/Emviary`. Its application
 release is commit `b355019`, version 0.2.0, deployed as `emviary:poc-003` on

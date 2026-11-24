@@ -1,4 +1,85 @@
-# Deployment plan: Denver bird-art frame
+# Emviary deployment
+
+Current operating procedure reviewed November 24, 2026 against the service,
+container workflows and recovery packaging source. The October specification
+below is retained as historical design evidence, not a current command recipe.
+
+## Build, publish and deploy are separate
+
+The [Checks workflow](.github/workflows/checks.yml) runs locked Python checks and
+tests and browser-recovery checks. Successful `main` push
+checks can trigger [container publication](.github/workflows/container.yml).
+The registry workflow publishes `ghcr.io/lstepnio/emviary` for `linux/amd64`,
+with full commit and dated tags. It promotes `latest` only if that checked source
+is still current `main`. Use the published digest for a reproducible deployment.
+See [registry details](deployment/CONTAINER_REGISTRY.md).
+
+Publish only reviewed source. A successful image build does not change the
+running service, wake a sleeping frame, install firmware or arm a gift.
+The firmware pin and browser recovery manifest describe selected release assets;
+installed device telemetry is separate evidence. Gift mode requires the corrected
+v0.8.13 firmware implementation. Keep firmware publication, bundle verification,
+service checks and physical gift qualification distinct.
+
+## Required rollout sequence
+
+Use the configured `one-codex` SSH alias for manual host operations. Keep one
+Emviary container in the existing Compose stack and preserve unrelated services.
+Resolve the actual deployed Compose file set first, including the host's
+current-images override. Use that same file set for validation, pull and recreate;
+a base-only command can silently restore obsolete image pins. The short Compose
+commands below assume that verified file set is already selected. Otherwise,
+include the actual explicit `-f` arguments before running them.
+
+```sh
+# Capture and verify the host's standard pre-rollout recovery point first.
+deployment/backup-before-home-rollout.sh
+ssh one-codex
+cd /docker
+sudo -n docker compose config --quiet
+sudo -n docker compose ps emviary
+```
+
+Record the backup tool's returned verified directory, the current image digest,
+resolved Emviary configuration and compatible application backup before changing
+anything. Pull the checked digest, change only Emviary's image reference, then
+recreate only that service with `sudo -n docker compose up -d --no-deps emviary`.
+Verify process readiness, public and authenticated routes, protected management
+and recovery assets, configuration/data preservation and a subsequent normal
+frame contact. Verify the actual panel separately when the change affects it.
+
+[compose-service.yml](deployment/compose-service.yml) is an inherited structural
+example. Its old local `emviary:poc-010` image, `pull_policy: never` and example
+proxy address are not current production values. Resolve the host's actual
+Compose entry, mounts and proxy peer; do not copy those literals into a rollout.
+Set trusted home networks explicitly as described in
+[trusted-network access](deployment/TRUSTED_NETWORK_ACCESS.md).
+
+Rollback uses the recorded pre-rollout directory and compatible image/data.
+Do not assume an older application can read a newer schema. Avoid stack-wide
+`down`, unrelated restarts, erase-all, data cleanup or unreviewed network changes.
+A local verified rollout point is not an independently verified off-host copy.
+See [RUNBOOK](RUNBOOK.md) and [backup tooling](tools/BACKUPS.md).
+
+## Runtime boundaries
+
+The service is FastAPI/Uvicorn, SQLite, Pillow and a short-lived pinned Node image
+converter, with serialized preparation and one application container. Persistent
+configuration/artwork/secrets and writable data/backups remain mounted separately.
+Credentials and precise private network details never belong in this document.
+
+Normal device requests authenticate and stream prepared files. Provider calls and
+composition run outside the fetch path. Gift control can return a header-only
+304 before ordinary selection; authenticated gift assets are dedicated immutable
+files. Both gift bodies must validate before the device reports ready. Normal
+image ETags, cached offline art and gift IDs represent different lifecycles.
+
+## Archived October 7 deployment specification
+
+The following measurements, defaults, local image tags and release notes are
+historical. Use the current procedure above and RUNBOOK for operations.
+
+### Original deployment plan: Denver bird-art frame
 
 Decision date: October 7, 2026, America/Denver.
 
@@ -34,7 +115,7 @@ Read-only inspection found:
 | Item | Observed state |
 |---|---|
 | SSH | `lstepnio@one.majjix.com` works using the existing key |
-| Public hostname | `emviary.majjix.com` resolves through `one.majjix.com` to `140.235.42.67`; no IPv6 answer was returned |
+| Public hostname | `emviary.majjix.com` resolves through `one.majjix.com` to the then-observed host address (not a deployment setting); no IPv6 answer was returned |
 | Architecture | `x86_64`, so build a `linux/amd64` container |
 | Compose | Existing stack at `/docker/docker-compose.yml`; Compose v5.5.1 |
 | HTTPS proxy | `lucaslorentz/caddy-docker-proxy` publishes TCP 80/443 |

@@ -1,5 +1,10 @@
 # Recovery and management status resilience
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed October 19, 2026, America/Denver.
 
 ## Confirmed production failure

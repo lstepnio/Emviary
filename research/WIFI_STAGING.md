@@ -1,5 +1,10 @@
 # Saved Wi-Fi staging
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Current controls: [cloud Settings](https://emviary.majjix.com/manage/settings)
 shows Saved Wi-Fi networks directly, with a Wi-Fi networks shortcut on each
 frame's overview. The local page at `http://emviary.local` also has Add network

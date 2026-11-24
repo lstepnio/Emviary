@@ -1,6 +1,11 @@
 # Weather-safe offline rotation implementation
 
-Current deployment: firmware v0.8.10 and service 0.16.1. Initial deployment and hardware validation used v0.8.9 and service 0.16.0. No extra scheduled wakes.
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
+Deployment recorded in this report: firmware v0.8.10 and service 0.16.1. Initial deployment and hardware validation used v0.8.9 and service 0.16.0. No extra scheduled wakes.
 
 Normal 200 downloads opt in to bounded metadata, preserving legacy EPDGZ bodies and recovery SHA. The backend quantizes a weather-free composition with the production converter and extracts an exact packed header tile. It excludes all special-day artwork/messages. Optional tile preparation failure preserves ordinary image delivery but prevents admission.
 
@@ -19,7 +24,7 @@ Battery behavior is verified structurally; charging interval and energy savings 
 
 Hardware validation of v0.8.9 confirmed weather removal. A 45-second cloud pause resumed ordinary cloud delivery instead of testing fallback, revealing that async socket timeout was not an idle deadline. A stopped-service test forced cached display; the owner confirmed weather absent but right appeared inactive. Reconnection telemetry showed the cache count dropped from three to one after wake. Shipped LittleFS registers stat but not access; cleanup interpreted unsupported access as a missing sidecar and deleted prior complete pairs while the RAM index still counted them. The v0.8.10 hardening candidate uses stat, deletes only confirmed missing sidecars, adds the actual unsupported-operation host fixture, and retains the offline navigation consumer through sleep commitment. It also aborts stalled requests after 15 seconds without another idle retry. Physical retest is pending.
 
-Current release verification: service 0.16.1 (`emviary:poc-063`, runtime source `4c3317087c462b2f50e3ebe6e6d2a3d0360f84ec`) is healthy with the unchanged 512 MiB limit. All 297 backend tests and service CI 38442083295 passed. Firmware v0.8.10 (commit `116f67299d5c7f9c85fcf629f22d65bee2fc1ead`) passed 259 host tests and official ESP-IDF 6 CI 38441022814, installed by GitHub OTA, and is confirmed by local interface and cloud telemetry. Both Wi-Fi networks and rollback readiness are retained. Fresh normal telemetry reported cache counts two at 18:04:22 UTC and three at 18:07:42 UTC. These counts establish admission, not yet reboot persistence or physical multi-image offline navigation. Final controlled hardware retest remains pending.
+Release verification recorded in this report: service 0.16.1 (`emviary:poc-063`, runtime source `4c3317087c462b2f50e3ebe6e6d2a3d0360f84ec`) is healthy with the unchanged 512 MiB limit. All 297 backend tests and service CI 38442083295 passed. Firmware v0.8.10 (commit `116f67299d5c7f9c85fcf629f22d65bee2fc1ead`) passed 259 host tests and official ESP-IDF 6 CI 38441022814, installed by GitHub OTA, and is confirmed by local interface and cloud telemetry. Both Wi-Fi networks and rollback readiness are retained. Fresh normal telemetry reported cache counts two at 18:04:22 UTC and three at 18:07:42 UTC. These counts establish admission, not yet reboot persistence or physical multi-image offline navigation. Final controlled hardware retest remains pending.
 
 Controlled v0.8.10 wake verification: cloud sample at 18:14:51 UTC reported four cached pictures after the USB wake/reset sequence, confirming that the earlier complete pairs survived. A subsequent 45-second service pause was automatically restored; health returned 0.16.1 and the container was running/unpaused. The local rotation client timed out after 65 seconds, consistent with radio shutdown but insufficient by itself to prove fallback or its timing. Owner weather-removal and multi-picture LEFT/RIGHT confirmation is pending; no extra logging was enabled.
 

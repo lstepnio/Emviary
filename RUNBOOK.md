@@ -1,12 +1,12 @@
 # Owner operations
 
 Service: https://emviary.majjix.com
-Host: `lstepnio@one.majjix.com`
+Host SSH alias: `one-codex`
 Compose service: `emviary`; container: `emviary`
 
 ## Management
 
-Open https://emviary.majjix.com/manage and sign in with the private owner password.
+Open https://emviary.majjix.com/manage. Use the owner password, configured Authentik sign-in, or enabled trusted-home-network access.
 The dashboard manages frame schedules, one-to-three-bird layouts, selection constraints,
 labels, season/forecast cues, local coordinates/radius, provider settings, eBird
 credentials, frame provisioning and password changes. Settings are validated and
@@ -46,11 +46,11 @@ The CLI below is retained for recovery and administration.
 ## Routine checks
 
 ```sh
-ssh lstepnio@one.majjix.com
+ssh one-codex
 cd /docker
-docker compose ps emviary
-docker exec emviary emviary status
-docker logs --tail 50 emviary
+sudo -n docker compose ps emviary
+sudo -n docker exec emviary emviary status
+sudo -n docker logs --tail 50 emviary
 ```
 
 `client_etag` matching `served_etag` on a later device request is evidence that
@@ -64,7 +64,12 @@ the right white button to **next image**. Neither clears the panel. The most rec
 navigation request is queued during an ongoing refresh; wait for the panel to
 finish before assessing it. A white button wakes a sleeping frame, fetches the
 selected image and returns to sleep. Green wakes local management without
-requesting a new picture. Nightly refresh continues on the configured schedule.
+requesting a new picture on battery. A normal USB-powered interactive startup
+fetches artwork once when Wi-Fi connects. Hold the left white button for five
+seconds for the diagnostic screen, including its local-management QR code.
+Use local management for Wi-Fi recovery while awake; use the cloud website for
+artwork, schedules, special days and updates. Nightly refresh continues on the
+configured schedule. Gift mode deliberately preserves its welcome; see below.
 
 The cloud chooses images and forecasts. Historic images retain their original
 weather, and matching bytes can skip a repaint. Keep local controls available
@@ -258,14 +263,16 @@ unassigned before it can be removed.
 
 Open `/manage/battery` for percentage history, voltage, charging/USB state and
 conservative estimates of days until 20%. Owner management shows a charge alert
-at 20% or an estimated crossing within seven days. Alerts stay in management;
+near 25%, escalating at 20% and 10%, or for an estimated crossing of 20%
+within seven days. Alerts stay in management;
 no email or webhook is configured. Firmware v0.6.0 supplies power-state headers.
 Older readings remain visible but are excluded from estimates when their power
 source is unknown. Percentage is derived from battery voltage and can fluctuate.
 
 Samples are deduplicated within 15-minute buckets and kept for one year. A
 forecast requires at least five daily readings spanning seven days and a
-five-point drop in one discharge cycle. Charging or a significant upward jump
+five-point drop in one discharge cycle. A slower trend qualifies with a
+three-point drop, at least ten daily readings and at least 21 days of history. Charging or a significant upward jump
 starts a new cycle. Stale, flat or noisy readings suppress estimates. Battery
 life is not yet established; use a complete battery-powered cycle to assess it.
 
@@ -461,7 +468,7 @@ last step that replaces local settings and directly installs Wi-Fi, binding and
 schedule over USB. It does not require a setup hotspot or manual configuration
 import. See the [guided recovery design and acceptance](research/GUIDED_USB_RECOVERY_2026_10.md).
 
-## Operational readiness (application 0.19.1)
+## Operational readiness
 
 `/healthz` remains a liveness check. Owner-authenticated `/manage/readiness`
 returns the same JSON as `emviary readiness`: HTTP 200 / exit 0 when ready,
@@ -511,7 +518,7 @@ an old forecast cannot appear after wrapping. Preparing does not change the
 calendar, daily schedule or ordinary artwork queue.
 
 Show welcome on frame becomes available after the frame reports gift-capable
-firmware (v0.8.12 or later using gift protocol 1). Press the right white button
+firmware (v0.8.13 or later using gift protocol 1). Press the right white button
 once while online to transfer both images and show the welcome. Wait for
 “Frame reported gift ready”, check the actual screen, charge the frame, then
 switch it off before wrapping. The retained welcome is visible with power off.

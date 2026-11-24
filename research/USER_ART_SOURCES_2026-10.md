@@ -1,5 +1,10 @@
 # Review of the five suggested artwork sources
 
+> Research and implementation record. Dates, release states, commands and test
+> results below belong to the work recorded here; they are not a fresh production
+> inspection. For current use, see [RUNBOOK](../RUNBOOK.md),
+> [README](../README.md) and the [research index](README.md).
+
 Reviewed 2026-10-08 for Emviary's 800×480 six-color E1002, Colorado-wide bird selection, and one-to-three visible birds. Source masters stay unchanged; the backend fits complete plates, adds its own readable labels, and performs the pinned LAB/dither conversion. Digital approval does not claim physical-panel validation.
 
 | Source | Fit for Emviary | Decision in this pass |
