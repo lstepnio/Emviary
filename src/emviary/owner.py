@@ -347,6 +347,10 @@ def attach_owner(app, service):
         return data
 
     install_usb_routes(app, require, service, checked_form)
+    from .gift_routes import install_owner_routes as install_gift_routes
+    from .gift_routes import panel as gift_panel
+
+    install_gift_routes(app, service, require, checked_form, escape, page)
     from .recovery_sessions import install_routes as install_recovery_sessions
 
     install_recovery_sessions(app, require, service, checked_form)
@@ -566,6 +570,8 @@ def attach_owner(app, service):
             timezone_label = site_timezone.rsplit("/", 1)[-1].replace("_", " ")
             if view == "manage":
                 delivered = service.delivered_image(frame)
+                gift = service.gifts.current(frame["id"])
+                gift_ready = gift and gift["status"] == "ready"
                 ready = service.store.slot_image(frame["id"], "navigation")
                 upcoming = service.next_daily_refresh(frame)
                 daily = upcoming["preview"]
@@ -605,13 +611,20 @@ def attach_owner(app, service):
                 )
                 body += (
                     framed_image(
-                        "/manage/frames/" + identifier + "/display",
-                        "Last artwork sent to this frame",
+                        f"/manage/frames/{identifier}/gift/{gift['id']}/preview/welcome",
+                        "Gift welcome reported ready on this frame",
                     )
-                    if delivered
+                    if gift_ready
                     else (
-                        '<p class="empty-state">Waiting for the frame to fetch its first '
-                        "picture.</p>"
+                        framed_image(
+                            "/manage/frames/" + identifier + "/display",
+                            "Last artwork sent to this frame",
+                        )
+                        if delivered
+                        else (
+                            '<p class="empty-state">Waiting for the frame to fetch its first '
+                            "picture.</p>"
+                        )
                     )
                 )
 
@@ -652,6 +665,11 @@ def attach_owner(app, service):
                     if delivered
                     else "Waiting for the frame's first picture request."
                 )
+                if gift_ready:
+                    display_status = (
+                        "Frame reported gift ready. The next right-white press "
+                        "reveals the first picture."
+                    )
                 body += '<p class="quiet" data-display-status>' + escape(display_status) + "</p>"
                 body += '</div><div class="prepared-slot"><h3>Daily refresh</h3>'
                 body += (
@@ -768,6 +786,7 @@ def attach_owner(app, service):
                     + "</div>"
                 )
             if view == "appearance":
+                body += gift_panel(service, frame["id"], csrf, escape, hidden)
                 body += '<section class="card"><h2>Composition & display</h2>'
                 body += (
                     '<form method="post" action="/manage/frames/'

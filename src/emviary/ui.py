@@ -148,6 +148,11 @@ border-radius:var(--radius)}
 .metric-label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .metric-value,.metric strong{font-size:27px;line-height:1.25;font-weight:600;display:block}
 .metric .battery-status{font-size:18px}
+.gift-previews{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:20px 0}
+.gift-previews figure{margin:0;min-width:0}.gift-status{display:grid;gap:4px;margin:16px 0}
+.gift-panel form{margin:16px 0}.gift-panel input,.gift-panel select{max-width:100%}
+@media(max-width:700px){.gift-previews{grid-template-columns:1fr}}
+
 .battery-badge{display:inline-flex;max-width:100%;padding:6px 12px;border-radius:99px;
 background:#fff0d0;color:#73531f;font-size:14px;
 font-weight:650;line-height:1.4;overflow-wrap:anywhere}

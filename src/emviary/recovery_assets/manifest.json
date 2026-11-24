@@ -1,19 +1,19 @@
 {
-  "version": "v0.8.11",
+  "version": "v0.8.12",
   "board": "seeedstudio_reterminal_e1002",
   "chip": "ESP32-S3",
   "flash_size": "32MB",
   "flash_mode": "dio",
   "flash_freq": "80m",
-  "commit": "cd26b67fd87757aec030e656e9362863ba283358",
-  "source_release": "https://github.com/lstepnio/Emviary-firmware/releases/tag/v0.8.11",
-  "source_build": "https://github.com/lstepnio/Emviary-firmware/actions/runs/45452870066",
+  "commit": "1618b7d1bd8289e2dc836e6806c71528138da2c8",
+  "source_release": "https://github.com/lstepnio/Emviary-firmware/releases/tag/v0.8.12",
+  "source_build": "https://github.com/lstepnio/Emviary-firmware/actions/runs/45499146144",
   "parts": [
     {
       "name": "bootloader.bin",
       "address": 0,
       "size": 15232,
-      "sha256": "ef4a16ce5a5f8a002f9435701b4a31a8799932936eb7c94c64eefb90a7fa6bf4"
+      "sha256": "ec657bcc6bbe06c04e7c20d7a8b03599b3e9d9d3093919f15eb2e981aaf6df76"
     },
     {
       "name": "partition-table.bin",
@@ -30,8 +30,8 @@
     {
       "name": "application.bin",
       "address": 131072,
-      "size": 1639056,
-      "sha256": "8e15cf0ff392d9f0f8350a78dd2dad1cc71160369241e876a2dee7f385c73be5"
+      "size": 1644816,
+      "sha256": "a77e3fd0910a45e86be45b50d4ff25207707341e631860ec6e8b57a1cdff9177"
     }
   ]
 }

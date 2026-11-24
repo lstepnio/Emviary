@@ -269,3 +269,10 @@ def test_new_battery_firmware_keeps_display_report_protocol(service, frame):
 
     assert supported("v0.8.11")
     assert supported("0.8.11")
+
+
+def test_gift_firmware_retains_ordinary_display_report_protocol():
+    from emviary.display_history import supported
+
+    assert supported("v0.8.12")
+    assert supported("0.8.12")

@@ -136,6 +136,8 @@ def verify_backup(root, *, require_complete=True, temp_dir=None):
             shutil.copytree(root / "art", clone / "art")
             shutil.copytree(root / "event-art", data / "event-art")
             shutil.copytree(root / "active-cache", data / "cache")
+            if (root / "gifts").exists():
+                shutil.copytree(root / "gifts", data / "gifts")
             restored = Service(
                 Settings(
                     config_path=clone / "site.json",
@@ -146,6 +148,7 @@ def verify_backup(root, *, require_complete=True, temp_dir=None):
                 providers=OfflineRestoreProviders(),
                 converter=unavailable_converter,
             )
+            restored.gifts.verify_all()
             for entry in restored.event_art.entries():
                 asset = restored.event_art.path(entry)
                 if not asset.is_file() or file_digest(asset) != entry.get("asset_sha256"):

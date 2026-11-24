@@ -418,7 +418,7 @@ trusts everyone sharing that frame's public IP, including guests and shared-NAT
 neighbors. A matching source must have been recorded by an authenticated frame
 image fetch within 30 days. The server rechecks each request and never creates a
 portable password-free cookie. Changes of frame WAN take effect on its next normal
-fetch; stale trust otherwise expires after 30 days. Only authenticated frame image requests renew this window; website visits do not.
+fetch; stale trust otherwise expires after 30 days. Only authenticated frame image or gift-control requests renew this window; website visits do not.
 No extra wake is requested.
 Owner password changes still require password sign-in. Disable the option to
 require password access again. New frames default to password-only access.
@@ -500,3 +500,40 @@ percentage, reading time and a link to the charging guide. The wording is
 Old readings are explicitly labeled as last reported. Existing critical-battery
 unattended offline-rotation hold at 10% is unchanged. The last picture remains
 visible after power runs out.
+
+## Gift welcome
+
+Open Appearance, then Gift welcome. Edit the dedication, short message and
+signature; the default is “For my love, Emily.”, “A little nature, every day.”
+and “Love, Luke”. Choose a prepared composition, then Prepare gift preview.
+Review both framed e-ink previews. Weather is removed from the first picture so
+an old forecast cannot appear after wrapping. Preparing does not change the
+calendar, daily schedule or ordinary artwork queue.
+
+Show welcome on frame becomes available after the frame reports gift-capable
+firmware (v0.8.12 or later using gift protocol 1). Press the right white button
+once while online to transfer both images and show the welcome. Wait for
+“Frame reported gift ready”, check the actual screen, charge the frame, then
+switch it off before wrapping. The retained welcome is visible with power off.
+The next right-white press after switching on reveals the preloaded first
+picture, even with Wi-Fi unavailable. Both images and gift state survive power
+cycles. A held activation button cannot accidentally open the gift.
+
+While ready, green wake, USB charging, daily refreshes and ordinary local
+image/clear commands preserve the welcome. The five-second left diagnostic
+hold remains available; returning restores the welcome. The first picture is
+held for at least 30 minutes unless manually browsed; no extra timer wake is
+added. Normal browsing and the saved future daily schedule then continue.
+Device reports can arrive after an offline reveal, so management labels them
+as reports rather than claiming the exact unwrapping time.
+
+Return to normal artwork requests cancellation on the next online wake. It
+cannot remotely change an offline panel. Prepare a new gift package to show
+the welcome again; completed IDs never automatically rearm. Corrupt, incomplete
+or cross-origin downloads cannot arm a gift. The frame stages and validates
+both immutable assets before showing the welcome, and commits opened state
+only after a checked first-picture refresh. Preparation, delivery and actual
+physical display confirmation remain distinct evidence.
+
+Gift files in data/gifts and their database records are included in verified
+backups and offline restore rehearsals. Do not remove them from an armed gift.
