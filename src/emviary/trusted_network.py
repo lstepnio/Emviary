@@ -90,12 +90,36 @@ def source_public_ip(request):
     return str(peer) if _global(peer) else None
 
 
+def _local_networks():
+    """Explicit, bounded physical LANs; never infer trust from private addresses."""
+    private = [
+        ipaddress.ip_network(value)
+        for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7")
+    ]
+    networks = []
+    for value in os.getenv("EMVIARY_TRUSTED_LOCAL_NETWORKS", "").split(","):
+        if not value.strip():
+            continue
+        try:
+            network = ipaddress.ip_network(value.strip(), strict=True)
+        except ValueError:
+            return []
+        if (
+            network.prefixlen < (24 if network.version == 4 else 64)
+            or not any(network.version == n.version and network.subnet_of(n) for n in private)
+            or any(network.version == n.version and network.overlaps(n) for n in _trusted_proxies())
+        ):
+            return []
+        networks.append(network)
+    return networks
+
+
 def source_management_ip(request):
-    """Allow exact, configured LAN origins only behind an explicitly trusted proxy.
+    """Recognize configured router origins or bounded LANs behind a trusted proxy.
 
     Hairpin NAT can make both a frame and a browser appear as their router's
-    private address. This exception does not trust private ranges, Docker peers,
-    or browser-supplied forwarding headers.
+    private address. Direct LAN access can instead use an explicitly configured
+    physical subnet. Neither path trusts arbitrary private or Docker origins.
     """
     peer, proxied = _source_address(request)
     if _global(peer):
@@ -114,6 +138,13 @@ def source_management_ip(request):
         if address is None or not any(address in network for network in ranges):
             return None
         allowed.append(address)
+    # Direct LAN routing gives the browser and frame different host addresses.
+    # Normalize only an explicitly configured physical LAN behind the trusted
+    # proxy. A frame must still authenticate on that same LAN before any browser
+    # receives access; Docker/proxy ranges cannot be configured as a LAN.
+    for network in _local_networks():
+        if peer.version == network.version and peer in network:
+            return "lan:" + str(network)
     return str(peer) if peer in allowed else None
 
 

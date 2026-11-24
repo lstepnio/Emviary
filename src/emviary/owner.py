@@ -422,7 +422,7 @@ def attach_owner(app, service):
             )
             + "<button>Sign in</button></form>"
             + (
-                '<a class="button secondary" href="'
+                '<a class="button secondary login-alternative" href="'
                 + escape(
                     oidc_start
                     + "?"

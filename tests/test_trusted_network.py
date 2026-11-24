@@ -224,6 +224,7 @@ def test_configured_hairpin_origin_requires_proxy_and_authenticated_frame(
     assert source_public_ip(browser) is None
     assert source_management_ip(browser) == "192.168.10.1"
     assert not network_session(browser, service, now=NOW)
+
     record(service, trusted_frame, peer="172.18.0.5", extra_headers=headers)
     assert network_session(browser, service, now=NOW)
     assert not network_session(browser, service, now=NOW + timedelta(days=30, seconds=1))
@@ -237,6 +238,51 @@ def test_configured_hairpin_origin_requires_proxy_and_authenticated_frame(
     )
     monkeypatch.delenv("EMVIARY_TRUSTED_LOCAL_IPS")
     assert not network_session(browser, service, now=NOW)
+
+
+def test_direct_home_lan_requires_authenticated_frame_and_exact_configured_subnet(
+    service, trusted_frame, monkeypatch
+):
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_NETWORKS", "192.168.10.0/24")
+    browser = request("172.18.0.5", [("x-forwarded-for", "192.168.10.25")])
+    assert source_management_ip(browser) == "lan:192.168.10.0/24"
+    assert not network_session(browser, service, now=NOW)
+    record(
+        service,
+        trusted_frame,
+        peer="172.18.0.5",
+        extra_headers=[("x-forwarded-for", "192.168.10.80")],
+    )
+    assert network_session(browser, service, now=NOW)
+    assert not network_session(browser, service, now=NOW + timedelta(days=31))
+    assert not network_session(
+        request("172.18.0.5", [("x-forwarded-for", "192.168.11.25")]), service, now=NOW
+    )
+    assert not network_session(
+        request("172.18.0.6", [("x-forwarded-for", "192.168.10.25")]), service, now=NOW
+    )
+    assert source_management_ip(request("192.168.10.25")) is None
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "bad",
+        "192.168.0.0/16",
+        "0.0.0.0/0",
+        "8.8.8.0/24",
+        "172.18.0.0/24",
+        "192.168.10.0/24,bad",
+        "fc00::/7",
+    ],
+)
+def test_direct_lan_configuration_is_bounded_and_excludes_proxy_networks(value, monkeypatch):
+    monkeypatch.setenv("EMVIARY_TRUSTED_PROXY_IPS", "172.18.0.5/32")
+    monkeypatch.setenv("EMVIARY_TRUSTED_LOCAL_NETWORKS", value)
+    assert (
+        source_management_ip(request("172.18.0.5", [("x-forwarded-for", "192.168.10.25")])) is None
+    )
 
 
 @pytest.mark.parametrize(
