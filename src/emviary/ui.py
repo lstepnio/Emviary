@@ -1074,7 +1074,7 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
             + navigation
             + '<div class="sidebar-foot"><a href="/">View your frame</a>'
             '<a href="/showcase">The finished frame</a><p>A '
-            "little nature, every day, for Emily.</p></div></aside>"
+            "little nature, every day, for my love Emily.</p></div></aside>"
             + '<header class="mobile-header"><div class="mobile-top">'
             + brand
             + '<a class="quiet" href="/">View '
@@ -1097,7 +1097,7 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
         )
     footer = (
         '<footer class="site-footer"><span>Emviary &middot; '
-        "A little nature, every day, for Emily.</span>"
+        "A little nature, every day, for my love Emily.</span>"
         '<div class="footer-links"><span class="footer-credit">Designed &amp; built by '
         '<a class="footer-author" href="https://www.linkedin.com/in/lstepnio/" '
         'aria-label="Lukasz Stepniowski on LinkedIn">Lukasz Stepniowski</a></span>'
