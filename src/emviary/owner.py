@@ -1622,8 +1622,9 @@ def attach_owner(app, service):
             )
         elif frame["active_image_id"] == image_id:
             message = (
-                "Artwork prepared and queued. It is available on the next online wake "
-                "or next-image button press."
+                "Artwork prepared and queued. Press the right white button once to request it, "
+                "or wait for the scheduled refresh. The green button opens local management; "
+                "it does not request a new picture."
             )
         else:
             message = (

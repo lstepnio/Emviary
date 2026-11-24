@@ -151,7 +151,7 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         + '</div></div><div class="event-card-controls">'
         f'<form method="post" action="/manage/frames/{identifier}/special-days/{day_id}/preview">'
         + hidden(csrf)
-        + '<button class="secondary">Show on next wake</button></form>'
+        + '<button class="secondary">Queue on frame</button></form>'
         f'<form class="event-toggle-form" method="post" '
         f'action="/manage/frames/{identifier}/special-days/{day_id}/enabled">'
         + hidden(csrf)
