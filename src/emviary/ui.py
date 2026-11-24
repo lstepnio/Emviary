@@ -105,7 +105,14 @@ font-weight:650}
 font-size:13px}
 
 .site-footer{padding:24px clamp(20px,4vw,56px);max-width:1320px;margin:auto;color:var(--muted);
-font-size:12px;display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--line)}
+font-size:12px;display:flex;align-items:center;justify-content:space-between;
+flex-wrap:wrap;gap:12px 24px;border-top:1px solid var(--line)}
+.site-footer .footer-credit{display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}
+.site-footer .footer-links{display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px}
+.site-footer a{display:inline-flex;align-items:center;min-height:44px;
+text-decoration:none;text-underline-offset:4px}
+.site-footer a:hover{text-decoration:underline}
+.site-footer .footer-author{color:var(--ink);font-weight:600}
 .login main{max-width:580px;
 padding-top:60px}
 .login .page-header{text-align:center}
@@ -1091,8 +1098,12 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
     footer = (
         '<footer class="site-footer"><span>Emviary &middot; '
         "A little nature, every day, for Emily.</span>"
-        + ('<a href="/manage">Manage your frame</a>' if public else '<a href="/">View frame</a>')
-        + "</footer>"
+        '<div class="footer-links"><span class="footer-credit">Designed &amp; built by '
+        '<a class="footer-author" href="https://www.linkedin.com/in/lstepnio/" '
+        'aria-label="Lukasz Stepniowski on LinkedIn">Lukasz Stepniowski</a></span>'
+        '<a href="https://www.linkedin.com/in/lstepnio/">LinkedIn</a>'
+        '<a href="https://github.com/lstepnio/Emviary" '
+        'aria-label="Emviary project on GitHub">GitHub</a></div></footer>'
     )
     document_title = str(title) + " · Emviary" if title != "Emviary" else "Emviary"
     return HTMLResponse(
