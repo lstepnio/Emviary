@@ -53,3 +53,24 @@ def test_existing_art_retained_and_words_fit(service, frame, tmp_path, monkeypat
         )
     response = client.post(f"/manage/frames/{frame[0]}/special-day-proof", data={"csrf": "invalid"})
     assert response.status_code in (400, 403)
+
+
+def test_memory_notes_never_enter_delivery_plan(service, frame):
+    from emviary.settings import FramePolicy
+
+    day = dict(
+        id="memory",
+        date="2026-12-21",
+        label="Together",
+        direction="memory",
+        heading="Questionable directions.",
+        message="Excellent company.",
+        memory_note="PRIVATE-MEMORY-NOTE",
+    )
+    service.store.set_policy(frame[0], FramePolicy(special_days=[day]))
+    current = service.store.frame(frame[0])
+    plan = service._new_plan(current, "2026-12-21", 0, "test", True, "memory")
+    import json
+
+    assert "PRIVATE-MEMORY-NOTE" not in json.dumps(plan)
+    assert "PRIVATE-MEMORY-NOTE" in current["policy"]

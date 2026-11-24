@@ -243,6 +243,10 @@ class Service:
         policy = FramePolicy.model_validate_json(frame["policy"]).model_dump()
         policy.pop("wifi_networks", None)
         policy.pop("wifi_forget_ssids", None)
+        policy["special_days"] = [
+            {k: v for k, v in day.items() if k != "memory_note"}
+            for day in policy["special_days"]
+        ]
         site = self.settings.config.site(frame["site_id"])
         inputs = self.providers.inputs(
             site,
