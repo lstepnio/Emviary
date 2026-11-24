@@ -262,3 +262,10 @@ def test_unknown_cursor_future_image_and_unauthenticated_fetch_do_not_confirm(se
     service.clock = lambda: datetime.fromisoformat(image["created_at"]) - timedelta(seconds=1)
     observe(service, frame, image)
     assert service.display_history.latest(frame[0]) is None
+
+
+def test_new_battery_firmware_keeps_display_report_protocol(service, frame):
+    from emviary.display_history import supported
+
+    assert supported("v0.8.11")
+    assert supported("0.8.11")
