@@ -56,7 +56,16 @@ def scene_font(art_dir, size, serif=False):
 
     selected = _font(art_dir, size) if serif else _header_font(size)
     # The approved proofs use BASIC. Make spacing independent of optional RAQM.
-    return selected.font_variant(layout_engine=ImageFont.Layout.BASIC)
+    if selected.layout_engine == ImageFont.Layout.BASIC:
+        return selected
+    # Pillow's font_variant treats BASIC (0) as false; construct explicitly.
+    return ImageFont.truetype(
+        selected.path,
+        selected.size,
+        index=selected.index,
+        encoding=selected.encoding,
+        layout_engine=ImageFont.Layout.BASIC,
+    )
 
 
 def validate_words(art_dir, day):
