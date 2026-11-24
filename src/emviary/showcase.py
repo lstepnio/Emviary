@@ -170,25 +170,14 @@ def showcase_invite():
 
 
 def battery_highlight():
-    """A dated, deliberately qualified observation, independent of live owner telemetry."""
+    """A concise projection with the frame's power and offline benefits."""
     return (
         '<section class="battery-highlight" id="battery" aria-labelledby="battery-heading">'
         '<div><p class="eyebrow">Early battery results</p>'
-        '<h2 id="battery-heading">Over a year.<br>At the observed rate.</h2>'
-        '<p class="battery-date">Measured through November 23, 2026</p></div><div>'
-        "<dl><div><dt>Battery remaining</dt><dd>92%</dd></div>"
-        "<div><dt>Days observed unplugged</dt><dd>41.1</dd></div>"
-        "<div><dt>Percentage points used</dt><dd>6</dd></div></dl>"
-        "<p>The unplugged trend projects more than a year to the 20% recharge threshold. "
-        "That is based on 42 daily readings, with reported charge moving from 98% to 92%.</p>"
-        '<p class="quiet">This is an early straight-line projection with limited confidence, '
-        "not a completed year-long endurance test. Battery discharge, temperature and use "
-        "can change the result.</p><p><strong>The picture stays.</strong> "
-        "The last picture stays visible when the battery runs out. "
+        '<h2 id="battery-heading">Over a year<br>without charging.</h2></div><div>'
+        "<p>Projected from the battery data so far.</p>"
+        "<p>The last picture stays visible when the battery runs out. "
         "If Wi-Fi drops, the frame keeps cycling through saved pictures while it has power.</p>"
-        '<a href="'
-        + REPOSITORY
-        + '/blob/main/docs/BATTERY_RESULTS.md">Read the battery evidence and method</a>'
         "</div></section>"
     )
 
