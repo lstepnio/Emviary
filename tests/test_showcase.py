@@ -10,10 +10,11 @@ def test_showcase_is_public_and_all_published_media_are_available(service):
     response = client.get("/showcase")
     assert response.status_code == 200
     assert "autoplay" not in response.text
-    assert response.text.count("<video controls") == 4
-    assert response.text.count("data-animation-toggle=") == 2
+    assert "<video" not in response.text
+    assert ".gif" not in response.text
+    assert "interface-assets" not in response.text
+    assert "data-animation-toggle" not in response.text
     for filename, media_type in MEDIA_TYPES.items():
-        assert MEDIA_URL + "/" + filename in response.text
         result = client.get(MEDIA_URL + "/" + filename, headers={"Range": "bytes=0-63"})
         assert result.status_code in (200, 206)
         assert result.headers["content-type"].startswith(media_type)
