@@ -134,3 +134,117 @@ def test_inflight_delivery_after_frame_removal_does_not_leave_queue_or_fail(serv
     service.image_delivered(frame[0], 1, 50, "test", "", "", 3.9, False, False)
     assert service.store.pending_refills() == []
     assert service.store.battery_samples(frame[0]) == []
+
+
+def slow_daily_history():
+    # Similar to the observed month-long 98% -> 94% decline, including
+    # quantization plateaus and one-point rebounds.
+    percentages = [98] * 8 + [97] * 8 + [96] * 8 + [95] * 7 + [94] * 7
+    samples = readings(percentages)
+    for index, sample in enumerate(samples):
+        sample["recorded_at"] = (NOW - timedelta(days=len(samples) - index - 1)).isoformat()
+    samples[24]["percent"] += 1
+    return samples
+
+
+def test_slow_month_long_discharge_shows_bounded_trend():
+    result = summarize(slow_daily_history(), NOW)
+    assert result["sample_count"] == result["daily_sample_count"] == 38
+    assert result["span_days"] == 37
+    assert result["drop_points"] == 4
+    assert result["estimate_label"] == "Over one year at the recent rate"
+    assert result["days_to_charge"] is None
+    assert result["confidence"] == "Limited"
+    assert "not a prediction of battery life" in result["estimate_reason"]
+    assert result["alert"] is None
+
+
+def test_small_decline_can_support_a_limited_near_term_estimate():
+    history = slow_daily_history()
+    for sample in history:
+        sample["percent"] -= 70
+    result = summarize(history, NOW)
+    assert result["days_to_charge"] is not None
+    assert 20 < result["days_to_charge"] < 60
+    assert result["estimate_label"] is None
+    assert result["confidence"] == "Limited"
+
+
+def test_horizon_does_not_hide_noisy_readings():
+    history = slow_daily_history()
+    for index, sample in enumerate(history[:-1]):
+        sample["percent"] = 94 + (index % 3) * 2
+    result = summarize(history, NOW)
+    assert result["estimate_label"] is None
+    assert result["days_to_charge"] is None
+
+
+def test_missing_estimates_explain_the_actual_blocker():
+    assert "no battery" in summarize([], NOW)["estimate_reason"].lower()
+    assert "five days" in summarize(readings([50, 49, 48]), NOW)["estimate_reason"]
+    assert "changed by 0" in summarize(readings([50] * 8), NOW)["estimate_reason"]
+    assert (
+        "Unplug"
+        in summarize(slow_daily_history()[:-1] + readings([94], usb=1), NOW)["estimate_reason"]
+    )
+    assert "does not confirm" in summarize(readings([50] * 8, usb=None), NOW)["estimate_reason"]
+    assert "fresh" in summarize(slow_daily_history(), NOW + timedelta(days=4))["estimate_reason"]
+
+
+def test_unknown_power_and_long_contact_gaps_break_discharge_evidence():
+    for key in ("charging", "usb_connected"):
+        history = slow_daily_history()
+        history[-2][key] = None
+        result = summarize(history, NOW)
+        assert result["sample_count"] == 1
+        assert result["estimate_label"] is None
+        assert result["days_to_charge"] is None
+    history = slow_daily_history()
+    for sample in history[:-2]:
+        sample["recorded_at"] = (
+            datetime.fromisoformat(sample["recorded_at"]) - timedelta(days=5)
+        ).isoformat()
+    result = summarize(history, NOW)
+    assert result["sample_count"] == 2
+    assert result["estimate_label"] is None
+
+
+def test_repeated_wakes_do_not_supply_the_required_daily_readings():
+    history = readings([98, 97, 96, 95, 94])
+    for sample in history[1:-1]:
+        sample["recorded_at"] = history[0]["recorded_at"]
+    result = summarize(history, NOW)
+    assert result["daily_sample_count"] < 5
+    assert result["estimate_label"] is None
+    assert result["days_to_charge"] is None
+
+
+def test_battery_page_shows_slow_trend_and_stale_reason(service, frame, monkeypatch):
+    import emviary.battery as battery
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return NOW
+
+    monkeypatch.setattr(battery, "datetime", Clock)
+    history = slow_daily_history()
+    monkeypatch.setattr(service.store, "battery_samples", lambda _: history)
+    app = FastAPI()
+    install_battery_routes(app, service, lambda _: None, escape, page)
+    with TestClient(app) as client:
+        response = client.get(f"/manage/battery?frame={frame[0]}")
+        assert response.status_code == 200
+        assert "Over one year at the recent rate" in response.text
+        assert "not a prediction of battery life" in response.text
+        assert "38 daily unplugged readings" in response.text
+        assert "Insufficient history" not in response.text
+        assert response.headers["cache-control"] == "no-store"
+        for sample in history:
+            sample["recorded_at"] = (
+                datetime.fromisoformat(sample["recorded_at"]) - timedelta(days=5)
+            ).isoformat()
+        stale = client.get(f"/manage/battery?frame={frame[0]}")
+        assert "Estimate not ready" in stale.text
+        assert "fresh battery reading" in stale.text
+        assert "Over one year" not in stale.text

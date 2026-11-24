@@ -29,6 +29,7 @@ from .compositions import artwork_label
 from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
 from .display_history import reported_label
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
+from .owner_oidc import attach_oidc
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
 from .showcase import framed_image
@@ -377,6 +378,31 @@ def attach_owner(app, service):
                 )
         return RedirectResponse(target, status_code=303)
 
+    def issue_session(target, *, hours=8):
+        token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(24)
+        with service.store.connect() as db:
+            db.execute(
+                "DELETE FROM owner_sessions WHERE expires_at<?", (datetime.now(UTC).isoformat(),)
+            )
+            db.execute(
+                "INSERT INTO owner_sessions VALUES(?,?,?)",
+                (token_hash(token), csrf, (datetime.now(UTC) + timedelta(hours=hours)).isoformat()),
+            )
+        response = RedirectResponse(target, status_code=303)
+        response.set_cookie(
+            COOKIE,
+            token,
+            secure=True,
+            httponly=True,
+            samesite="strict",
+            max_age=hours * 3600,
+            path="/manage",
+        )
+        response.delete_cookie("emviary_login", path="/manage")
+        return response
+
+    oidc_start = attach_oidc(app, service.store, safe_return, issue_session)
+
     @app.get("/manage/login")
     def login_form(request: Request):
         nonce = secrets.token_urlsafe(24)
@@ -394,7 +420,18 @@ def attach_owner(app, service):
                 "password",
                 'required maxlength="256" autocomplete="current-password"',
             )
-            + "<button>Sign in</button></form>",
+            + "<button>Sign in</button></form>"
+            + (
+                '<a class="button secondary" href="'
+                + escape(
+                    oidc_start
+                    + "?"
+                    + urlencode({"return": safe_return(request.query_params.get("return"))})
+                )
+                + '">Sign in with Authentik</a>'
+                if oidc_start
+                else ""
+            ),
         )
         response.set_cookie(
             "emviary_login",
@@ -431,27 +468,7 @@ def attach_owner(app, service):
                 active="login",
             )
         failures.pop(peer, None)
-        token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(24)
-        with service.store.connect() as db:
-            db.execute(
-                "DELETE FROM owner_sessions WHERE expires_at<?", (datetime.now(UTC).isoformat(),)
-            )
-            db.execute(
-                "INSERT INTO owner_sessions VALUES(?,?,?)",
-                (token_hash(token), csrf, (datetime.now(UTC) + timedelta(hours=8)).isoformat()),
-            )
-        response = RedirectResponse(safe_return(data.get("return")), status_code=303)
-        response.set_cookie(
-            COOKIE,
-            token,
-            secure=True,
-            httponly=True,
-            samesite="strict",
-            max_age=28800,
-            path="/manage",
-        )
-        response.delete_cookie("emviary_login", path="/manage")
-        return response
+        return issue_session(safe_return(data.get("return")))
 
     @app.post("/manage/logout")
     async def logout(request: Request):
