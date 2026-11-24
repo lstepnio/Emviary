@@ -158,7 +158,8 @@ def test_special_day_html_queue_confirms_service_state_and_keeps_jpeg_compatibil
     result = client.get(response.headers["location"])
     assert "Artwork prepared and queued" in result.text
     assert "Press the right white button once" in result.text
-    assert "The green button opens local management" in result.text
+    assert "On battery, the green button opens local" in result.text
+    assert "wake also checks for artwork" in result.text
     assert "does not confirm a physical panel update" in result.text
     assert 'role="status"' in result.text
     assert service.delivered_image(service.store.frame(frame[0]))["id"] == first["id"]
