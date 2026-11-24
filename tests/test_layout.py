@@ -294,3 +294,34 @@ def test_header_long_forecast_is_clear_and_does_not_overlap_location(
     for left, top, right, bottom in header_boxes:
         assert 12 <= left < right <= 788 and 10 <= top < bottom <= 42
         assert bottom - top >= 12  # Legible letter height on the physical panel.
+
+
+def test_scene_paper_guard_is_opt_in_and_preserves_colored_highlights(tmp_path):
+    from PIL import PngImagePlugin
+
+    source, target = tmp_path / "scene.png", tmp_path / "scene.epdgz"
+    image = Image.new("RGB", (800, 480), "white")
+    colors = [
+        (254, 254, 254),
+        (250, 252, 253),
+        (249, 249, 249),
+        (250, 254, 250),
+        (255, 255, 255),
+        (200, 0, 0),
+    ]
+    for index, color in enumerate(colors):
+        image.putpixel((index, 0), color)
+    original = bytes([0x35]) * 192000
+    for enabled, expected in [
+        (False, bytes([0x35, 0x35, 0x15])),
+        (True, bytes([0x11, 0x35, 0x15])),
+    ]:
+        metadata = PngImagePlugin.PngInfo()
+        if enabled:
+            metadata.add_text("eink_scene_paper_guard", "250:3")
+        image.save(source, pnginfo=metadata)
+        target.write_bytes(gzip.compress(original))
+        render.preserve_paper_white(source, target)
+        packed = gzip.decompress(target.read_bytes())
+        assert packed[:3] == expected
+        render.validate_epdgz(target)

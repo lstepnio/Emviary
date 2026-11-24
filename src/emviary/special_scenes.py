@@ -121,6 +121,7 @@ def compose_scene(art_dir, artwork, plan, output, event_art_dir, neutral_output=
                 (x, y + n * (37 if y == ty else 29)), line, font=font, anchor="mm", fill="black"
             )
     metadata = PngImagePlugin.PngInfo()
+    metadata.add_text("eink_scene_paper_guard", "250:3")
     metadata.add_text(
         "eink_neutral_bands", json.dumps([] if side else [[334 if message else 400, 480]])
     )
