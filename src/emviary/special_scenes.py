@@ -5,7 +5,7 @@ import json
 from html import escape
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageOps, PngImagePlugin
+from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 
 ASSETS = Path(__file__).with_name("special_day_assets")
 
@@ -51,28 +51,45 @@ def text_lines(draw, text, font, width, maximum):
     return lines
 
 
+def scene_font(art_dir, size, serif=False):
+    from .render import _font, _header_font
+
+    selected = _font(art_dir, size) if serif else _header_font(size)
+    # The approved proofs use BASIC. Make spacing independent of optional RAQM.
+    if selected.layout_engine == ImageFont.Layout.BASIC:
+        return selected
+    # Pillow's font_variant treats BASIC (0) as false; construct explicitly.
+    return ImageFont.truetype(
+        selected.path,
+        selected.size,
+        index=selected.index,
+        encoding=selected.encoding,
+        layout_engine=ImageFont.Layout.BASIC,
+    )
+
+
 def validate_words(art_dir, day):
     if day.get("direction", "existing") == "existing":
         return
-    from .render import _font, _header_font
-
     side = day.get("composition") == "dedication"
     draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     text_lines(
         draw,
         day.get("heading") or day["label"],
-        _font(art_dir, 32 if side else 30),
+        scene_font(art_dir, 32 if side else 30, serif=True),
         272 if side else 736,
         2 if side else 1,
     )
     text_lines(
-        draw, day.get("message", ""), _header_font(24 if side else 22), 272 if side else 736, 2
+        draw,
+        day.get("message", ""),
+        scene_font(art_dir, 24 if side else 22),
+        272 if side else 736,
+        2,
     )
 
 
 def compose_scene(art_dir, artwork, plan, output, event_art_dir, neutral_output=None):
-    from .render import _font, _header_font
-
     day = plan["special_day"]
     validate_words(art_dir, day)
     root = (
@@ -113,14 +130,19 @@ def compose_scene(art_dir, artwork, plan, output, event_art_dir, neutral_output=
         )
     draw = ImageDraw.Draw(canvas)
     for text, y, font in [
-        (day.get("heading") or day["label"], ty, _font(art_dir, 32 if side else 30)),
-        (message, my, _header_font(24 if side else 22)),
+        (
+            day.get("heading") or day["label"],
+            ty,
+            scene_font(art_dir, 32 if side else 30, serif=True),
+        ),
+        (message, my, scene_font(art_dir, 24 if side else 22)),
     ]:
         for n, line in enumerate(text_lines(draw, text, font, width, 2)):
             draw.text(
                 (x, y + n * (37 if y == ty else 29)), line, font=font, anchor="mm", fill="black"
             )
     metadata = PngImagePlugin.PngInfo()
+    metadata.add_text("eink_scene_paper_guard", "250:3")
     metadata.add_text(
         "eink_neutral_bands", json.dumps([] if side else [[334 if message else 400, 480]])
     )

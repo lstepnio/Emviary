@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from .branding import BRAND_MARK, ICON_LINK
 from .event_ui import EVENT_CSS, EVENT_JAVASCRIPT
 from .showcase import SHOWCASE_CSS
+from .special_day_gallery import GALLERY_CSS, GALLERY_JAVASCRIPT
 
 NAVIGATION = (
     ("overview", "/manage", "Overview"),
@@ -997,7 +998,8 @@ JAVASCRIPT = r"""
 })();
 """
 JAVASCRIPT += EVENT_JAVASCRIPT
-CSS += SHOWCASE_CSS
+CSS += SHOWCASE_CSS + GALLERY_CSS
+JAVASCRIPT += GALLERY_JAVASCRIPT
 
 ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
 
@@ -1057,6 +1059,9 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
                 + '<a href="/showcase"'
                 + (' aria-current="page"' if active == "showcase" else "")
                 + ">The finished frame</a>"
+                + '<a href="/special-days"'
+                + (' aria-current="page"' if active == "special-days" else "")
+                + ">Special days</a>"
                 + '<a href="/guide"'
                 + (' aria-current="page"' if active == "guide" else "")
                 + ">Using your frame</a>"

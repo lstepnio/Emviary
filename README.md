@@ -240,3 +240,5 @@ and artwork bulk actions and catalog filters. The former physical-panel review t
 See [reliability upgrades](research/RELIABILITY_UPGRADES.md) and
 [independent backups](tools/BACKUPS.md). Existing rotation, image processing,
 automatic firmware preference and nightly wake remain in place.
+
+See the [Special Days collection](docs/SPECIAL_DAYS_GALLERY.md) for the approved natural-history compositions.

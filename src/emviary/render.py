@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, PngImagePlugin
 from .compositions import artwork_label
 from .store import stable_json
 
-RENDER_VERSION = 21
+RENDER_VERSION = 22
 INK_CODES = {0, 1, 2, 3, 5, 6}
 
 
@@ -620,10 +620,12 @@ def convert(source, target, preview, policy, timeout):
 def preserve_paper_white(source, target):
     # Palette tone adjustment can dither even untouched white paper into
     # colored speckles. Keep exactly white source pixels as the panel's white
-    # ink. Colored art, antialiasing and decorative marks retain conversion.
+    # ink. Scene compositions can opt into the reviewed near-white paper guard.
+    # Other art retains its existing exact-white behavior.
     with closing(Image.open(source)) as image:
         if image.size != (800, 480):
             raise ValueError("Invalid source dimensions")
+        scene_guard = image.info.get("eink_scene_paper_guard") == "250:3"
         with closing(image.convert("RGB")) as rgb:
             pixels = rgb.tobytes()
     with gzip.open(target, "rb") as handle:
@@ -632,7 +634,8 @@ def preserve_paper_white(source, target):
         raise ValueError("Invalid packed dimensions")
     for index in range(384000):
         offset = index * 3
-        if pixels[offset : offset + 3] == b"\xff\xff\xff":
+        rgb = pixels[offset : offset + 3]
+        if rgb == b"\xff\xff\xff" or (scene_guard and min(rgb) >= 250 and max(rgb) - min(rgb) <= 3):
             byte = index // 2
             packed[byte] = (packed[byte] & 0xF0) | 1 if index % 2 else (packed[byte] & 15) | 16
     Path(target).write_bytes(gzip.compress(bytes(packed), mtime=0))

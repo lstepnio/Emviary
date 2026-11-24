@@ -80,3 +80,21 @@ def test_memory_notes_never_enter_delivery_plan(service, frame):
 
     assert "PRIVATE-MEMORY-NOTE" not in json.dumps(plan)
     assert "PRIVATE-MEMORY-NOTE" in current["policy"]
+
+
+def test_scene_text_matches_review_layout_when_system_supports_shaping(service, monkeypatch):
+    from PIL import ImageFont, features
+
+    from emviary import render
+    from emviary.special_scenes import scene_font
+
+    base = render._font(service.settings.art_dir, 30)
+    expected = ImageFont.truetype(base.path, base.size, layout_engine=ImageFont.Layout.BASIC)
+    system = base.font_variant(
+        layout_engine=ImageFont.Layout.RAQM if features.check("raqm") else ImageFont.Layout.BASIC
+    )
+    monkeypatch.setattr(render, "_font", lambda art_dir, size: system)
+    actual = scene_font(service.settings.art_dir, 30, serif=True)
+    phrase = "New year. Same us."
+    assert actual.getlength(phrase) == expected.getlength(phrase)
+    assert bytes(actual.getmask(phrase)) == bytes(expected.getmask(phrase))
