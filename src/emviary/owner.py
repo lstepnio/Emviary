@@ -27,7 +27,7 @@ from .api import config_payload
 from .battery import battery_summary, install_battery_routes
 from .compositions import artwork_label
 from .diagnostics import management_alerts_section, saved_networks_section, weather_sources_section
-from .display_history import HISTORY_NOTE, reported_label
+from .display_history import reported_label
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
@@ -631,13 +631,7 @@ def attach_owner(app, service):
                     if delivered
                     else "Waiting for the frame's first picture request."
                 )
-                body += (
-                    '<p class="quiet" data-display-status>'
-                    + escape(display_status)
-                    + '</p><p class="quiet">The frame reports its previous refresh '
-                    "on a later wake. "
-                    "Sending a picture does not confirm a panel refresh.</p>"
-                )
+                body += '<p class="quiet" data-display-status>' + escape(display_status) + "</p>"
                 body += '</div><div class="prepared-slot"><h3>Daily refresh</h3>'
                 body += (
                     '<img class="preview" alt="Prepared daily artwork" src="/manage/frames/'
@@ -691,14 +685,7 @@ def attach_owner(app, service):
                     if ready
                     else '<p class="empty-state">No picture prepared yet.</p>'
                 )
-                body += (
-                    '<p class="quiet">' + escape(readiness(ready)) + "</p>"
-                    '</div></div><p class="quiet">Daily refreshes get a separately prepared '
-                    "forecast. The next button uses a ready image; older images keep their "
-                    "original weather when browsing history. If preparation is delayed, the "
-                    "frame keeps its current picture. Prepared pictures have not yet been "
-                    "confirmed as displayed.</p>"
-                )
+                body += '<p class="quiet">' + escape(readiness(ready)) + "</p></div></div>"
                 past = service.store.past_compositions(
                     frame["id"], delivered["id"] if delivered else None, 10
                 )
@@ -706,7 +693,6 @@ def attach_owner(app, service):
                     image for image in past if service.cache_path(image["preview_path"]).is_file()
                 ]
                 body += '<section class="past-compositions"><h3>Past compositions</h3>'
-                body += '<p class="quiet">' + HISTORY_NOTE + "</p>"
                 if not past:
                     body += (
                         '<p class="empty-state">No frame-confirmed past pictures '

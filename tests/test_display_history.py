@@ -38,7 +38,7 @@ def test_real_fetch_confirm_and_history_journey_excludes_unseen_preparations(
     assert service.store.past_compositions(frame[0]) == []
     assert "display not yet confirmed" in owner.get("/manage").text
     assert "Prepared" in public.get("/").text
-    assert "may have gaps" in owner.get("/manage").text
+    assert "No frame-confirmed past pictures" in owner.get("/manage").text
     # A later wake reports the fox while fetching today's new image. The
     # unconsumed raccoon must never enter confirmed history.
     service.prepare(frame[0], force=True, offline=True)
