@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse
 
 from .branding import BRAND_MARK, ICON_LINK
 from .event_ui import EVENT_CSS, EVENT_JAVASCRIPT
+from .showcase import SHOWCASE_CSS
 
 NAVIGATION = (
     ("overview", "/manage", "Overview"),
@@ -989,6 +990,8 @@ JAVASCRIPT = r"""
 })();
 """
 JAVASCRIPT += EVENT_JAVASCRIPT
+CSS += SHOWCASE_CSS
+
 ASSET_VERSION = hashlib.sha256((CSS + JAVASCRIPT).encode()).hexdigest()[:12]
 
 
@@ -1044,6 +1047,9 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
                 + '<a href="/library"'
                 + (' aria-current="page"' if active == "artwork" else "")
                 + ">Artwork</a>"
+                + '<a href="/showcase"'
+                + (' aria-current="page"' if active == "showcase" else "")
+                + ">The finished frame</a>"
                 + '<a href="/guide"'
                 + (' aria-current="page"' if active == "guide" else "")
                 + ">Using your frame</a>"
@@ -1059,7 +1065,8 @@ def page(title, body, *, active=None, public=False, description=None, frame=None
             + brand
             + ""
             + navigation
-            + '<div class="sidebar-foot"><a href="/">View your frame</a><p>A '
+            + '<div class="sidebar-foot"><a href="/">View your frame</a>'
+            '<a href="/showcase">The finished frame</a><p>A '
             "little nature, every day, for Emily.</p></div></aside>"
             + '<header class="mobile-header"><div class="mobile-top">'
             + brand

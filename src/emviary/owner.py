@@ -31,6 +31,7 @@ from .display_history import HISTORY_NOTE, reported_label
 from .event_art import MAX_UPLOAD, import_presets, next_special_day_date, special_day_conflicts
 from .service import preparation_lock
 from .settings import FramePolicy, SpecialDay, cron_for
+from .showcase import framed_image
 from .store import RevisionConflict, UnknownFrame, token_hash
 from .trusted_network import network_session, source_public_ip
 from .ui import local_time
@@ -582,12 +583,10 @@ def attach_owner(app, service):
                     '<div class="delivered-slot"><h3>Last picture sent to frame</h3>'
                 )
                 body += (
-                    (
-                        '<img class="preview" alt="Last artwork sent to this frame" '
-                        'src="/manage/frames/'
+                    framed_image(
+                        "/manage/frames/" + identifier + "/display",
+                        "Last artwork sent to this frame",
                     )
-                    + identifier
-                    + '/display">'
                     if delivered
                     else (
                         '<p class="empty-state">Waiting for the frame to fetch its first '

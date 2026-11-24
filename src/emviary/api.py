@@ -588,6 +588,11 @@ def create_app(service=None, schedule=True):
 
     install_public_gallery(app, service)
 
+    from .showcase import framed_image, showcase_invite
+    from .showcase import install_routes as install_showcase
+
+    install_showcase(app)
+
     from .recipient import install_routes as install_recipient_guide
 
     install_recipient_guide(app)
@@ -608,9 +613,9 @@ def create_app(service=None, schedule=True):
         body += "<h1>A little nature, every day, for Emily.</h1></header>"
         if available:
             body += (
-                '<figure class="frame-preview"><img src="/display.jpg" '
-                'width="800" height="480" alt="Last picture sent to the frame">'
-                '<figcaption class="quiet">Last picture sent to the frame. '
+                '<figure class="frame-preview finished-preview">'
+                + framed_image("/display.jpg", "Last picture sent to the frame")
+                + '<figcaption class="quiet">Last picture sent to the frame. '
                 "Sending a picture does not confirm its display. "
                 "The frame can rotate cached art during an outage.</figcaption>"
                 "</figure>"
@@ -620,6 +625,7 @@ def create_app(service=None, schedule=True):
                 '<section class="empty-state"><h2>The first artwork is on its way.</h2>'
                 "<p>The frame's artwork will appear here after its first delivery.</p></section>"
             )
+        body += showcase_invite()
         body += gallery_markup(service)
         body += (
             '<section class="public-library-invite"><div><h2>Meet the collection.</h2>'
