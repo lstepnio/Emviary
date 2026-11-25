@@ -441,28 +441,27 @@ def create_app(service=None, schedule=True):
                 + "</select></label>"
             )
 
-        active_count = sum(a["approved"] for a in artworks)
-        species_count = len({a["scientific_name"] for a in artworks if a["approved"]})
+        has_filters = bool(status or kind or style or sort != "name")
         body = (
-            '<section id="artwork-library" data-library-path="/library" '
+            '<section class="public-artwork-library" id="artwork-library" '
+            'data-library-path="/library" '
             f'data-first-page="{p}" data-last-page="{p}" data-total-pages="{total_pages}">'
-            '<header class="page-header"><p class="eyebrow">The collection</p>'
-            '<h1>Artwork library</h1><p class="intro">Explore the birds and other animals '
-            "from the frame.</p></header>"
-            '<p class="quiet">'
-            + str(species_count)
-            + " species · "
-            + str(active_count)
-            + " rotation images · "
-            + str(len(artworks))
-            + " total artworks</p>"
-            '<form class="toolbar library-filters" method="get" action="/library">'
-            '<label>Search<input type="search" name="q" value="'
+            '<header class="page-header"><h1>Artwork library</h1>'
+            '<p class="intro">The birds and wildlife illustrated for Emviary.</p></header>'
+            '<form class="public-library-search" method="get" action="/library">'
+            '<div class="public-library-search-row">'
+            '<label><span class="sr-only">Search artwork</span>'
+            '<input type="search" name="q" value="'
             + escape(q, quote=True)
-            + '" placeholder="Find an animal"></label>'
+            + '" placeholder="Search by animal name"></label>'
+            + '<button type="submit">Search</button></div>'
+            '<div class="public-library-refine">'
+            + '<details class="public-library-filters"'
+            + (" open" if has_filters else "")
+            + '><summary>Filters</summary><div class="public-library-filter-fields">'
             + select(
                 "sort",
-                "Sort",
+                "Sort by",
                 [("name", "Name A to Z"), ("most", "Most rendered"), ("least", "Least rendered")],
                 sort,
             )
@@ -491,9 +490,12 @@ def create_app(service=None, schedule=True):
                 + [(value, value.replace("-", " ").title()) for value in styles],
                 style,
             )
-            + '<button type="submit">Apply filters</button>'
-            '<a class="button secondary" href="/library">Reset</a></form>'
-            '<p class="quiet">' + str(len(ordered)) + " species match.</p>"
+            + '<button class="secondary" type="submit">Apply filters</button></div></details>'
+            + '<div class="public-library-results"><span class="quiet">'
+            + f"{len(ordered)} species"
+            + "</span>"
+            + ('<a href="/library">Reset</a>' if q or has_filters else "")
+            + "</div></div></form>"
         )
         cards = []
         for name, variants in ordered[(p - 1) * 24 : p * 24]:
