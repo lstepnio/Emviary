@@ -630,30 +630,39 @@ max-width:800px;justify-self:center;box-sizing:border-box}
 JAVASCRIPT = r"""
 // Watch stored server reports only. Never poll or wake the physical frame.
 (() => {
-  const panel = document.querySelector('[data-gift-status-url]');
+  let panel = document.querySelector('[data-gift-status-url]');
+  if (!panel) return;
   const waiting = ['armed','wrap_pending','failed','cancelled'];
-  if (!panel || !waiting.includes(panel.dataset.giftState)) return;
-  const deadline = Date.now() + 120000;
+  let pending = false;
   async function checkGift() {
-    if (!panel.isConnected || Date.now() >= deadline) return;
-    if (document.visibilityState === 'visible') {
-      try {
-        const response = await fetch(panel.dataset.giftStatusUrl,
-          {credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000),
-           headers:{Accept:'application/json'}});
-        if (!response.ok) return;
-        const result = await response.json();
-        if (result.state !== panel.dataset.giftState) {
-          const parsed = new DOMParser().parseFromString(result.html,'text/html');
-          const next = parsed.querySelector('.gift-panel');
-          if (next) panel.replaceWith(next);
-          return;
-        }
-      } catch { return; }
-    }
-    setTimeout(checkGift,5000);
+    if (pending || !panel.isConnected || document.visibilityState !== 'visible') return;
+    pending = true;
+    try {
+      const response = await fetch(panel.dataset.giftStatusUrl,
+        {credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000),
+         headers:{Accept:'application/json'}});
+      if (!response.ok) return;
+      const result = await response.json();
+      const doc = new DOMParser().parseFromString(result.html,'text/html');
+      const next = doc.querySelector('.gift-panel');
+      if (next && (next.dataset.giftId !== panel.dataset.giftId ||
+                   next.dataset.giftState !== panel.dataset.giftState)) {
+        panel.replaceWith(next);
+        panel = next;
+      }
+    } catch { /* Native forms still check the current state on submission. */ }
+    finally { pending = false; }
   }
-  setTimeout(checkGift,5000);
+  window.addEventListener('focus', checkGift);
+  window.addEventListener('pageshow', event => { if (event.persisted) checkGift(); });
+  document.addEventListener('visibilitychange', checkGift);
+  const deadline = Date.now() + 120000;
+  function poll() {
+    if (Date.now() >= deadline || !panel.isConnected) return;
+    if (waiting.includes(panel.dataset.giftState)) checkGift();
+    setTimeout(poll,5000);
+  }
+  if (waiting.includes(panel.dataset.giftState)) setTimeout(poll,5000);
 })();
 
 (() => {

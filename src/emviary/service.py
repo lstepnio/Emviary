@@ -384,6 +384,7 @@ class Service:
             else "special_day"
             if occasion
             else "birds",
+            "public_display": occasion is None and not any(a.get("event_only") for a in artworks),
             "special_day": occasion,
             "special_day_test": special_day_id is not None,
             "layout": {
@@ -563,6 +564,9 @@ class Service:
     def prepare_special_day(self, frame_id, day_id):
         """Queue a test for today without enabling or rescheduling its calendar event."""
         with preparation_lock(self.settings.data_dir):
+            notice = self.gifts.special_day_queue_notice(frame_id)
+            if notice:
+                raise RevisionConflict(notice)
             return self._prepare(frame_id, None, True, False, day_id)
 
     def prepare(self, frame_id, local_date=None, force=False, offline=False):

@@ -274,7 +274,30 @@ class GiftMode:
                 raise
             return self.get(frame_id, identifier)
 
-    def action(self, frame_id, identifier, action, display_confirmed=False):
+    def special_day_queue_notice(self, frame_id):
+        packet = self.current(frame_id)
+        state = packet["status"] if packet else None
+        if state not in ACTIVE and state != "cancelled":
+            return ""
+        if state == "wrapped":
+            return "The gift is ready to wrap. Preview Special Days here without opening the gift."
+        if state == "cancelled":
+            return "Wait for the frame to confirm gift cancellation before queuing a Special Day."
+        return (
+            "Gift setup is in progress. Once the welcome is on screen, the right white "
+            "button opens the gift. Preview Special Days here and finish setup in Appearance."
+        )
+
+    def action(
+        self,
+        frame_id,
+        identifier,
+        action,
+        display_confirmed=False,
+        *,
+        expected_state=None,
+        cancel_confirmed=False,
+    ):
         with preparation_lock(self.service.settings.data_dir):
             packet = self.get(frame_id, identifier)
             current = self.current(frame_id)
@@ -304,14 +327,25 @@ class GiftMode:
                 for part in ("welcome", "first"):
                     self.path(packet, part)
                 status = "wrap_pending"
-            elif action == "cancel" and packet["status"] in ACTIVE:
+            elif action == "cancel":
+                if expected_state != packet["status"] or expected_state not in ACTIVE:
+                    raise RevisionConflict(
+                        "Gift status changed. Review the current gift before cancelling."
+                    )
+                if expected_state in {"wrap_pending", "wrapped"} and not cancel_confirmed:
+                    raise ValueError("Confirm that you want to cancel the power-on reveal.")
                 status = "cancelled"
             else:
                 raise ValueError("This gift action is not available.")
             with self.service.store.connect() as db:
-                db.execute(
-                    "UPDATE gift_packages SET status=?,error='' WHERE id=?", (status, identifier)
+                changed = db.execute(
+                    "UPDATE gift_packages SET status=?,error='' WHERE id=? AND status=?",
+                    (status, identifier, packet["status"]),
                 )
+                if changed.rowcount != 1:
+                    raise RevisionConflict(
+                        "Gift status changed. Review the current gift before continuing."
+                    )
             return self.get(frame_id, identifier)
 
     def observe(self, frame_id, metrics):

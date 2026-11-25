@@ -119,7 +119,7 @@ EVENT_JAVASCRIPT = r"""
 """
 
 
-def card_start(day, frame_id, csrf, next_date, artwork, hidden):
+def card_start(day, frame_id, csrf, next_date, artwork, hidden, *, can_queue):
     """The thumbnail represents saved artwork; automatic selection is labeled explicitly."""
     identifier = escape(frame_id, quote=True)
     day_id = escape(day["id"], quote=True)
@@ -138,6 +138,15 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
         source, image_label = "/favicon.svg", "Seasonal artwork"
     repeat = "Yearly" if day.get("annual") or day.get("recurrence") else "One time"
     checked = " checked" if day["enabled"] else ""
+    preview_url = f"/manage/frames/{identifier}/special-days/{day_id}/preview"
+    if can_queue:
+        preview_control = (
+            f'<form method="post" action="{preview_url}">'
+            + hidden(csrf)
+            + '<button class="secondary">Queue on frame</button></form>'
+        )
+    else:
+        preview_control = f'<a class="button secondary" href="{preview_url}">Preview artwork</a>'
     return (
         '<article class="event-card"><div class="event-card-header">'
         f'<img class="event-card-image" loading="lazy" src="{source}" '
@@ -153,10 +162,8 @@ def card_start(day, frame_id, csrf, next_date, artwork, hidden):
             else ""
         )
         + '</div></div><div class="event-card-controls">'
-        f'<form method="post" action="/manage/frames/{identifier}/special-days/{day_id}/preview">'
-        + hidden(csrf)
-        + '<button class="secondary">Queue on frame</button></form>'
-        f'<form class="event-toggle-form" method="post" '
+        + preview_control
+        + f'<form class="event-toggle-form" method="post" '
         f'action="/manage/frames/{identifier}/special-days/{day_id}/enabled">'
         + hidden(csrf)
         + '<label class="event-toggle"><span>Enabled</span>'

@@ -12,7 +12,8 @@ frame.
 [Firmware](https://github.com/lstepnio/Emviary-firmware)
 
 The product images are AI-assisted renderings based on the finished frame.
-Original reference photographs remain private. The public and management frame
+Original reference photographs remain private. Uploaded family pictures and personal
+Special Days appear only on the frame and in signed-in management. The public and management frame
 views use actual composition data beneath a transparent surround; promotional
 pictures are not evidence of a physical panel refresh.
 

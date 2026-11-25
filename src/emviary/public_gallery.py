@@ -1,5 +1,7 @@
 """Read-only composition previews for the configured public frame only."""
 
+import json
+from functools import partial
 from html import escape
 from zoneinfo import ZoneInfo
 
@@ -11,6 +13,45 @@ from .display_history import reported_label
 from .showcase import framed_image
 
 
+def catalog_keys(service):
+    return {
+        (art["id"], art["asset_sha256"])
+        for art in service.settings.artworks
+        if art.get("approved") and art.get("asset_sha256") and not art.get("event_only")
+    }
+
+
+def shareable(record, *, catalog):
+    """Check the saved composition, including plans made before public_display existed."""
+    if not record or record.get("hidden"):
+        return False
+    try:
+        plan = json.loads(record["manifest"])
+    except (KeyError, ValueError, TypeError):
+        return False
+    if not isinstance(plan, dict) or plan.get("public_display", True) is not True:
+        return False
+    if (
+        plan.get("special_day") is not None
+        or plan.get("special_day_test")
+        or plan.get("content_category") == "special_day"
+    ):
+        return False
+    primary = plan.get("artwork")
+    members = plan.get("artworks", [primary])
+    if not isinstance(members, list) or not members:
+        return False
+    return all(
+        isinstance(art, dict)
+        and not art.get("event_only")
+        and art.get("source_url") != "owner-upload"
+        and isinstance(art.get("id"), str)
+        and isinstance(art.get("asset_sha256"), str)
+        and (art["id"], art["asset_sha256"]) in catalog
+        for art in [primary, *members]
+    )
+
+
 def public_records(service):
     identifier = service.settings.config.public_frame_id
     if not identifier:
@@ -19,18 +60,25 @@ def public_records(service):
         frame = service.store.frame(identifier)
     except ValueError:
         return None, {}, []
+    visible = partial(shareable, catalog=catalog_keys(service))
     current = service.delivered_image(frame)
+    current = current if visible(current) else None
     daily = service.next_daily_refresh(frame)
     preview = daily["preview"]
-    if preview:
-        preview = {**preview, "preview_url": "/display/next-daily.jpg"}
-    upcoming = {"Daily refresh": preview, "Next button": service.store.active_image(frame)}
-    past = service.store.past_compositions(identifier, current["id"] if current else None, 10)
+    preview = {**preview, "preview_url": "/display/next-daily.jpg"} if visible(preview) else None
+    navigation = service.store.active_image(frame)
+    upcoming = {
+        "Daily refresh": preview,
+        "Next button": navigation if visible(navigation) else None,
+    }
+    past = service.display_history.past(
+        identifier, current["id"] if current else None, 10, include=visible
+    )
     return current, upcoming, past
 
 
-def gallery_markup(service):
-    current, upcoming, past = public_records(service)
+def gallery_markup(service, records):
+    _, upcoming, past = records
 
     def usable(record):
         return (
@@ -90,7 +138,7 @@ def gallery_markup(service):
             + "</div>"
         )
         if not ready:
-            body += '<p class="empty-state">The next composition preview is being prepared.</p>'
+            body += '<p class="empty-state">No upcoming public preview is available.</p>'
         body += "</section>"
     history = [image for image in past if usable(image)]
     if upcoming:
@@ -150,5 +198,5 @@ def install_routes(app, service):
         return FileResponse(
             service.cache_path(chosen["preview_path"]),
             media_type="image/jpeg",
-            headers={"Cache-Control": "no-cache", "X-Content-Type-Options": "nosniff"},
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
         )

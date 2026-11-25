@@ -591,7 +591,7 @@ def create_app(service=None, schedule=True):
             description="Explore the birds and artwork from Emviary.",
         )
 
-    from .public_gallery import gallery_markup
+    from .public_gallery import catalog_keys, gallery_markup, public_records, shareable
     from .public_gallery import install_routes as install_public_gallery
 
     install_public_gallery(app, service)
@@ -613,13 +613,8 @@ def create_app(service=None, schedule=True):
     def display_home():
         from .ui import page
 
-        record = None
-        identifier = service.settings.config.public_frame_id
-        if identifier:
-            try:
-                record = service.delivered_image(service.store.frame(identifier))
-            except ValueError:
-                pass
+        records = public_records(service)
+        record = records[0]
         available = record and service.cache_path(record["preview_path"]).is_file()
         body = '<header class="page-header"><p class="eyebrow">On the frame</p>'
         body += "<h1>A little nature, every day, for my love Emily.</h1></header>"
@@ -630,12 +625,10 @@ def create_app(service=None, schedule=True):
                 + "</figure>"
             )
         else:
-            body += (
-                '<section class="empty-state"><h2>The first artwork is on its way.</h2></section>'
-            )
+            body += '<section class="empty-state"><h2>No public picture to show yet.</h2></section>'
         body += showcase_invite()
         body += homepage_invite()
-        body += gallery_markup(service)
+        body += gallery_markup(service, records)
         body += (
             '<section class="public-library-invite"><div><h2>Meet the collection.</h2>'
             '<p class="quiet">Birds and Colorado wildlife, curated for the frame.</p></div>'
@@ -660,12 +653,15 @@ def create_app(service=None, schedule=True):
         except ValueError:
             raise HTTPException(404, "No public display") from None
         record = service.delivered_image(frame)
-        if not record:
-            raise HTTPException(404, "The frame has not fetched its first image")
+        if (
+            not shareable(record, catalog=catalog_keys(service))
+            or not service.cache_path(record["preview_path"]).is_file()
+        ):
+            raise HTTPException(404, "Public composition unavailable")
         return FileResponse(
             service.cache_path(record["preview_path"]),
             media_type="image/jpeg",
-            headers={"Cache-Control": "no-cache"},
+            headers={"Cache-Control": "no-store"},
         )
 
     from .owner import attach_owner

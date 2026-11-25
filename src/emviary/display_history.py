@@ -234,7 +234,7 @@ class DisplayHistory:
                     (frame_id, image_id, image["body_hash"], status, self.clock().isoformat()),
                 )
 
-    def past(self, frame_id, current_id=None, limit=10):
+    def past(self, frame_id, current_id=None, limit=10, *, include=None):
         from .compositions import composition_key, distinct_compositions
 
         with self.store.connect() as db:
@@ -249,8 +249,9 @@ class DisplayHistory:
                 "ORDER BY r.reported_at DESC,r.id DESC",
                 (frame_id, frame_id),
             )
+            records = (dict(row) for row in rows)
             return distinct_compositions(
-                (dict(row) for row in rows),
+                filter(include, records) if include else records,
                 exclude=[composition_key(dict(current))] if current else [],
                 limit=min(10, max(1, limit)),
             )

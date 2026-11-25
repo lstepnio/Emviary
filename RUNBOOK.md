@@ -19,8 +19,10 @@ Change it through management. `init-owner` bootstraps a previously uninitialized
 installation and refuses to replace an existing owner password. Keep the mounted `/run/secrets` directory private and writable by UID 1000 so
 management can replace password hashes and provider credentials.
 
-The public root mirrors the selected frame's last delivered image. This is based
-on firmware fetch telemetry, not direct panel sensing. Choose the public frame
+The public root shows the selected frame's last delivered picture when all its
+illustrations belong to the approved public catalog. Owner uploads and personalized
+Special Days stay in management and on the frame, including older compositions,
+daily previews and history. Public examples use the separately curated gallery. Choose the public frame
 in management or hide it. The artwork gallery is at `/library`. Credits and provenance remain in the catalog
 and project documentation; they are not displayed in the app.
 
@@ -394,7 +396,7 @@ This preview is separate from deliverable images: it does not replace the
 current image, enter device navigation, or increment render statistics.
 
 The public Coming up section and owner Daily refresh card read that same plan.
-Both show the next wake and weather-update time. The scheduled worker adds a
+The public section only shows pictures eligible for publication. The scheduled worker adds a
 fresh forecast near the wake while preserving the reserved composition. Once
 that render is ready, both previews show its final bytes. Changing appearance,
 artwork availability, special days, or location invalidates the reservation;
@@ -539,7 +541,10 @@ refresh keeps the gift recoverable. The first picture holds for 30 minutes unles
 manually browsed, then normal browsing and the saved schedule continue. There is
 no hold-expiration wake. An offline opening is reported when the frame reconnects.
 
-Return to normal artwork requests cancellation on the next online wake. It
+**Cancel gift setup** requests cancellation on the next online wake. During or
+after sealing, check the confirmation box to cancel the power-on reveal. A form
+from an earlier gift state is rejected. Special Days offers on-screen previews
+while gift setup or cancellation is pending. Cancellation
 cannot remotely change an offline panel. Prepare a new gift package to show
 the welcome again; completed IDs never automatically rearm. Corrupt, incomplete
 or cross-origin downloads cannot arm a gift. The frame stages and validates

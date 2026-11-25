@@ -15,7 +15,7 @@ def test_public_home_waits_for_delivery_and_never_exposes_frame_settings(service
     service.prepare(frame[0], "2026-10-08", offline=True)
     response = client.get("/")
     assert response.status_code == 200
-    assert "The first artwork is on its way" in response.text
+    assert "No public picture to show yet" in response.text
     assert 'src="/display.jpg"' not in response.text
     assert frame[0] not in response.text and frame[1] not in response.text
     assert "config_revision" not in response.text and "firmware_timezone" not in response.text
@@ -146,3 +146,82 @@ def test_public_gallery_deduplicates_shared_prepared_picture_with_both_roles(ser
     assert "Daily refresh · Next button" in home
     assert home.count('src="/display/next-daily.jpg"') == 1
     assert f'src="/display/images/{ready["id"]}.jpg"' not in home
+
+
+def test_family_art_is_private_in_plans_delivery_and_history(service, frame, tmp_path, monkeypatch):
+    import json
+
+    from test_display_history import observe
+    from test_event_art import image_bytes
+    from test_owner import sign_in
+
+    from emviary.settings import FramePolicy
+
+    fid = frame[0]
+    public = public_client(service, frame)
+    owner, _ = sign_in(service, tmp_path, monkeypatch)
+    family = service.event_art.upload(image_bytes(), "Disposable family picture", "Owner")
+    policy = FramePolicy(
+        special_days=[
+            dict(
+                id="birthday",
+                date="2026-10-09",
+                label="Birthday",
+                message="Private greeting",
+                artwork_id=family["id"],
+            )
+        ]
+    )
+    service.store.set_policy(fid, policy)
+    service.prepare_due()
+    scheduled = f"/manage/frames/{fid}/prepared/scheduled"
+    assert owner.get(scheduled).status_code == 200
+    assert public.get("/display/next-daily.jpg").status_code == 404
+    assert 'src="/display/next-daily.jpg"' not in public.get("/").text
+    private = service.prepare(fid, "2026-10-09", offline=True)
+    plan = json.loads(private["manifest"])
+    assert plan["public_display"] is False
+    # A previously rendered photo has no publication field. Its saved provenance still protects it.
+    del plan["public_display"]
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET manifest=? WHERE id=?", (json.dumps(plan), private["id"]))
+    path = f"/display/images/{private['id']}.jpg"
+    assert public.get(path).status_code == 404
+    service.store.telemetry(fid, None, "test", "", private["body_hash"])
+    assert public.get("/display.jpg").status_code == 404
+    home = public.get("/").text
+    assert path not in home and 'src="/display.jpg"' not in home and "Private greeting" not in home
+    assert (
+        owner.get(f"/manage/images/{private['id']}/preview").content
+        == service.cache_path(private["preview_path"]).read_bytes()
+    )
+    observe(service, frame, private)
+    ordinary = service.prepare(fid, "2026-10-08", offline=True, force=True)
+    service.store.telemetry(fid, None, "test", "", ordinary["body_hash"])
+    assert public.get("/display.jpg").status_code == 200
+    assert service.store.past_compositions(fid, ordinary["id"])[0]["id"] == private["id"]
+    assert public.get(path).status_code == 404 and path not in public.get("/").text
+
+
+def test_publication_checks_every_illustration_and_respects_an_explicit_private_flag(
+    service, frame
+):
+    import json
+
+    from emviary.public_gallery import catalog_keys, shareable
+
+    original = json.loads(service.prepare(frame[0], offline=True)["manifest"])
+    catalog = catalog_keys(service)
+
+    def visible(plan):
+        return shareable({"manifest": json.dumps(plan)}, catalog=catalog)
+
+    assert visible(original)
+    assert not visible({**original, "public_display": False})
+    assert not visible({**original, "special_day": {"message": "For family"}})
+    for unknown in (
+        {"id": "private"},
+        {**original["artwork"], "asset_sha256": "changed"},
+        {**original["artwork"], "event_only": True},
+    ):
+        assert not visible({**original, "artworks": [original["artwork"], unknown]})
