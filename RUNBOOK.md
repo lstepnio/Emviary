@@ -526,7 +526,7 @@ alone does not enable automatic opening. Charge the frame before the final step.
 3. Wait until the frame acknowledges **Ready to wrap**, then switch it off and wrap it.
 4. The next power-on reveals the preloaded first picture automatically, even offline.
 
-This requires firmware v0.8.15 and gift capability 2. During the setup wake the
+This requires firmware v0.8.16 and gift capability 2. During the setup wake the
 frame accepts the final command in a brief bounded online window; this does
 not add a sleeping wake. If it has already slept, press green once and wait for
 the acknowledgment. Do not switch it off while setup is still finishing.

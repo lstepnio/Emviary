@@ -18,7 +18,7 @@ Current gift lifecycle code is in `src/emviary/gift_mode.py` and `gift_routes.py
 The owner procedure is in RUNBOOK. Gift welcome is separate from the older
 [gift-readiness assessment](GIFT_READINESS_PLAN_2026_10_13.md). Corrected gift
 basic firmware support starts at v0.8.13; Ready to wrap and power-on reveal require
-v0.8.15 with gift capability 2. Release/build success does not establish installation
+v0.8.16 with gift capability 2. Release/build success does not establish installation
 or complete switched-off/offline/physical qualification.
 
 ## Complete index

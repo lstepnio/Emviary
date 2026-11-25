@@ -84,7 +84,7 @@ and choose **Ready to wrap**. Wait for the frame’s acknowledgment, then switch
 off. The next power-on reveals the preloaded first artwork offline. Checked
 refresh success commits opened state; the initial art holds for 30 minutes unless
 manually browsed. Cancellation waits for online device acknowledgment before a
-new package can replace it. Gift mode requires the v0.8.15 firmware with gift capability 2
+new package can replace it. Gift mode requires the v0.8.16 firmware with gift capability 2
 implementation; published artifacts, installed versions and physical acceptance
 are separate release gates. No gift is armed simply by deploying this source.
 

@@ -282,3 +282,5 @@ def test_gift_firmware_retains_ordinary_display_report_protocol():
     assert supported("0.8.14")
     assert supported("v0.8.15")
     assert supported("0.8.15")
+    assert supported("v0.8.16")
+    assert supported("0.8.16")
