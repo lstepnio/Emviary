@@ -16,7 +16,7 @@ from .store import RevisionConflict, stable_json
 
 ASSETS = Path(__file__).with_name("gift_assets")
 MAX_ASSET = 256 * 1024
-ACTIVE = {"armed", "ready", "failed"}
+ACTIVE = {"armed", "ready", "failed", "wrap_pending", "wrapped"}
 
 
 def gift_text(value, limit, label):
@@ -48,18 +48,19 @@ def welcome_image(art_dir, values, output):
         draw = ImageDraw.Draw(canvas)
         with Image.open(ASSETS / "chickadee.png") as source:
             bird = ImageOps.contain(source.convert("RGBA"), (280, 300))
-            canvas.paste(bird, (45 + (280 - bird.width) // 2, 58 + (300 - bird.height) // 2), bird)
-        y = 78
+            canvas.paste(bird, (45 + (280 - bird.width) // 2, 90 + (300 - bird.height) // 2), bird)
+        groups = []
         for text, size, minimum, lines, bold, italic in (
             (values["heading"], 44, 32, 2, True, False),
             (values["message"], 25, 21, 3, False, False),
             (values["signature"], 24, 21, 1, False, True),
         ):
+            width = 334 if italic else 360
             while size >= minimum:
                 f = font(size, bold, italic)
-                wrapped = render.wrapped_lines(draw, text, f, 360)
+                wrapped = render.wrapped_lines(draw, text, f, width)
                 if len(wrapped) <= lines and all(
-                    draw.textlength(t, font=f) <= 360 for t in wrapped
+                    draw.textlength(t, font=f) <= width for t in wrapped
                 ):
                     break
                 size -= 1
@@ -67,14 +68,39 @@ def welcome_image(art_dir, values, output):
                 raise ValueError(
                     "This message is too long for the frame. Shorten it and preview again."
                 )
-            for line in wrapped:
-                draw.text((370, y), line, font=f, fill="black", stroke_width=0)
-                y += size + 7
-            y += 18
-        if y > 365:
+            rows = [(line, draw.textbbox((0, 0), line, font=f)) for line in wrapped]
+            height = sum(box[3] - box[1] for _, box in rows) + 12 * (len(rows) - 1)
+            groups.append((f, rows, height))
+        total = sum(height for _, _, height in groups) + 56
+        if total > 320:
             raise ValueError("The dedication needs fewer lines to fit the frame.")
-        instruction = "Switch on, then press the right white button."
-        draw.text((400, 434), instruction, font=render._header_font(20), anchor="mm", fill="black")
+        y = (480 - total) // 2
+        for index, (f, rows, height) in enumerate(groups):
+            for line, box in rows:
+                draw.text((370, y - box[1]), line, font=f, fill="black", stroke_width=0)
+                if index == 2:
+                    # A small solid mark survives native six-color conversion and
+                    # does not depend on platform emoji fonts or variation selectors.
+                    x = round(370 + draw.textlength(line, font=f) + 12)
+                    top = round(y + (box[3] - box[1] - 15) / 2)
+                    scale = 4
+                    with Image.new("RGBA", (18 * scale, 16 * scale)) as heart:
+                        h = ImageDraw.Draw(heart)
+                        color = (190, 0, 0, 255)
+                        h.ellipse((0, 0, 10 * scale, 10 * scale), fill=color)
+                        h.ellipse((8 * scale, 0, 18 * scale - 1, 10 * scale), fill=color)
+                        h.polygon(
+                            [
+                                (0, 5 * scale),
+                                (18 * scale - 1, 5 * scale),
+                                (9 * scale, 16 * scale - 1),
+                            ],
+                            fill=color,
+                        )
+                        mark = heart.resize((18, 16), Image.Resampling.LANCZOS)
+                        canvas.paste(mark, (x, top), mark)
+                y += box[3] - box[1] + 12
+            y += 16
         canvas.save(output)
 
 
@@ -145,7 +171,13 @@ class GiftMode:
         from .diagnostics import device_readings
 
         samples = device_readings(self.service.store, frame_id)
-        return bool(samples and samples[-1]["metrics"].get("gift_version") == 1)
+        return bool(samples and samples[-1]["metrics"].get("gift_version") in {1, 2})
+
+    def wrap_capable(self, frame_id):
+        from .diagnostics import device_readings
+
+        samples = device_readings(self.service.store, frame_id)
+        return bool(samples and samples[-1]["metrics"].get("gift_version") == 2)
 
     def prepare(self, frame_id, data):
         values = {
@@ -242,7 +274,7 @@ class GiftMode:
                 raise
             return self.get(frame_id, identifier)
 
-    def action(self, frame_id, identifier, action):
+    def action(self, frame_id, identifier, action, display_confirmed=False):
         with preparation_lock(self.service.settings.data_dir):
             packet = self.get(frame_id, identifier)
             current = self.current(frame_id)
@@ -260,6 +292,18 @@ class GiftMode:
                 for part in ("welcome", "first"):
                     self.path(packet, part)
                 status = "armed"
+            elif action == "wrap":
+                if packet["status"] != "ready":
+                    raise RevisionConflict("Wait for the frame to report its welcome ready first.")
+                if not display_confirmed:
+                    raise ValueError("Confirm the welcome is displayed on the actual frame first.")
+                if not self.wrap_capable(frame_id):
+                    raise ValueError(
+                        "Update the frame for power-on reveal and let it check in first."
+                    )
+                for part in ("welcome", "first"):
+                    self.path(packet, part)
+                status = "wrap_pending"
             elif action == "cancel" and packet["status"] in ACTIVE:
                 status = "cancelled"
             else:
@@ -271,7 +315,7 @@ class GiftMode:
             return self.get(frame_id, identifier)
 
     def observe(self, frame_id, metrics):
-        if not metrics or metrics.get("gift_version") != 1:
+        if not metrics or metrics.get("gift_version") not in {1, 2}:
             return
         packet = self.current(frame_id)
         if not packet or metrics.get("gift_id") != packet["id"]:
@@ -281,15 +325,22 @@ class GiftMode:
             "armed": {"ready", "opened", "failed"},
             "ready": {"ready", "opened", "failed"},
             "failed": {"ready", "opened", "failed"},
+            "wrap_pending": {"ready", "wrapped", "opened", "failed"},
+            "wrapped": {"wrapped", "opened", "failed"},
             "cancelled": {"cancelled"},
         }
         if state not in allowed.get(packet["status"], set()):
             return
+        if state == "wrapped" and metrics.get("gift_version") != 2:
+            return
+        status = (
+            "wrap_pending" if packet["status"] == "wrap_pending" and state == "ready" else state
+        )
         with self.service.store.connect() as db:
             db.execute(
                 "UPDATE gift_packages SET status=?,reported_at=?,error=? WHERE id=? AND status=?",
                 (
-                    "cancelled_done" if state == "cancelled" else state,
+                    "cancelled_done" if state == "cancelled" else status,
                     self.service.clock().isoformat(),
                     metrics.get("gift_error", ""),
                     packet["id"],
@@ -302,6 +353,8 @@ class GiftMode:
         if not packet or packet["status"] in {"draft", "opened", "cancelled_done"}:
             return {"version": 1, "state": "none"}
         value = {"version": 1, "id": packet["id"], "state": "cancelled"}
+        if packet["status"] in {"wrap_pending", "wrapped"}:
+            return {"version": 1, "id": packet["id"], "state": "wrapped"}
         if packet["status"] in ACTIVE:
             value.update(state="armed", hold_seconds=1800)
             for part in ("welcome", "first"):

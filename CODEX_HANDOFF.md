@@ -3,6 +3,32 @@
 Updated November 24, 2026 after [PR #36](https://github.com/lstepnio/Emviary/pull/36)
 and the verified production rollout. Recheck runtime and device reports before operations.
 
+## Ready to wrap implementation, November 24
+
+The current source adds owner confirmation of the actual welcome, a final Ready
+to wrap command and authenticated device acknowledgment. Only a durably wrapped
+gift reveals its immutable first picture on genuine power-on, before Wi-Fi;
+software resets and timer/green wakes preserve the welcome. Right white is a
+manual fallback. Revised welcome removes button instructions, balances text and
+adds a small red heart. Preparing/loading does not arm automatic opening.
+
+Firmware v0.8.15 source `2d81bd42bc2805a94b47d36e66d6603884b9e869` passed all263
+host tests and official ESP-IDF6 build45516796393. The recovery files are hash-
+verified and pinned together. A fixture using actual converted assets, real
+SHA256 and native validation passed wrapped persistence and offline boot reveal.
+112 targeted service checks passed. Desktop/390px previews showed no overflow,
+clipped controls or broken gift images. Final PR/main/container gates precede
+rollout; record runtime evidence separately.
+
+The prior running frame was authenticated on v0.8.13 at23:45 UTC November24.
+Its owner-requested policy is automatic stable updates, zero-day delay, no pin.
+Preserve the zero-day preference after any exact-version installation exception.
+The fresh verified rollback capture is
+`/downloads2/backups/rollouts/releases/emviary/20261125T000738.324787Z`, from
+GHCR digest65fba36e5d5dcf26b8873eeb2b8d4564d7f90dee8a7b25e963379a400243317d.
+No physical wrap/offline power-cycle result is inferred from the host fixture.
+Earlier source/deployment observations below are dated history.
+
 ## Current implementation
 
 Gift mode adds editable welcome text, an immutable weather-neutral first picture,
