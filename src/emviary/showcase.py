@@ -168,8 +168,7 @@ def showcase_invite():
         '<div><p class="eyebrow">The finished frame</p><h2 id="finished-frame-title">'
         'Made to feel at home.</h2><p class="quiet">A closer look at the wood, the artwork, '
         "and the frame that brings it together.</p><p><strong>Early battery data points to "
-        "over a year between charges.</strong> "
-        '<a href="/showcase#battery">See the battery results</a>.</p>'
+        "over a year between charges.</strong></p>"
         '<a class="button secondary" '
         'href="/showcase">Explore the finished frame</a></div></section>'
     )

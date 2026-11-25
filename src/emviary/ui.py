@@ -426,8 +426,11 @@ button[aria-busy=true]{cursor:wait;opacity:.8}
 .preview-result{max-width:900px}
 .public .frame-preview{max-width:1040px;border-radius:14px;padding:12px;background:#fff}
 .public .public-library-invite{display:flex;align-items:center;justify-content:space-between;
-gap:20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;padding:24px 0}
+gap:12px 20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;
+padding:12px 0 0;margin-bottom:0}
+.public main:has(>.public-library-invite){padding-bottom:24px}
 .public-library-invite h2{margin-bottom:8px}
+.public-library-invite p{margin-bottom:0}
 .public .public-artwork-library{max-width:1120px;margin:0 auto;padding:0;border:0;
 background:transparent;box-shadow:none}
 .public-artwork-library .page-header{margin-bottom:24px}
