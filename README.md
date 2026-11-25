@@ -79,11 +79,12 @@ Public guide and showcase pages contain no private frame configuration.
 Gift welcome is an explicit owner action, separate from the calendar and ordinary
 image queue. Preview the dedication and first composition, then choose **Show
 welcome on frame**. Both assets must be staged and verified locally before the
-frame reports ready. Check the actual screen, charge it, switch it off and wrap it.
-The next right-white press reveals the dedicated first artwork offline. Checked
+frame reports the welcome loaded. Check the actual screen, confirm it in management
+and choose **Ready to wrap**. Wait for the frame’s acknowledgment, then switch it
+off. The next power-on reveals the preloaded first artwork offline. Checked
 refresh success commits opened state; the initial art holds for 30 minutes unless
 manually browsed. Cancellation waits for online device acknowledgment before a
-new package can replace it. Gift mode requires the corrected v0.8.13 firmware
+new package can replace it. Gift mode requires the v0.8.15 firmware with gift capability 2
 implementation; published artifacts, installed versions and physical acceptance
 are separate release gates. No gift is armed simply by deploying this source.
 

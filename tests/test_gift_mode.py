@@ -234,11 +234,11 @@ def test_preview_error_keeps_edited_message_and_ready_instructions_do_not_reopen
     service.gifts.action(frame[0], packet["id"], "arm")
     service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
     html = client.get("/manage/appearance?frame=" + frame[0]).text
-    assert "The next right-white press opens the gift" in html
+    assert "Update the frame for power-on reveal" in html
     assert "Press the right white button once while online to load" not in html
     overview = client.get("/manage?frame=" + frame[0]).text
     assert f"/gift/{packet['id']}/preview/welcome" in overview
-    assert "Frame reported gift ready" in overview
+    assert "Gift welcome loaded" in overview
 
 
 def test_status_refresh_reads_stored_reports_without_device_or_settings_changes(
@@ -256,7 +256,7 @@ def test_status_refresh_reads_stored_reports_without_device_or_settings_changes(
     assert service.store.frame(frame[0]) == before
     service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
     ready = client.get(url).json()
-    assert ready["state"] == "ready" and "The next right-white press opens" in ready["html"]
+    assert ready["state"] == "ready" and "Welcome loaded" in ready["html"]
     anon = TestClient(create_app(service, schedule=False))
     assert anon.get(url).status_code == 401
 
@@ -277,3 +277,107 @@ def test_pending_cancellation_cannot_be_hidden_by_a_new_draft(service, frame):
     )
     assert service.gifts.payload(frame[0])["state"] == "none"
     assert draft(service, frame)["id"] != packet["id"]
+
+
+def test_ready_to_wrap_requires_physical_confirmation_capability_and_device_ack(service, frame):
+    packet = draft(service, frame)
+    capable(service, frame)
+    service.gifts.action(frame[0], packet["id"], "arm")
+    report = dict(gift_version=1, gift_id=packet["id"], gift_state="ready")
+    service.gifts.observe(frame[0], report)
+    with pytest.raises(ValueError, match="Confirm the welcome"):
+        service.gifts.action(frame[0], packet["id"], "wrap")
+    with pytest.raises(ValueError, match="power-on reveal"):
+        service.gifts.action(frame[0], packet["id"], "wrap", True)
+    service.store.device_sample(frame[0], {"gift_version": 2}, "v0.8.14")
+    original = service.store.frame(frame[0])["policy"]
+    service.gifts.action(frame[0], packet["id"], "wrap", True)
+    assert service.gifts.current(frame[0])["status"] == "wrap_pending"
+    # Repeated ready reports must not erase an unacknowledged wrapping request.
+    service.gifts.observe(frame[0], {**report, "gift_version": 2})
+    assert service.gifts.current(frame[0])["status"] == "wrap_pending"
+    payload = service.gifts.payload(frame[0])
+    assert payload == dict(version=1, id=packet["id"], state="wrapped")
+    service.gifts.observe(frame[0], {**report, "gift_state": "wrapped"})
+    assert service.gifts.current(frame[0])["status"] == "wrap_pending"
+    service.gifts.observe(frame[0], {**report, "gift_version": 2, "gift_state": "wrapped"})
+    assert service.gifts.current(frame[0])["status"] == "wrapped"
+    service.gifts.observe(frame[0], {**report, "gift_version": 2})
+    assert service.gifts.current(frame[0])["status"] == "wrapped"
+    from emviary.gift_mode import GiftMode
+
+    restarted = GiftMode(service)
+    assert restarted.payload(frame[0]) == payload
+    service.gifts.observe(frame[0], {**report, "gift_version": 2, "gift_state": "opened"})
+    assert service.gifts.current(frame[0])["status"] == "opened"
+    assert service.gifts.payload(frame[0])["state"] == "none"
+    assert service.store.frame(frame[0])["policy"] == original
+
+
+def test_wrap_owner_form_requires_checkbox_and_shows_acknowledged_instructions(
+    service, frame, tmp_path, monkeypatch
+):
+    packet = draft(service, frame)
+    service.store.device_sample(frame[0], {"gift_version": 2}, "v0.8.14")
+    service.gifts.action(frame[0], packet["id"], "arm")
+    report = dict(gift_version=2, gift_id=packet["id"], gift_state="ready")
+    service.gifts.observe(frame[0], report)
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    url = "/manage/frames/" + frame[0] + "/gift/wrap"
+    data = dict(csrf=csrf, gift_id=packet["id"])
+    assert client.post(url, data={**data, "csrf": "bad"}).status_code == 403
+    assert client.post(url, data=data).status_code == 400
+    assert service.gifts.current(frame[0])["status"] == "ready"
+    response = client.post(url, data={**data, "welcome_confirmed": "on"})
+    assert response.status_code == 200 and "Finishing gift setup" in response.text
+    assert "Wait for “Ready to wrap”" in response.text
+    service.gifts.observe(frame[0], {**report, "gift_state": "wrapped"})
+    html = client.get("/manage/appearance?frame=" + frame[0]).text
+    assert "The frame confirmed it is ready" in html
+    assert "next power-on reveals" in html and "Ready to wrap</button>" not in html
+    assert "next power-on reveals" in client.get("/manage?frame=" + frame[0]).text
+    service.gifts.action(frame[0], packet["id"], "cancel")
+    assert service.gifts.payload(frame[0])["state"] == "cancelled"
+    with pytest.raises(RevisionConflict):
+        draft(service, frame)
+
+
+def test_ready_to_wrap_rechecks_both_immutable_assets(service, frame):
+    packet = draft(service, frame)
+    service.store.device_sample(frame[0], {"gift_version": 2}, "v0.8.14")
+    service.gifts.action(frame[0], packet["id"], "arm")
+    service.gifts.observe(frame[0], dict(gift_version=2, gift_id=packet["id"], gift_state="ready"))
+    service.gifts.path(packet, "first").write_bytes(b"corrupt")
+    with pytest.raises(ValueError, match="integrity"):
+        service.gifts.action(frame[0], packet["id"], "wrap", True)
+    assert service.gifts.current(frame[0])["status"] == "ready"
+
+
+def test_wrap_control_and_capability_reports_use_authenticated_device_wire(service, frame):
+    packet = draft(service, frame)
+    client = TestClient(create_app(service, schedule=False))
+    auth = {"Authorization": "Bearer " + frame[1], "X-Emviary-Gift-Version": "1"}
+    report = dict(gift_version=2, gift_id=packet["id"], gift_state="idle")
+    assert (
+        client.get("/v1/gift", headers={**auth, "X-Frame-Metrics": json.dumps(report)}).status_code
+        == 200
+    )
+    assert service.gifts.wrap_capable(frame[0])
+    service.gifts.action(frame[0], packet["id"], "arm")
+    client.get(
+        "/v1/gift",
+        headers={**auth, "X-Frame-Metrics": json.dumps({**report, "gift_state": "ready"})},
+    )
+    service.gifts.action(frame[0], packet["id"], "wrap", True)
+    before = service.store.frame(frame[0])
+    response = client.get("/v1/image", headers=auth)
+    assert response.status_code == 304 and not response.content
+    assert json.loads(response.headers["x-emviary-gift"]) == dict(
+        version=1, id=packet["id"], state="wrapped"
+    )
+    assert service.store.frame(frame[0])["last_served_etag"] == before["last_served_etag"]
+    client.get(
+        "/v1/gift",
+        headers={**auth, "X-Frame-Metrics": json.dumps({**report, "gift_state": "wrapped"})},
+    )
+    assert service.gifts.current(frame[0])["status"] == "wrapped"

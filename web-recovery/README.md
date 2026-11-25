@@ -91,7 +91,7 @@ uv run python tools/package_usb_recovery.py RELEASE_DIRECTORY --version RELEASE_
 ```
 
 Use the version and build URL from the selected immutable release, not a version
-remembered from this document. Gift welcome requires the corrected v0.8.13
-implementation; update the service firmware lock and all matching recovery parts
+remembered from this document. Gift welcome requires the v0.8.15
+implementation for power-on reveal; update the service firmware lock and all matching recovery parts
 together after release verification. An installed version or physical recovery
 result must be confirmed independently. See [RUNBOOK](../RUNBOOK.md).

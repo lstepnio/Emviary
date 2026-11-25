@@ -517,22 +517,27 @@ Review both framed e-ink previews. Weather is removed from the first picture so
 an old forecast cannot appear after wrapping. Preparing does not change the
 calendar, daily schedule or ordinary artwork queue.
 
-Show welcome on frame becomes available after the frame reports gift-capable
-firmware (v0.8.13 or later using gift protocol 1). Press the right white button
-once while online to transfer both images and show the welcome. Wait for
-“Frame reported gift ready”, check the actual screen, charge the frame, then
-switch it off before wrapping. The retained welcome is visible with power off.
-The next right-white press after switching on reveals the preloaded first
-picture, even with Wi-Fi unavailable. Both images and gift state survive power
-cycles. A held activation button cannot accidentally open the gift.
+Show welcome on frame becomes available after gift capability is reported. Press
+right white once while online to load both pictures and show the welcome. Loading
+alone does not enable automatic opening. Charge the frame before the final step.
 
-While ready, green wake, USB charging, daily refreshes and ordinary local
-image/clear commands preserve the welcome. The five-second left diagnostic
-hold remains available; returning restores the welcome. The first picture is
-held for at least 30 minutes unless manually browsed; no extra timer wake is
-added. Normal browsing and the saved future daily schedule then continue.
-Device reports can arrive after an offline reveal, so management labels them
-as reports rather than claiming the exact unwrapping time.
+1. Check the welcome on the actual frame.
+2. In Appearance, check “I can see the welcome on the frame” and choose **Ready to wrap**.
+3. Wait until the frame acknowledges **Ready to wrap**, then switch it off and wrap it.
+4. The next power-on reveals the preloaded first picture automatically, even offline.
+
+This requires firmware v0.8.15 and gift capability 2. During the setup wake the
+frame accepts the final command in a brief bounded online window; this does
+not add a sleeping wake. If it has already slept, press green once and wait for
+the acknowledgment. Do not switch it off while setup is still finishing.
+
+Once wrapped, keep the frame off until the gift is opened. Software OTA restarts,
+timer wakes, green/deep-sleep wakes and diagnostics preserve the welcome; a real
+power-on opens it. The right white button remains a manual reveal fallback. Both
+pictures and the sealed state persist locally. A failed checked first-picture
+refresh keeps the gift recoverable. The first picture holds for 30 minutes unless
+manually browsed, then normal browsing and the saved schedule continue. There is
+no hold-expiration wake. An offline opening is reported when the frame reconnects.
 
 Return to normal artwork requests cancellation on the next online wake. It
 cannot remotely change an offline panel. Prepare a new gift package to show

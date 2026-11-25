@@ -631,7 +631,8 @@ JAVASCRIPT = r"""
 // Watch stored server reports only. Never poll or wake the physical frame.
 (() => {
   const panel = document.querySelector('[data-gift-status-url]');
-  if (!panel || !['armed','failed','cancelled'].includes(panel.dataset.giftState)) return;
+  const waiting = ['armed','wrap_pending','failed','cancelled'];
+  if (!panel || !waiting.includes(panel.dataset.giftState)) return;
   const deadline = Date.now() + 120000;
   async function checkGift() {
     if (!panel.isConnected || Date.now() >= deadline) return;

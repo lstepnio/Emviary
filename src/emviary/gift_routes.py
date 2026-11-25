@@ -16,7 +16,9 @@ from .ui import local_time
 LABELS = {
     "draft": "Preview ready",
     "armed": "Waiting for the frame",
-    "ready": "Frame reported gift ready",
+    "ready": "Welcome loaded",
+    "wrap_pending": "Finishing gift setup",
+    "wrapped": "Ready to wrap",
     "opened": "Frame reported gift opened",
     "failed": "Gift needs attention",
     "cancelled": "Cancellation requested",
@@ -75,7 +77,7 @@ def install_device_routes(app, service, authenticated, check_geometry):
         check_geometry(request, frame)
         try:
             packet = service.gifts.get(frame["id"], identifier)
-            if packet["status"] not in {"armed", "ready", "failed"}:
+            if packet["status"] not in {"armed", "ready", "failed", "wrap_pending", "wrapped"}:
                 raise ValueError("Gift package is not armed")
             path = service.gifts.path(packet, part)
         except ValueError as exc:
@@ -136,9 +138,9 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
         + '/status"><h2>Gift welcome</h2>'
     )
     body += (
-        "<p>A personal welcome that stays on the frame until the right white "
-        "button is pressed. The first picture is saved on the frame, so the "
-        "reveal works without Wi-Fi.</p>"
+        "<p>A personal welcome for the gift. Confirm it on the frame, then choose "
+        "Ready to wrap. The next power-on reveals the preloaded first picture, "
+        "even without Wi-Fi.</p>"
     )
     if error:
         body += '<p class="error" role="alert">' + escape(error) + "</p>"
@@ -147,7 +149,7 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
             '<p class="notice">You can preview now. Before showing the welcome, '
             "update the frame to gift-capable firmware and let it check in.</p>"
         )
-    active = packet and packet["status"] in {"armed", "ready", "failed"}
+    active = packet and packet["status"] in {"armed", "ready", "failed", "wrap_pending", "wrapped"}
     if packet:
         body += (
             '<div class="gift-status" role="status"><strong>'
@@ -190,10 +192,39 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
         if active:
             if packet["status"] == "ready":
                 body += (
-                    "<p>The welcome and first picture are saved on the frame. Check the welcome, "
-                    "charge the frame, then switch it off before wrapping.</p>"
-                    "<p><strong>The next right-white press opens the gift.</strong> "
-                    "Green and charging preserve the welcome.</p>"
+                    "<p>The welcome and first picture are saved on the frame. Check the actual "
+                    "welcome before the final step.</p>"
+                )
+                if service.gifts.wrap_capable(frame_id):
+                    body += (
+                        '<form method="post" action="'
+                        + url
+                        + '/wrap">'
+                        + hidden(csrf)
+                        + '<input type="hidden" name="gift_id" value="'
+                        + packet["id"]
+                        + '">'
+                        + '<label class="check"><input type="checkbox" name="welcome_confirmed" '
+                        "required>I can see the welcome on the frame.</label>"
+                        "<button>Ready to wrap</button></form>"
+                    )
+                else:
+                    body += (
+                        '<p class="notice">Update the frame for power-on reveal '
+                        "before wrapping.</p>"
+                    )
+            elif packet["status"] == "wrap_pending":
+                body += (
+                    "<p>Keep the frame on while it finishes setup. If it has gone to sleep, "
+                    "press green once. Wait for “Ready to wrap” before switching it off.</p>"
+                )
+            elif packet["status"] == "wrapped":
+                body += (
+                    "<p>The frame confirmed it is ready. Charge it if needed, then "
+                    "switch it off and wrap it.</p><p><strong>The next power-on reveals "
+                    "the first picture automatically, even offline.</strong> Keep it off "
+                    "until the gift is opened. A software restart or timer wake "
+                    "preserves the welcome.</p>"
                 )
             elif packet["status"] == "failed":
                 body += (
@@ -203,8 +234,9 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
             else:
                 body += (
                     "<p>Press the right white button once while online to load both pictures "
-                    "and show the welcome. Wait for “Frame reported gift ready” before wrapping. "
-                    "The welcome stays on the frame until the next right-white press.</p>"
+                    "and show the welcome. Then confirm the actual screen "
+                    "and choose Ready to wrap. "
+                    "Do not switch it off until setup is confirmed.</p>"
                 )
             body += '<form method="post" action="' + url + '/cancel">' + hidden(csrf)
             body += (
@@ -288,9 +320,13 @@ def install_owner_routes(app, service, require, checked_form, escape, page):
             service.store.frame(frame_id)
             if action == "prepare":
                 await asyncio.to_thread(service.gifts.prepare, frame_id, data)
-            elif action in {"arm", "cancel"}:
+            elif action in {"arm", "wrap", "cancel"}:
                 await asyncio.to_thread(
-                    service.gifts.action, frame_id, data.get("gift_id", ""), action
+                    service.gifts.action,
+                    frame_id,
+                    data.get("gift_id", ""),
+                    action,
+                    data.get("welcome_confirmed") == "on",
                 )
             else:
                 raise HTTPException(404, "Unknown gift action")

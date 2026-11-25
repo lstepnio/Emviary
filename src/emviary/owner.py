@@ -571,7 +571,7 @@ def attach_owner(app, service):
             if view == "manage":
                 delivered = service.delivered_image(frame)
                 gift = service.gifts.current(frame["id"])
-                gift_ready = gift and gift["status"] == "ready"
+                gift_ready = gift and gift["status"] in {"ready", "wrap_pending", "wrapped"}
                 ready = service.store.slot_image(frame["id"], "navigation")
                 upcoming = service.next_daily_refresh(frame)
                 daily = upcoming["preview"]
@@ -667,8 +667,12 @@ def attach_owner(app, service):
                 )
                 if gift_ready:
                     display_status = (
-                        "Frame reported gift ready. The next right-white press "
-                        "reveals the first picture."
+                        "Gift welcome loaded. Finish gift setup in Appearance."
+                        if gift["status"] != "wrapped"
+                        else (
+                            "Ready to wrap. Switch off the frame; "
+                            "the next power-on reveals the first picture."
+                        )
                     )
                 body += '<p class="quiet" data-display-status>' + escape(display_status) + "</p>"
                 body += '</div><div class="prepared-slot"><h3>Daily refresh</h3>'

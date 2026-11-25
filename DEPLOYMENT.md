@@ -18,7 +18,7 @@ Publish only reviewed source. A successful image build does not change the
 running service, wake a sleeping frame, install firmware or arm a gift.
 The firmware pin and browser recovery manifest describe selected release assets;
 installed device telemetry is separate evidence. Gift mode requires the corrected
-v0.8.13 firmware implementation. Keep firmware publication, bundle verification,
+v0.8.15 firmware implementation for power-on reveal. Keep firmware publication, bundle verification,
 service checks and physical gift qualification distinct.
 
 ## Required rollout sequence
