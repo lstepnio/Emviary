@@ -130,3 +130,44 @@ def test_event_enhancements_are_served_by_csp_permitted_external_asset(
     assert script.status_code == 200
     assert "__emviaryEventToggles" in script.text
     assert "data-event-toggle" in script.text
+
+
+def test_gift_mode_keeps_calendar_previews_local_and_rejects_old_queue_forms(
+    service, frame, tmp_path, monkeypatch
+):
+    from test_gift_mode import draft
+
+    saved_days(service, frame)
+    packet = draft(service, frame)
+    fid = frame[0]
+    client, csrf = sign_in(service, tmp_path, monkeypatch)
+    post_url = f"/manage/frames/{fid}/special-days/birthday/preview"
+    events = f"/manage/events?frame={fid}"
+    assert "Queue on frame" in client.get(events).text
+    service.store.device_sample(fid, {"gift_version": 2}, "v0.8.16")
+    service.gifts.action(fid, packet["id"], "arm")
+    before = service.store.frame(fid)
+    review = f"/manage/images/{before['active_image_id']}/review"
+    report = dict(gift_version=2, gift_id=packet["id"])
+    for state in ("armed", "ready", "wrap_pending", "wrapped", "cancelled"):
+        if state == "wrap_pending":
+            service.gifts.action(fid, packet["id"], "wrap", True)
+        elif state == "cancelled":
+            service.gifts.action(
+                fid, packet["id"], "cancel", expected_state="wrapped", cancel_confirmed=True
+            )
+        elif state != "armed":
+            service.gifts.observe(fid, {**report, "gift_state": state})
+        page = client.get(events).text
+        notice = service.gifts.special_day_queue_notice(fid)
+        assert notice and notice in page and notice in client.get(review).text
+        assert "Queue on frame" not in page and f'href="{post_url}"' in page
+        assert "With gift mode off, press the right white button" not in client.get(review).text
+        assert client.get(post_url).headers["content-type"] == "image/jpeg"
+        stale = client.post(post_url, data={"csrf": csrf}, headers={"Accept": "text/html"})
+        assert stale.status_code == 409 and notice in stale.text
+        assert service.store.frame(fid)["active_image_id"] == before["active_image_id"]
+        assert service.store.frame(fid)["policy"] == before["policy"]
+    service.gifts.observe(fid, {**report, "gift_state": "cancelled"})
+    assert "Queue on frame" in client.get(events).text
+    assert client.post(post_url, data={"csrf": csrf}).status_code == 200

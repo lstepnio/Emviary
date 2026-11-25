@@ -133,17 +133,18 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
     body = (
         '<section class="card gift-panel" id="gift-welcome" data-gift-state="'
         + escape(state)
+        + '" data-gift-id="'
+        + (packet["id"] if packet else "")
         + '" data-gift-status-url="'
         + url
         + '/status"><h2>Gift welcome</h2>'
     )
-    body += (
-        "<p>A personal welcome for the gift. Confirm it on the frame, then choose "
-        "Ready to wrap. The next power-on reveals the preloaded first picture, "
-        "even without Wi-Fi.</p>"
-    )
+    if state in {"none", "draft", "cancelled_done", "opened"}:
+        body += (
+            "<p>Choose the welcome and first picture Emily will see when she opens her gift.</p>"
+        )
     if error:
-        body += '<p class="error" role="alert">' + escape(error) + "</p>"
+        body += '<p class="error" data-request-error role="alert">' + escape(error) + "</p>"
     if not service.gifts.capable(frame_id):
         body += (
             '<p class="notice">You can preview now. Before showing the welcome, '
@@ -229,7 +230,7 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
             elif packet["status"] == "failed":
                 body += (
                     "<p>The frame could not finish gift preparation. Check the screen before "
-                    "retrying. Return to normal artwork below to cancel this package.</p>"
+                    "retrying, or cancel gift setup below.</p>"
                 )
             else:
                 body += (
@@ -242,8 +243,16 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
             body += (
                 '<input type="hidden" name="gift_id" value="'
                 + packet["id"]
-                + '"><button class="secondary">Return to normal artwork</button></form>'
+                + '"><input type="hidden" name="expected_state" value="'
+                + escape(state)
+                + '">'
             )
+            if state in {"wrap_pending", "wrapped"}:
+                body += (
+                    '<label class="check"><input type="checkbox" name="cancel_confirmed" required>'
+                    "I want to cancel the next power-on reveal.</label>"
+                )
+            body += '<button class="secondary">Cancel gift setup</button></form>'
         elif packet["status"] == "cancelled":
             body += (
                 "<p>Normal artwork resumes on the next online wake. An offline "
@@ -327,6 +336,8 @@ def install_owner_routes(app, service, require, checked_form, escape, page):
                     data.get("gift_id", ""),
                     action,
                     data.get("welcome_confirmed") == "on",
+                    expected_state=data.get("expected_state"),
+                    cancel_confirmed=data.get("cancel_confirmed") == "on",
                 )
             else:
                 raise HTTPException(404, "Unknown gift action")

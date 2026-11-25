@@ -1082,6 +1082,10 @@ def attach_owner(app, service):
                     .date()
                 )
 
+                gift_notice = service.gifts.special_day_queue_notice(frame["id"])
+                if gift_notice:
+                    body += '<p class="notice">' + escape(gift_notice) + "</p>"
+
                 def occasion_date(event):
                     return next_special_day_date(event, today)
 
@@ -1115,6 +1119,7 @@ def attach_owner(app, service):
                             occasion_date(day),
                             artworks.get(day.get("artwork_id")),
                             hidden,
+                            can_queue=not gift_notice,
                         )
                         body += (
                             '<details class="event-editor" id="event-'
@@ -1648,10 +1653,13 @@ def attach_owner(app, service):
             message = (
                 "This artwork was sent to the frame. Its display is not confirmed by delivery."
             )
+        elif gift_notice := service.gifts.special_day_queue_notice(frame["id"]):
+            message = gift_notice
         elif frame["active_image_id"] == image_id:
             message = (
-                "Artwork prepared and queued. Press the right white button once to request it, "
-                "or wait for the scheduled refresh. On battery, the green button opens local "
+                "Artwork prepared and queued. With gift mode off, press the right white button "
+                "once or wait for the scheduled refresh. If the welcome is on screen, "
+                "right white opens the gift. On battery, the green button opens local "
                 "management without fetching new art. With USB power connected, a green "
                 "wake also checks for artwork."
             )
@@ -2996,6 +3004,8 @@ def attach_owner(app, service):
         await checked_form(request)
         try:
             image = await asyncio.to_thread(service.prepare_special_day, identifier, day_id)
+        except RevisionConflict as error:
+            raise HTTPException(409, str(error)) from None
         except ValueError as error:
             raise HTTPException(400, str(error)) from None
         except RuntimeError:

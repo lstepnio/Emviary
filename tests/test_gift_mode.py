@@ -153,7 +153,9 @@ def test_gift_owner_csrf_previews_and_calendar_settings_unchanged(
         service.gifts.prepare(frame[0], data)
     assert (
         client.post(
-            url + "/cancel", data=dict(csrf=csrf, gift_id=packet["id"]), follow_redirects=False
+            url + "/cancel",
+            data=dict(csrf=csrf, gift_id=packet["id"], expected_state="armed"),
+            follow_redirects=False,
         ).status_code
         == 303
     )
@@ -199,7 +201,7 @@ def test_cancelled_control_cannot_starve_ordinary_art_and_ack_ends_it(service, f
     packet = draft(service, frame)
     capable(service, frame)
     service.gifts.action(frame[0], packet["id"], "arm")
-    service.gifts.action(frame[0], packet["id"], "cancel")
+    service.gifts.action(frame[0], packet["id"], "cancel", expected_state="armed")
     client = TestClient(create_app(service, schedule=False))
     auth = {"Authorization": "Bearer " + frame[1], "X-Emviary-Gift-Version": "1"}
     normal = client.get("/v1/image", headers=auth)
@@ -266,7 +268,7 @@ def test_pending_cancellation_cannot_be_hidden_by_a_new_draft(service, frame):
     capable(service, frame)
     service.gifts.action(frame[0], packet["id"], "arm")
     service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
-    service.gifts.action(frame[0], packet["id"], "cancel")
+    service.gifts.action(frame[0], packet["id"], "cancel", expected_state="ready")
     with pytest.raises(RevisionConflict, match="receive cancellation"):
         draft(service, frame)
     service.gifts.observe(frame[0], dict(gift_version=1, gift_id=packet["id"], gift_state="ready"))
@@ -336,7 +338,25 @@ def test_wrap_owner_form_requires_checkbox_and_shows_acknowledged_instructions(
     assert "The frame confirmed it is ready" in html
     assert "next power-on reveals" in html and "Ready to wrap</button>" not in html
     assert "next power-on reveals" in client.get("/manage?frame=" + frame[0]).text
-    service.gifts.action(frame[0], packet["id"], "cancel")
+    cancel_url = "/manage/frames/" + frame[0] + "/gift/cancel"
+    assert 'name="expected_state" value="wrapped"' in html
+    assert 'name="cancel_confirmed" required' in html
+    for stale in (
+        {},
+        {"expected_state": "ready"},
+        {"expected_state": "wrap_pending", "cancel_confirmed": "on"},
+    ):
+        assert client.post(cancel_url, data={**data, **stale}).status_code == 409
+        assert service.gifts.current(frame[0])["status"] == "wrapped"
+    current = {**data, "expected_state": "wrapped"}
+    assert client.post(cancel_url, data=current).status_code == 400
+    assert service.gifts.current(frame[0])["status"] == "wrapped"
+    assert (
+        client.post(
+            cancel_url, data={**current, "cancel_confirmed": "on"}, follow_redirects=False
+        ).status_code
+        == 303
+    )
     assert service.gifts.payload(frame[0])["state"] == "cancelled"
     with pytest.raises(RevisionConflict):
         draft(service, frame)
@@ -381,3 +401,21 @@ def test_wrap_control_and_capability_reports_use_authenticated_device_wire(servi
         headers={**auth, "X-Frame-Metrics": json.dumps({**report, "gift_state": "wrapped"})},
     )
     assert service.gifts.current(frame[0])["status"] == "wrapped"
+
+
+def test_action_cannot_overwrite_a_device_report_during_submission(service, frame, monkeypatch):
+    packet = draft(service, frame)
+    capable(service, frame)
+    service.gifts.action(frame[0], packet["id"], "arm")
+    current = service.gifts.current
+
+    def current_after_device_ack(frame_id):
+        snapshot = current(frame_id)
+        with service.store.connect() as db:
+            db.execute("UPDATE gift_packages SET status='ready' WHERE id=?", (packet["id"],))
+        return snapshot
+
+    monkeypatch.setattr(service.gifts, "current", current_after_device_ack)
+    with pytest.raises(RevisionConflict):
+        service.gifts.action(frame[0], packet["id"], "cancel", expected_state="armed")
+    assert current(frame[0])["status"] == "ready"
