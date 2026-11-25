@@ -492,7 +492,7 @@ def create_app(service=None, schedule=True):
             )
             + '<button class="secondary" type="submit">Apply filters</button></div></details>'
             + '<div class="public-library-results"><span class="quiet">'
-            + f"{len(ordered)} species"
+            + f"{len(ordered)} species {'matches' if len(ordered) == 1 else 'match'}"
             + "</span>"
             + ('<a href="/library">Reset</a>' if q or has_filters else "")
             + "</div></div></form>"
