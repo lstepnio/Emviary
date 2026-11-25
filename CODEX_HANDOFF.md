@@ -3,6 +3,16 @@
 Updated November 24, 2026 after [PR #36](https://github.com/lstepnio/Emviary/pull/36)
 and the verified production rollout. Recheck runtime and device reports before operations.
 
+## Final wrapping acknowledgment follow-up
+
+Firmware v0.8.16 ensures a standalone green/local sync reports its newly durable
+wrapped state immediately, including when the setup window has already ended.
+Official build45521733250, all263 host tests, local SDK build and real native-asset
+offline boot fixture passed. The paired source pin, recovery parts and audited
+ordinary display-report allowlist are updated together. No gift-layout or
+calendar setting changes are introduced by this follow-up. See the follow-up PR and QA for final
+publication and runtime evidence rather than inferring it from this checkpoint.
+
 ## Ready to wrap implementation, November 24
 
 The current source adds owner confirmation of the actual welcome, a final Ready
