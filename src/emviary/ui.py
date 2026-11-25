@@ -423,6 +423,39 @@ button[aria-busy=true]{cursor:wait;opacity:.8}
 .public .public-library-invite{display:flex;align-items:center;justify-content:space-between;
 gap:20px;flex-wrap:wrap;background:transparent;border:0;box-shadow:none;padding:24px 0}
 .public-library-invite h2{margin-bottom:8px}
+.public .public-artwork-library{max-width:1120px;margin:0 auto;padding:0;border:0;
+background:transparent;box-shadow:none}
+.public-artwork-library .page-header{margin-bottom:24px}
+.public-library-search{background:var(--surface);border:1px solid var(--line);
+border-radius:16px;padding:18px;margin:0 0 26px}
+.public-library-search-row{display:flex;gap:10px;align-items:stretch}
+.public-library-search-row label{flex:1;min-width:0}
+.public-library-search input,.public-library-search select,.public-library-search label{margin:0}
+.public-library-search-row input{width:100%;max-width:none;height:100%}
+.public-library-refine{display:flex;align-items:start;flex-wrap:wrap;gap:12px 16px;margin-top:14px}
+.public-library-refine select{min-height:44px;font-size:14px}
+.public-library-filters{padding:0;margin:0;background:transparent;border:0;box-shadow:none}
+.public-library-filters[open]{order:3;flex:1 0 100%}
+.public-library-filters>summary{display:list-item;border:1px solid var(--line);border-radius:10px;
+padding:10px 14px;min-height:44px;box-sizing:border-box;width:max-content}
+.public-library-filter-fields{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:12px}
+.public-library-filter-fields select{display:block;width:100%}
+.public-library-results{display:flex;align-items:center;gap:12px;margin-left:auto;min-height:44px}
+.public-artwork-library .artwork-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.public-artwork-library .artwork-card{border-radius:16px;padding:12px}
+.public-artwork-library .artwork-media{border-radius:10px;background:#f4f2ea}
+.public-artwork-library .artwork-media .artwork-thumb{box-sizing:border-box;padding:10px}
+.public-artwork-library .artwork-heading,.public-artwork-library .artwork-card>.artwork-meta{
+margin-inline:5px}
+.public-artwork-library .artwork-options{margin-top:4px}
+@media(max-width:760px){.public-artwork-library .artwork-grid{
+grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.public-library-search{padding:12px}
+.public-artwork-library .artwork-card{padding:8px}
+.public-artwork-library .artwork-heading h2{font-size:18px}
+.public-library-filter-fields>*{flex:1 1 140px}}
+@media(max-width:360px){.public-artwork-library .artwork-grid{grid-template-columns:1fr}}
+
 .mobile-header .nav-caption{margin:14px 12px 4px;grid-column:1/-1}
 .mobile-header .owner-nav{padding-bottom:4px}
 input,select,textarea{scroll-margin-top:24px;scroll-margin-bottom:120px}
