@@ -1,6 +1,13 @@
 """A public, printable guide with no private device data."""
 
+from pathlib import Path
+
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
+
 from .ui import page
+
+GUIDE_ASSETS = Path(__file__).with_name("guide_assets")
 
 GUIDE_HTML = """
 <article class="recipient-guide">
@@ -17,6 +24,11 @@ It is already saved on the frame, even if Wi-Fi is unavailable.</p>
 <section class="card" id="buttons"><p class="eyebrow">Everyday controls</p>
 <h2>Press once. Let the picture change.</h2>
 <p>The screen flashes as it refreshes. That is normal. Give it about 30 seconds.</p>
+<figure class="guide-hardware">
+<img src="/guide-media/rear-buttons.webp" width="1536" height="1024" loading="lazy"
+alt="Rear controls, with one green wake button followed by two white picture buttons">
+<figcaption>From the back, left to right: green, previous, next.</figcaption>
+</figure>
 <dl class="guide-controls">
 <div><dt>Left white button</dt><dd>Tap for the previous picture.</dd></div>
 <div><dt>Right white button</dt><dd>Tap for the next picture. With gift mode off,
@@ -60,6 +72,11 @@ or the IP address on the status screen.</li></ol>
 </div></div></section>
 <section class="card" id="power"><p class="eyebrow">Power &amp; charging</p>
 <h2>Charge it. Or leave it plugged in.</h2>
+<figure class="guide-hardware">
+<img src="/guide-media/rear-ports.webp" width="1448" height="1086" loading="lazy"
+alt="Side of the rear housing showing the SD card slot, power switch and USB-C port">
+<figcaption>Left to right in this view: SD card slot, power switch, USB-C.</figcaption>
+</figure>
 <dl class="guide-controls">
 <div><dt>USB-C port</dt><dd>Use a standard USB-C cable and a USB power adapter
 (5 V, 1 A or more). Charge it and unplug, or leave it plugged in.</dd></div>
@@ -82,6 +99,16 @@ website for help reconnecting. A photo of the frame status is useful if you need
 
 
 def install_routes(app):
+    @app.get("/guide-media/{filename}")
+    def guide_media(filename: str):
+        if filename not in {"rear-buttons.webp", "rear-ports.webp"}:
+            raise HTTPException(404, "Guide image unavailable")
+        return FileResponse(
+            GUIDE_ASSETS / filename,
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+
     @app.get("/guide")
     def recipient_guide():
         return page(

@@ -336,6 +336,10 @@ hr{border:0;border-top:1px solid var(--line);margin:24px 0}.danger-zone{border-c
 .guide-steps{padding-left:22px}
 .guide-steps li{margin-bottom:12px;padding-left:4px}
 .guide-note{margin-top:20px}
+.guide-hardware{margin:18px 0 22px}
+.guide-hardware img{display:block;width:100%;height:auto;max-width:680px;
+border-radius:12px}
+.guide-hardware figcaption{margin-top:8px;color:var(--muted);font-size:14px}
 @media(max-width:700px){.guide-management{grid-template-columns:1fr;gap:24px}
 .guide-actions button{margin-left:0}}
 .guide-actions{margin-bottom:24px}
@@ -355,6 +359,7 @@ hr{border:0;border-top:1px solid var(--line);margin:24px 0}.danger-zone{border-c
   .recipient-guide h2{font-size:16pt;margin-bottom:10px}
   .recipient-guide p{margin-bottom:10px}
   .recipient-guide .quiet{color:black}
+  .guide-hardware img{width:auto;max-width:100%;max-height:180px}
 }
 @media(min-width:1440px){main{padding-top:54px}}
 @media(max-width:1000px){.split,.current-next{grid-template-columns:1fr}.sidebar{width:210px}
