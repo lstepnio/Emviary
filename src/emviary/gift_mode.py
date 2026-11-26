@@ -49,11 +49,8 @@ def welcome_image(art_dir, values, output):
     with Image.new("RGB", (800, 480), "white") as canvas:
         draw = ImageDraw.Draw(canvas)
         with Image.open(ASSETS / "chickadee.png") as source:
-            bird = ImageOps.contain(source.convert("RGBA"), (260, 214))
-            canvas.paste(bird, (182 - bird.width // 2, 32 + (214 - bird.height) // 2), bird)
-        with Image.open(ASSETS / "homepage-qr.png") as qr:
-            canvas.paste(qr, (182 - qr.width // 2, 248))
-        draw.text((182, 448), "Scan for Emviary", font=font(16), fill="black", anchor="mt")
+            bird = ImageOps.contain(source.convert("RGBA"), (280, 300))
+            canvas.paste(bird, (45 + (280 - bird.width) // 2, 90 + (300 - bird.height) // 2), bird)
         groups = []
         for text, size, minimum, lines, bold, italic in (
             (values["heading"], 44, 32, 3, True, False),
