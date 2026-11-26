@@ -9,7 +9,7 @@ from test_owner import sign_in
 from emviary.api import create_app
 from emviary.backup_validation import file_digest, verify_backup, write_manifest
 from emviary.diagnostics import parse_metrics
-from emviary.gift_mode import welcome_image
+from emviary.gift_mode import WELCOME_HEADING, welcome_image
 from emviary.store import RevisionConflict
 
 
@@ -126,8 +126,8 @@ def test_gift_owner_csrf_previews_and_calendar_settings_unchanged(
     url = "/manage/frames/" + frame[0] + "/gift"
     data = dict(
         csrf=csrf,
-        heading="For my love, Emily.",
-        message="A little nature, every day.",
+        heading=WELCOME_HEADING,
+        message="",
         signature="Love, Luke",
         first_image_id=str(first["id"]),
     )

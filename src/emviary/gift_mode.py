@@ -16,6 +16,8 @@ from .store import RevisionConflict, stable_json
 
 ASSETS = Path(__file__).with_name("gift_assets")
 MAX_ASSET = 256 * 1024
+WELCOME_HEADING = "A little nature, every day, for my love Emily."
+WELCOME_HEADING_LIMIT = 60
 ACTIVE = {"armed", "ready", "failed", "wrap_pending", "wrapped"}
 
 
@@ -51,10 +53,12 @@ def welcome_image(art_dir, values, output):
             canvas.paste(bird, (45 + (280 - bird.width) // 2, 90 + (300 - bird.height) // 2), bird)
         groups = []
         for text, size, minimum, lines, bold, italic in (
-            (values["heading"], 44, 32, 2, True, False),
+            (values["heading"], 44, 32, 3, True, False),
             (values["message"], 25, 21, 3, False, False),
             (values["signature"], 24, 21, 1, False, True),
         ):
+            if not text:
+                continue
             width = 334 if italic else 360
             while size >= minimum:
                 f = font(size, bold, italic)
@@ -70,15 +74,15 @@ def welcome_image(art_dir, values, output):
                 )
             rows = [(line, draw.textbbox((0, 0), line, font=f)) for line in wrapped]
             height = sum(box[3] - box[1] for _, box in rows) + 12 * (len(rows) - 1)
-            groups.append((f, rows, height))
-        total = sum(height for _, _, height in groups) + 56
+            groups.append((f, rows, height, italic))
+        total = sum(height for _, _, height, _ in groups) + 28 * (len(groups) - 1)
         if total > 320:
             raise ValueError("The dedication needs fewer lines to fit the frame.")
         y = (480 - total) // 2
-        for index, (f, rows, height) in enumerate(groups):
+        for f, rows, _, is_signature in groups:
             for line, box in rows:
                 draw.text((370, y - box[1]), line, font=f, fill="black", stroke_width=0)
-                if index == 2:
+                if is_signature:
                     # A small solid mark survives native six-color conversion and
                     # does not depend on platform emoji fonts or variation selectors.
                     x = round(370 + draw.textlength(line, font=f) + 12)
@@ -180,14 +184,15 @@ class GiftMode:
         return bool(samples and samples[-1]["metrics"].get("gift_version") == 2)
 
     def prepare(self, frame_id, data):
+        message = data.get("message", "").strip()
         values = {
             key: gift_text(data.get(key, ""), limit, label)
             for key, limit, label in (
-                ("heading", 40, "Dedication"),
-                ("message", 80, "Message"),
+                ("heading", WELCOME_HEADING_LIMIT, "Dedication"),
                 ("signature", 30, "Signature"),
             )
         }
+        values["message"] = gift_text(message, 80, "Message") if message else ""
         try:
             image_id = int(data.get("first_image_id", ""))
         except (ValueError, TypeError):

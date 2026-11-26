@@ -8,6 +8,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 
 from .diagnostics import parse_metrics
+from .gift_mode import WELCOME_HEADING, WELCOME_HEADING_LIMIT
 from .showcase import framed_image
 from .store import RevisionConflict, stable_json
 from .trusted_network import record_frame_network
@@ -114,12 +115,19 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
         json.loads(packet["values_json"])
         if packet
         else {
-            "heading": "For my love, Emily.",
-            "message": "A little nature, every day.",
+            "heading": WELCOME_HEADING,
+            "message": "",
             "signature": "Love, Luke",
             "first_image_id": None,
         }
     )
+    if (
+        packet
+        and packet["status"] in {"opened", "cancelled_done"}
+        and values["heading"] == "For my love, Emily."
+        and values["message"] == "A little nature, every day."
+    ):
+        values.update(heading=WELCOME_HEADING, message="")
     if draft_values:
         values.update(
             {k: draft_values[k] for k in ("heading", "message", "signature") if k in draft_values}
@@ -277,8 +285,8 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
         )
         body += '<form method="post" action="' + url + '/prepare">' + hidden(csrf)
         for key, label, maximum in (
-            ("heading", "Dedication", 40),
-            ("message", "Message", 80),
+            ("heading", "Dedication", WELCOME_HEADING_LIMIT),
+            ("message", "Message (optional)", 80),
             ("signature", "Signature", 30),
         ):
             body += (
@@ -286,7 +294,8 @@ def panel(service, frame_id, csrf, escape, hidden, draft_values=None, error=None
                 + label
                 + '<input name="'
                 + key
-                + '" required maxlength="'
+                + ('" required' if key != "message" else '"')
+                + ' maxlength="'
                 + str(maximum)
                 + '" value="'
                 + escape(values[key])
