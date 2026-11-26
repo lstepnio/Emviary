@@ -12,10 +12,11 @@ frame.
 [Firmware](https://github.com/lstepnio/Emviary-firmware)
 
 The product images are AI-assisted renderings based on the finished frame.
-Original reference photographs remain private. Uploaded family pictures and personal
-Special Days appear only on the frame and in signed-in management. The public and management frame
-views use actual composition data beneath a transparent surround; promotional
-pictures are not evidence of a physical panel refresh.
+The homepage shows the last picture sent to the frame selected for sharing,
+including family artwork and personalized Special Days. Original reference
+photographs remain private. The public and management frame views use actual
+composition data beneath a transparent surround. The frame reports successful
+refreshes separately.
 
 ## Battery life is predicted to exceed a year between charges
 

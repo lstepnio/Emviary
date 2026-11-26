@@ -19,12 +19,12 @@ Change it through management. `init-owner` bootstraps a previously uninitialized
 installation and refuses to replace an existing owner password. Keep the mounted `/run/secrets` directory private and writable by UID 1000 so
 management can replace password hashes and provider credentials.
 
-The public root shows the selected frame's last delivered picture when all its
-illustrations belong to the approved public catalog. Owner uploads and personalized
-Special Days stay in management and on the frame, including older compositions,
-daily previews and history. Public examples use the separately curated gallery. Choose the public frame
-in management or hide it. The artwork gallery is at `/library`. Credits and provenance remain in the catalog
-and project documentation; they are not displayed in the app.
+The homepage shows the last picture sent to the frame selected under **Public display**,
+including compositions with uploaded family artwork and personalized Special Days.
+The mirror skips hidden pictures. Clearing the frame selection turns off sharing.
+**Coming up** and **Past compositions** show approved catalog compositions.
+The Special Days gallery contains curated examples. Browse the artwork catalog at
+`/library`. Credits and provenance are in the catalog and project documentation.
 
 The local-controls link opens http://emviary.local, with http://photoframe.local as a fallback. It works on the frame's
 local network while the device is awake; it does not wake the sleeping device.

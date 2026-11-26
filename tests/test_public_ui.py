@@ -15,8 +15,9 @@ def test_public_home_waits_for_delivery_and_never_exposes_frame_settings(service
     service.prepare(frame[0], "2026-10-08", offline=True)
     response = client.get("/")
     assert response.status_code == 200
-    assert "No public picture to show yet" in response.text
+    assert "No public picture to show yet" not in response.text
     assert 'src="/display.jpg"' not in response.text
+    assert client.get("/display.jpg").status_code == 404
     assert frame[0] not in response.text and frame[1] not in response.text
     assert "config_revision" not in response.text and "firmware_timezone" not in response.text
     assert 'href="/library"' in response.text
@@ -117,14 +118,18 @@ def test_public_gallery_exposes_prepared_and_past_images_only_for_public_frame(s
     config["public_frame_id"] = None
     service.save_configuration(config)
     assert client.get(f"/display/images/{ready['id']}.jpg").status_code == 404
+    assert client.get("/display.jpg").status_code == 404
     assert "Coming up" not in client.get("/").text
 
 
 def test_public_gallery_hides_missing_preview_files(service, frame):
     client = public_client(service, frame)
     record = service.prepare(frame[0], "2026-10-08", offline=True)
+    service.store.telemetry(frame[0], None, "test", "", record["body_hash"])
     service.cache_path(record["preview_path"]).unlink()
-    assert "Next button" not in client.get("/").text
+    home = client.get("/").text
+    assert "Next button" not in home and 'src="/display.jpg"' not in home
+    assert client.get("/display.jpg").status_code == 404
     assert client.get(f"/display/images/{record['id']}.jpg").status_code == 404
 
 
@@ -148,7 +153,9 @@ def test_public_gallery_deduplicates_shared_prepared_picture_with_both_roles(ser
     assert f'src="/display/images/{ready["id"]}.jpg"' not in home
 
 
-def test_family_art_is_private_in_plans_delivery_and_history(service, frame, tmp_path, monkeypatch):
+def test_family_picture_appears_on_the_public_frame_after_delivery(
+    service, frame, tmp_path, monkeypatch
+):
     import json
 
     from test_display_history import observe
@@ -181,26 +188,39 @@ def test_family_art_is_private_in_plans_delivery_and_history(service, frame, tmp
     private = service.prepare(fid, "2026-10-09", offline=True)
     plan = json.loads(private["manifest"])
     assert plan["public_display"] is False
-    # A previously rendered photo has no publication field. Its saved provenance still protects it.
-    del plan["public_display"]
-    with service.store.connect() as db:
-        db.execute("UPDATE images SET manifest=? WHERE id=?", (json.dumps(plan), private["id"]))
     path = f"/display/images/{private['id']}.jpg"
     assert public.get(path).status_code == 404
     service.store.telemetry(fid, None, "test", "", private["body_hash"])
-    assert public.get("/display.jpg").status_code == 404
+    expected = service.cache_path(private["preview_path"]).read_bytes()
+    mirror = public.get("/display.jpg")
+    assert mirror.status_code == 200 and mirror.content == expected
+    assert mirror.headers["content-type"] == "image/jpeg"
     home = public.get("/").text
-    assert path not in home and 'src="/display.jpg"' not in home and "Private greeting" not in home
-    assert (
-        owner.get(f"/manage/images/{private['id']}/preview").content
-        == service.cache_path(private["preview_path"]).read_bytes()
-    )
+    assert 'src="/display.jpg"' in home and "Private greeting" not in home
+    assert owner.get(f"/manage/images/{private['id']}/preview").content == expected
+    # Older saved pictures have no publication field.
+    del plan["public_display"]
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET manifest=? WHERE id=?", (json.dumps(plan), private["id"]))
+    assert public.get("/display.jpg").content == expected
     observe(service, frame, private)
     ordinary = service.prepare(fid, "2026-10-08", offline=True, force=True)
     service.store.telemetry(fid, None, "test", "", ordinary["body_hash"])
     assert public.get("/display.jpg").status_code == 200
     assert service.store.past_compositions(fid, ordinary["id"])[0]["id"] == private["id"]
     assert public.get(path).status_code == 404 and path not in public.get("/").text
+
+
+def test_hiding_the_delivered_picture_removes_it_from_the_public_frame(service, frame):
+    client = public_client(service, frame)
+    picture = service.prepare(frame[0], offline=True)
+    service.store.telemetry(frame[0], None, "test", "", picture["body_hash"])
+    assert client.get("/display.jpg").status_code == 200
+    with service.store.connect() as db:
+        db.execute("UPDATE images SET hidden=1 WHERE id=?", (picture["id"],))
+    assert 'src="/display.jpg"' not in client.get("/").text
+    assert client.get("/display.jpg").status_code == 404
+    assert client.get(f"/display/images/{picture['id']}.jpg").status_code == 404
 
 
 def test_publication_checks_every_illustration_and_respects_an_explicit_private_flag(

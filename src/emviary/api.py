@@ -593,7 +593,7 @@ def create_app(service=None, schedule=True):
             description="Explore the birds and artwork from Emviary.",
         )
 
-    from .public_gallery import catalog_keys, gallery_markup, public_records, shareable
+    from .public_gallery import gallery_markup, public_records
     from .public_gallery import install_routes as install_public_gallery
 
     install_public_gallery(app, service)
@@ -616,18 +616,15 @@ def create_app(service=None, schedule=True):
         from .ui import page
 
         records = public_records(service)
-        record = records[0]
-        available = record and service.cache_path(record["preview_path"]).is_file()
+        current, _, _ = records
         body = '<header class="page-header"><p class="eyebrow">On the frame</p>'
         body += "<h1>A little nature, every day, for my love Emily.</h1></header>"
-        if available:
+        if current:
             body += (
                 '<figure class="frame-preview finished-preview">'
                 + framed_image("/display.jpg", "Last picture sent to the frame")
                 + "</figure>"
             )
-        else:
-            body += '<section class="empty-state"><h2>No public picture to show yet.</h2></section>'
         body += showcase_invite()
         body += homepage_invite()
         body += gallery_markup(service, records)
@@ -643,27 +640,6 @@ def create_app(service=None, schedule=True):
             active="frame",
             public=True,
             description="See current, upcoming and past nature compositions from Emviary.",
-        )
-
-    @app.get("/display.jpg")
-    def public_display():
-        identifier = service.settings.config.public_frame_id
-        if not identifier:
-            raise HTTPException(404, "No public display")
-        try:
-            frame = service.store.frame(identifier)
-        except ValueError:
-            raise HTTPException(404, "No public display") from None
-        record = service.delivered_image(frame)
-        if (
-            not shareable(record, catalog=catalog_keys(service))
-            or not service.cache_path(record["preview_path"]).is_file()
-        ):
-            raise HTTPException(404, "Public composition unavailable")
-        return FileResponse(
-            service.cache_path(record["preview_path"]),
-            media_type="image/jpeg",
-            headers={"Cache-Control": "no-store"},
         )
 
     from .owner import attach_owner
