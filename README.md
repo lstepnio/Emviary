@@ -1,8 +1,7 @@
 # Emviary
 
-A nature-art gift built around the reTerminal E1002: Colorado birds, wildlife and
-personal occasions, prepared by one small service and displayed on an e-paper
-frame.
+Emviary is an e-paper picture frame built as a gift. It shows Colorado birds,
+wildlife, and artwork for special occasions on a reTerminal E1002.
 
 ![The finished Emviary frame](src/emviary/showcase_assets/08-dark-studio.webp)
 
@@ -11,42 +10,26 @@ frame.
 [Frame gallery](docs/FRAME_GALLERY.md) ·
 [Firmware](https://github.com/lstepnio/Emviary-firmware)
 
-The product images are AI-assisted renderings based on the finished frame.
-The homepage shows the last picture sent to the frame selected for sharing,
-including family artwork and personalized Special Days. Original reference
-photographs remain private. The public and management frame views use actual
-composition data beneath a transparent surround. The frame reports successful
-refreshes separately.
+The homepage shows the last picture sent to the frame selected for sharing.
+It can include family artwork and personalized Special Days. The product
+gallery uses AI-assisted renderings based on photos of the finished frame.
 
-## Battery life is predicted to exceed a year between charges
+## Battery life
 
-[Read the observations and prediction method](docs/BATTERY_RESULTS.md).
-
-The last picture stays visible even after the battery is empty. Changing it
-requires power. While powered, the frame can rotate available cached pictures
-without a network; new cloud artwork and fresh weather require a connection.
+Early measurements suggest **more than a year between charges**.
+The picture stays visible when the battery runs out. With power, the frame can
+keep cycling through saved pictures even if Wi-Fi drops.
+[Battery results and how we estimated them](docs/BATTERY_RESULTS.md)
 
 ## How it works
 
-One Python service renders reviewed art before the frame wakes. FastAPI serves
-validated, immutable 800 × 480 Spectra 6 EPDGZ files; Pillow and the pinned
-`epaper-image-convert` pipeline handle composition and conversion. SQLite stores
-frame policies, preparation jobs, image history and device reports. Runtime uses
-one application container, not a separate renderer or database container.
+A small Python service picks the artwork, adds local weather when available,
+and prepares the picture before the frame wakes. The frame downloads it,
+refreshes the screen, and goes back to sleep.
 
-The backend owns artwork selection, one-to-three-bird layouts, wildlife slots,
-weather, special days and schedules. The E1002 owns bounded downloads, checked
-panel refresh, local cache/navigation, power management and persistent gift state.
-Regional BirdWeather and optional eBird reports influence eligible species;
-they do not establish that a bird visited the recipient's garden. Open-Meteo
-and NWS supply dated forecast inputs. Missing or stale weather is omitted.
-Normal operation needs no microphone, Raspberry Pi, AI API or paid subscription.
-
-Artwork is reviewed offline. The catalog contains historical plates/cutouts,
-original illustrated birds and wildlife, and private-reference pet portraits.
-Eligibility, exclusions, provenance and per-asset licenses stay with the catalog.
-Prepared previews and downloads remain distinct from device-reported display
-success and owner-observed physical output.
+Regional bird reports help choose what appears. The collection includes
+historical illustrations, original birds and wildlife, and pet portraits.
+The frame runs without an AI service or subscription.
 
 ## Build effort and AI usage
 
@@ -90,33 +73,36 @@ Those pictures skip special occasions and old forecasts. A small battery icon
 appears on the next regular refresh at 25% or below and clears at 28% or when
 external power is detected.
 
-## Owner management and gift preparation
+## Manage the frame
 
-Management covers appearance, special days, artwork/history, battery and device
-health, schedules, saved Wi-Fi and guided USB recovery. Access uses the configured
-owner password or owner OIDC identity. Explicit per-frame trusted-network opt-in
-can recognize a recently authenticated frame's home network; browser traffic
-alone cannot establish trust. See [network access](deployment/TRUSTED_NETWORK_ACCESS.md).
-Public guide and showcase pages contain no private frame configuration.
+Open [Owner management](https://emviary.majjix.com/manage) to change the artwork
+and schedule, set up special days, check the battery, or reconnect the frame to
+Wi-Fi. Sign in with your owner account or use [trusted home access](deployment/TRUSTED_NETWORK_ACCESS.md)
+if you've enabled it.
 
-Gift welcome is an explicit owner action, separate from the calendar and ordinary
-image queue. Preview the dedication and first composition, then choose **Show
-welcome on frame**. Both assets must be staged and verified locally before the
-frame reports the welcome loaded. Check the actual screen, confirm it in management
-and choose **Ready to wrap**. Wait for the frame’s acknowledgment, then switch it
-off. The next power-on reveals the preloaded first artwork offline. Checked
-refresh success commits opened state; the initial art holds for 30 minutes unless
-manually browsed. Cancellation waits for online device acknowledgment before a
-new package can replace it. Gift mode requires the v0.8.16 firmware with gift capability 2
-implementation; published artifacts, installed versions and physical acceptance
-are separate release gates. No gift is armed simply by deploying this source.
+## Set up a gift
 
-[RUNBOOK.md](RUNBOOK.md) is the current owner/operations guide.
-[DEPLOYMENT.md](DEPLOYMENT.md) describes publication, rollout and recovery.
-[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) identifies canonical paths.
-[Research index](research/README.md) separates historical evidence from current use.
+Use firmware that supports opening the gift at power-on. That feature was
+introduced in v0.8.16. Keep the frame on and connected to Wi-Fi during setup.
+
+1. Open **Manage → Appearance → Gift welcome**. Write the welcome message,
+   choose the first picture, and click **Prepare gift preview**.
+2. Review both pictures and click **Show welcome on frame**. Press the
+   **right white button** once to load them onto the frame.
+3. Check that the welcome is actually on the screen. In **Gift welcome**, tick
+   **I can see the welcome on the frame** and click **Ready to wrap**.
+4. Wait for **Ready to wrap** to appear as the frame's status. If the frame went
+   to sleep, press green once and wait for it to finish. Unplug USB-C, switch
+   the frame off, and wrap it. Leave it off until the recipient opens the gift.
+
+When the recipient flips the power switch on, the first picture appears
+automatically, even without Wi-Fi.
+[Gift setup and troubleshooting](RUNBOOK.md#gift-welcome)
 
 ## Local development
+
+Clone the repo with its firmware submodule, install the dependencies, and
+start the service with a local test frame.
 
 ```sh
 git clone --recurse-submodules https://github.com/lstepnio/Emviary.git
@@ -129,13 +115,18 @@ uv run emviary prepare local-e1002 --offline
 uv run emviary serve
 ```
 
-The example config is `deployment/site.example.json`. Override paths with
-`EMVIARY_CONFIG`, `EMVIARY_DATA_DIR`, `EMVIARY_ART_DIR` and `EMVIARY_BACKUP_DIR`.
-For local owner bootstrap, set `EMVIARY_SECRET_DIR` to a private writable directory
-and run `uv run emviary init-owner --password-file .state/provisioning/owner-login.txt`.
-Device endpoints require the frame bearer token. Tokens, Wi-Fi passwords,
-provider keys, provisioning exports and original family/pet photos stay private.
-Never commit them or include them in public diagnostics.
+The service uses the [example configuration](deployment/site.example.json)
+by default. For a local owner login, set `EMVIARY_SECRET_DIR` to a private,
+writable directory and run the command below. See the [runbook](RUNBOOK.md)
+for configuration and recovery.
+
+```sh
+uv run emviary init-owner --password-file .state/provisioning/owner-login.txt
+```
+
+Keep passwords, tokens, provider keys, and original family and pet photos private.
+
+Run the service and browser recovery checks before sending changes.
 
 ```sh
 uv run ruff check src tests tools
@@ -146,24 +137,19 @@ npm test --prefix web-recovery
 npm run build --prefix web-recovery
 ```
 
-Firmware is a separate Git submodule and release workflow. Do not incidentally
-change its pin during service work. Recovery packages must use matching release
-files and preserve NVS/LittleFS. Container publication follows successful source
-checks and produces immutable commit tags/digests. Publication does not deploy
-`one` or install firmware. Before rollout, capture the required verified backup
-with `deployment/backup-before-home-rollout.sh`; change only Emviary.
+See [deployment](DEPLOYMENT.md) for release and backup steps, the
+[project structure](PROJECT_STRUCTURE.md) for where things live, and the
+[research index](research/README.md) for design notes and test results.
 
 ## Artwork and attribution
 
-Original service code is MIT licensed. Artwork retains its individual license,
-including MIT, CC BY-SA, CC BY-NC-SA and public-domain sources; fonts retain OFL
-licenses. Do not treat the service's license as a blanket artwork license.
-See [catalog](art/catalog.json), [Fugleramme credits](art/FUGLERAMME-ATTRIBUTION.md),
-[Colorado source credits](art/COLORADO-ATTRIBUTION.md),
-[original bird provenance](art/provenance/ai-color-cutouts/README.md),
-[wildlife provenance](art/wildlife/README.md) and
-[occasion collection](art/occasions/README.md).
+The service code is MIT licensed. Check the catalog for each artwork's license
+before reusing it. Fonts use the SIL Open Font License.
+[Artwork catalog](art/catalog.json) ·
+[Fugleramme credits](art/FUGLERAMME-ATTRIBUTION.md) ·
+[Colorado source credits](art/COLORADO-ATTRIBUTION.md) ·
+[Original birds](art/provenance/ai-color-cutouts/README.md) ·
+[Wildlife](art/wildlife/README.md) ·
+[Special occasions](art/occasions/README.md)
 
-Emviary was previously named eInkArtifact. The service and firmware repositories
-are public; private operational state remains outside tracked source. Historical
-reports retain their original measurements and acceptance limits.
+Emviary was previously called eInkArtifact.
