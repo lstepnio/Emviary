@@ -512,48 +512,38 @@ visible after power runs out.
 
 ## Gift welcome
 
-Open Appearance, then Gift welcome. Edit the dedication, short message and
-signature; the default is “For my love, Emily.”, “A little nature, every day.”
-and “Love, Luke”. Choose a prepared composition, then Prepare gift preview.
-Review both framed e-ink previews. Weather is removed from the first picture so
-an old forecast cannot appear after wrapping. Preparing does not change the
-calendar, daily schedule or ordinary artwork queue.
+Use firmware that supports opening the gift at power-on. That feature was
+introduced in v0.8.16. Keep the frame on and connected to Wi-Fi during setup.
 
-Show welcome on frame becomes available after gift capability is reported. Press
-right white once while online to load both pictures and show the welcome. Loading
-alone does not enable automatic opening. Charge the frame before the final step.
+1. Open **Manage → Appearance → Gift welcome**. Write the welcome message,
+   choose the first picture, and click **Prepare gift preview**.
+2. Review both pictures and click **Show welcome on frame**. Press the
+   **right white button** once to load them onto the frame.
+3. Check that the welcome is actually on the screen. In **Gift welcome**, tick
+   **I can see the welcome on the frame** and click **Ready to wrap**.
+4. Wait for **Ready to wrap** to appear as the frame's status. If the frame went
+   to sleep, press green once and wait for it to finish. Unplug USB-C, switch
+   the frame off, and wrap it. Leave it off until the recipient opens the gift.
 
-1. Check the welcome on the actual frame.
-2. In Appearance, check “I can see the welcome on the frame” and choose **Ready to wrap**.
-3. Wait until the frame acknowledges **Ready to wrap**, then switch it off and wrap it.
-4. The next power-on reveals the preloaded first picture automatically, even offline.
+When the recipient flips the power switch on, the first picture appears
+automatically, even without Wi-Fi.
 
-This requires firmware v0.8.16 and gift capability 2. During the setup wake the
-frame accepts the final command in a brief bounded online window; this does
-not add a sleeping wake. If it has already slept, press green once and wait for
-the acknowledgment. Do not switch it off while setup is still finishing.
+### Troubleshooting
 
-Once wrapped, keep the frame off until the gift is opened. Software OTA restarts,
-timer wakes, green/deep-sleep wakes and diagnostics preserve the welcome; a real
-power-on opens it. The right white button remains a manual reveal fallback. Both
-pictures and the sealed state persist locally. A failed checked first-picture
-refresh keeps the gift recoverable. The first picture holds for 30 minutes unless
-manually browsed, then normal browsing and the saved schedule continue. There is
-no hold-expiration wake. An offline opening is reported when the frame reconnects.
+- **Setup is unavailable.** Update to firmware with gift capability 2 and let
+  the frame check in. Charge the frame before wrapping.
+- **The recipient needs another way to open the gift.** With the welcome on
+  screen, press the right white button. The first picture stays up for 30 minutes
+  unless the recipient changes it.
+- **Cancel or start over.** Choose **Cancel gift setup** and confirm if prompted.
+  The frame applies the cancellation the next time it connects. Wait for it to
+  finish, then prepare a new preview if you want to show the welcome again.
+  Special Days previews remain available during setup and cancellation.
 
-**Cancel gift setup** requests cancellation on the next online wake. During or
-after sealing, check the confirmation box to cancel the power-on reveal. A form
-from an earlier gift state is rejected. Special Days offers on-screen previews
-while gift setup or cancellation is pending. Cancellation
-cannot remotely change an offline panel. Prepare a new gift package to show
-the welcome again; completed IDs never automatically rearm. Corrupt, incomplete
-or cross-origin downloads cannot arm a gift. The frame stages and validates
-both immutable assets before showing the welcome, and commits opened state
-only after a checked first-picture refresh. Preparation, delivery and actual
-physical display confirmation remain distinct evidence.
-
-Gift files in data/gifts and their database records are included in verified
-backups and offline restore rehearsals. Do not remove them from an armed gift.
+The frame checks both saved pictures before showing the welcome and records the
+gift as opened after a successful screen refresh. If the gift opens offline,
+the frame reports it when it reconnects. Backups include the gift database
+records and files under `data/gifts`. Keep those files while a gift is active.
 
 ## Latest release verification, November 24, 2026
 
