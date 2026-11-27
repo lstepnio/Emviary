@@ -22,7 +22,7 @@ def catalog_keys(service):
 
 
 def shareable(record, *, catalog):
-    """Check the saved composition, including plans made before public_display existed."""
+    """Check upcoming and past compositions, including plans that predate public_display."""
     if not record or record.get("hidden"):
         return False
     try:
@@ -52,17 +52,26 @@ def shareable(record, *, catalog):
     )
 
 
-def public_records(service):
+def public_delivery(service):
+    """Return the selected frame and its last delivered, visible preview."""
     identifier = service.settings.config.public_frame_id
     if not identifier:
-        return None, {}, []
+        return None, None
     try:
         frame = service.store.frame(identifier)
     except ValueError:
+        return None, None
+    current = service.delivered_image(frame)
+    if current and not current["hidden"] and service.cache_path(current["preview_path"]).is_file():
+        return frame, current
+    return frame, None
+
+
+def public_records(service):
+    frame, current = public_delivery(service)
+    if not frame:
         return None, {}, []
     visible = partial(shareable, catalog=catalog_keys(service))
-    current = service.delivered_image(frame)
-    current = current if visible(current) else None
     daily = service.next_daily_refresh(frame)
     preview = daily["preview"]
     preview = {**preview, "preview_url": "/display/next-daily.jpg"} if visible(preview) else None
@@ -72,7 +81,7 @@ def public_records(service):
         "Next button": navigation if visible(navigation) else None,
     }
     past = service.display_history.past(
-        identifier, current["id"] if current else None, 10, include=visible
+        frame["id"], current["id"] if current else None, 10, include=visible
     )
     return current, upcoming, past
 
@@ -169,6 +178,17 @@ def gallery_markup(service, records):
 
 
 def install_routes(app, service):
+    @app.get("/display.jpg")
+    def public_display():
+        _, current = public_delivery(service)
+        if not current:
+            raise HTTPException(404, "Public composition unavailable")
+        return FileResponse(
+            service.cache_path(current["preview_path"]),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
+
     @app.get("/display/next-daily.jpg")
     def daily_composition_preview():
         _, upcoming, _ = public_records(service)
