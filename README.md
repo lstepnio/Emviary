@@ -48,6 +48,26 @@ Eligibility, exclusions, provenance and per-asset licenses stay with the catalog
 Prepared previews and downloads remain distinct from device-reported display
 success and owner-observed physical output.
 
+## Build effort and AI usage
+
+Emviary went from the October 7 design decision to the November 26, 2026 rollout
+in **seven weeks**. Local logs recorded **46 hours of Codex activity across 21
+days** and **298 saved image outputs**, including drafts and variations. The
+build also involved hands-on assembly and testing, for which there is no complete
+time record. [Project timeline](DEPLOYMENT.md#archived-october-7-deployment-specification)
+
+The recorded AI usage is worth **about $325** at published rates, with an estimated
+range of **$300–$355**. That includes about $285 for Codex model usage and $15–$70
+for image generation and edits. Actual charges depend on subscription coverage
+and any additional credits.
+[OpenAI rate card](https://help.openai.com/en/articles/20001415-chatgpt-rate-card-enterprise-token-based-pricing)
+
+A comparable build **without AI**, starting with the same hardware and
+open-source firmware, is estimated at **1,100–1,950 person-hours** or **4–6 months
+for a small team**. At assumed U.S. contractor rates of $100–$145 per hour, that
+works out to roughly **$110,000–$280,000 in labor** for firmware, web and backend
+development, device testing, and comparable custom artwork.
+
 ## Everyday controls
 
 | Control | Behavior |
