@@ -180,7 +180,6 @@ def battery_highlight():
         '<section class="battery-highlight" id="battery" aria-labelledby="battery-heading">'
         '<div><p class="eyebrow">Early battery results</p>'
         '<h2 id="battery-heading">Over a year<br>without charging.</h2></div><div>'
-        "<p>Projected from the battery data so far.</p>"
         "<p>The last picture stays visible when the battery runs out. "
         "If Wi-Fi drops, the frame keeps cycling through saved pictures while it has power.</p>"
         "</div></section>"
