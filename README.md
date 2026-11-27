@@ -70,24 +70,25 @@ development, device testing, and comparable custom artwork.
 
 ## Everyday controls
 
-| Control | Behavior |
+| Control | What it does |
 | --- | --- |
-| Left white, short press | Previous picture; preserves an armed gift welcome |
-| Right white, short press | Next picture, or reveal the locally preloaded first gift artwork |
-| Left white, hold five seconds | Local diagnostics |
-| Green | Local/network wake and return from diagnostics to artwork |
-| USB-C | Power and charging; normal interactive startup fetches once when online |
+| Tap left white | Go back one picture. |
+| Tap right white | Go to the next picture or open the gift if the welcome is showing. |
+| Hold left white for 5 seconds | Show the frame’s status. |
+| Press green | Wake the frame for Wi-Fi and local controls, or leave the status screen. On USB power, it also checks for new pictures. |
+| Plug in USB-C | Power and charge the frame. |
 
-An armed gift welcome guards ordinary boot, timer and USB artwork replacement.
-On battery, green does not mean next picture. E-paper refresh takes time; wait
-for it to finish. Ordinary navigation coalesces pending taps, while gift
-activation/reveal consumes taps that could accidentally skip the first picture.
+**Opening the gift.** Once the frame is ready to wrap, the welcome stays put
+through scheduled updates and charging. Flip the power switch on to reveal the
+first picture, even without Wi-Fi.
 
-Offline cache playback uses weather-neutral ordinary pictures. Special-day art
-is excluded, and the server's exact neutral pixels remove stale forecast text.
-Cached rotation uses the saved schedule while network probes back off. A small
-battery icon appears at 25% or below and clears at 28% or on detected external
-power, only during an ordinary artwork refresh.
+**Changing pictures.** On battery, tap right white to go forward. Press once
+and give the screen about 30 seconds to finish. Flashing during a refresh is normal.
+
+If Wi-Fi drops, the frame can keep rotating saved pictures on its usual schedule.
+Those pictures skip special occasions and old forecasts. A small battery icon
+appears on the next regular refresh at 25% or below and clears at 28% or when
+external power is detected.
 
 ## Owner management and gift preparation
 
